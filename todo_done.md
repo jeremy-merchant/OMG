@@ -52,7 +52,7 @@ The previous TTY board rendered every section as the same framed key/value dump,
 
 **Commit**
 
-- `PENDING_FIRST_COMMIT` — operator surface redesign and verified regressions.
+- `34ac0f1` — operator surface redesign and verified regressions.
 
 **Remaining limitations**
 
@@ -81,7 +81,7 @@ The first full race run exposed a nondeterministic integration-test failure: a f
 
 **Commit**
 
-- `PENDING_FIRST_COMMIT` — test stabilization included with the verified operator redesign.
+- `34ac0f1` — test stabilization included with the verified operator redesign.
 
 **Remaining limitations**
 

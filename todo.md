@@ -57,18 +57,18 @@ The working name `OMG` is explicitly not yet cleared for publication.
 
 ### P0-OSS-2. Create the first trusted Git baseline
 
-**Status:** pending / explicit human authorization required for commit and remote operations
+**Status:** pending / partial local root commit exists; full baseline and remote operations still require separate review
 
 **Problem**
 
-The repository currently has no HEAD commit; every project file is untracked. There is no remote or upstream.
+The repository now has a task-scoped root commit (`34ac0f1`) containing the verified operator-surface paths. Most project files still predate that commit and remain untracked, so a clean clone is not yet a reproducible full source baseline. There is no remote or upstream.
 
 **Next actions**
 
 - Define `.gitignore` and the exact tracked-source set first.
 - Exclude runtime state, local approvals, caches, test binaries, private evidence, and generated local-only files as appropriate.
 - Review the complete initial diff and secret scan.
-- Create the initial commit only after explicit authorization.
+- Review and commit the remaining tracked-source baseline only after separate explicit authorization for those unrelated pre-existing files.
 - Create/configure a remote and push only after separate explicit authorization.
 
 **Done when**
