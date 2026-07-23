@@ -146,7 +146,7 @@ The CLI still assumed a wide terminal even after the first visual redesign. Base
 
 **Commit**
 
-- `PENDING_CLI_POLISH_COMMIT` — width-aware discovery, operational TTY consistency, structured results, and actionable secure-path recovery.
+- `94d707d` — width-aware discovery, operational TTY consistency, structured results, and actionable secure-path recovery.
 
 **Remaining limitations**
 
