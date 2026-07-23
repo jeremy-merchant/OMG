@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "reviewer": "PostFixArchitecture-2",
+  "verdict": "BLOCKED",
+  "reviewed_at_utc": "2026-07-23T03:10:49Z",
+  "scope": [
+    "Accepted architecture decisions in docs/adr/0001-language-and-store.md, docs/adr/0002-daemonless-cli.md, and docs/adr/0003-canonical-state-and-generated-views.md; the requested docs/architecture directory is not present in the current workspace.",
+    "docs/PRODUCT_SPEC.md and docs/ADAPTERS.md",
+    "Dependency direction across cmd/omg, internal/transport, internal/app, internal/domain, internal/ports, internal/platform, internal/store/sqlite, internal/watch, and internal/windowsacl",
+    "CLI/MCP dispatch parity, payload transport placement, Windows DACL sharing, SQLite/migration/restore boundaries, daemonless/local-only behavior, Git observation scope, and generic-core project neutrality"
+  ],
+  "evidence_checked": [
+    {
+      "area": "Dependency direction and composition",
+      "files_symbols": [
+        "cmd/omg/main.go: main",
+        "internal/bootstrap/foundation.go: Foundation, Dispatcher",
+        "internal/ports/ports.go: Store, FoundationStore, StoreResolver, Git",
+        "internal/app/foundation/foundation.go: WithCurrentStore",
+        "internal/store/sqlite/store.go: SQLiteStore, scopedStore"
+      ],
+      "result": "Concrete resolver, Git scanner, and SQLite construction remains in bootstrap/platform/store packages; domain and ports do not import app, transport, platform, bootstrap, SQLite, watch, or renderer packages."
+    },
+    {
+      "area": "CLI/MCP application dispatch parity",
+      "files_symbols": [
+        "internal/transport/cli/cli.go: runApplicationCommand, loadBoard, runMCP",
+        "internal/transport/mcp/server.go: allowedCommands, handleToolCall, validRequest",
+        "internal/app/dispatch.go: ServiceDispatcher.Dispatch",
+        "internal/app/dispatch_lineage.go: dispatchLineage",
+        "internal/app/dispatch_coordination.go: dispatchCoordination",
+        "internal/app/dispatch_recovery.go: dispatchRecovery",
+        "internal/app/dispatch_import.go: dispatchImport"
+      ],
+      "tests_inspected": [
+        "internal/transport/cli/cli_test.go: TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState",
+        "internal/transport/cli/cli_test.go: TestBoardAndStaticExportUseCurrentCanonicalStore",
+        "internal/transport/mcp/server_test.go: typed tool-call, framing, cancellation, and schema tests",
+        "internal/app/dispatch_query_test.go: TestDispatchBoardQueryReturnsCanonicalViewModel"
+      ],
+      "result": "The advertised MCP command variants all route to an explicit application-dispatch branch or the board query branch, and CLI coordination commands use the same dispatcher. The explicit-scope precondition is nevertheless missing for MCP requests, as recorded in finding ARCH-PF-001."
+    },
+    {
+      "area": "Sensitive payload transport",
+      "files_symbols": [
+        "internal/transport/cli/payload_transport.go: loadApplicationPayload, readBoundedPayload",
+        "internal/transport/cli/payload_transport_unix.go: readPrivatePayloadFile",
+        "internal/transport/cli/payload_transport_windows.go: readPrivatePayloadFile",
+        "internal/transport/cli/plan_output_windows.go: validatePrivatePlanParent, validatePrivatePlanDACL"
+      ],
+      "tests_inspected": [
+        "internal/transport/cli/payload_transport_test.go",
+        "internal/transport/cli/payload_transport_unix_test.go",
+        "internal/transport/cli/payload_transport_windows_test.go"
+      ],
+      "result": "Inline/stdin/private-file acquisition and owner-only file checks remain in the CLI transport; application requests receive bounded JSON rather than filesystem handles or transport-specific paths."
+    },
+    {
+      "area": "Shared Windows ACL policy",
+      "files_symbols": [
+        "internal/windowsacl/private_windows.go: IsPrivate",
+        "internal/store/sqlite/path_security_windows.go: validatePrivateDACL",
+        "internal/transport/cli/plan_output_windows.go: validatePrivatePlanDACL",
+        "internal/watch/privacy_windows.go: validatePrivateDACL"
+      ],
+      "tests_inspected": [
+        "internal/windowsacl/private_windows_test.go: TestIsPrivateUsesACESemanticsNotSDDLFormatting",
+        "internal/store/sqlite/path_security_windows_test.go",
+        "internal/transport/cli/payload_transport_windows_test.go",
+        "internal/watch/watch_windows_test.go"
+      ],
+      "result": "SQLite state, sensitive CLI files, and watch state reuse one ACE-semantic private-DACL predicate instead of maintaining three independent authorization policies."
+    },
+    {
+      "area": "SQLite and recovery boundaries",
+      "files_symbols": [
+        "internal/app/foundation/foundation.go: Plan, Backup, Apply, WithCurrentStore",
+        "internal/app/foundation/restore.go: PlanRestore",
+        "internal/store/sqlite/backup_inspection.go: InspectBackup",
+        "internal/store/sqlite/store.go: PlanMigrations, CreateMigrationBackup, ApplyMigrations"
+      ],
+      "tests_inspected": [
+        "internal/app/foundation/restore_test.go: TestPlanRestoreValidatesBackupAndLeavesFreshDestinationUntouched, TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation",
+        "internal/store/sqlite/migration_approval_acceptance_test.go",
+        "internal/store/sqlite/store_test.go: TestOpenReportsPendingWithoutSchemaMutation, TestApprovedMigrationAndFailurePreserveBackup",
+        "internal/store/sqlite/configuration_test.go: TestSQLiteConfiguresForeignKeysBusyTimeoutAndJournalPolicy"
+      ],
+      "result": "Application recovery orchestration depends on ports, concrete SQLite inspection/application stays in the SQLite adapter, pending discovery does not auto-apply, and restore remains plan-only."
+    },
+    {
+      "area": "Daemonless and local-only scope",
+      "files_symbols": [
+        "cmd/omg/main.go: main",
+        "internal/transport/cli/cli.go: runWatch",
+        "internal/watch/watch.go: Engine.Run, NewSystem",
+        "internal/runtime/run.go: Run"
+      ],
+      "tests_inspected": [
+        "internal/watch/watch_test.go: TestStatusStoppedWithoutLease, TestWatchDoesNotUseProcessControlAPIs",
+        "internal/transport/cli/cli_test.go: foreground watch status/run coverage",
+        "internal/runtime/run_test.go: TestRunPreservesExactArgvWithoutShellExpansion"
+      ],
+      "result": "The executable is foreground-only, watch is an optional foreground callback loop over canonical queries, and production Go sources contain no network listener/client dependency."
+    },
+    {
+      "area": "Generic-core neutrality",
+      "files_symbols": [
+        "internal/app/dispatch_import.go: dispatchImport, ImportRecordPayload",
+        "internal/app/importrecord/service.go: Service.Apply",
+        "internal/domain and internal/app production sources"
+      ],
+      "tests_inspected": [
+        "internal/app/dispatch_import_test.go",
+        "internal/app/importrecord/service_test.go"
+      ],
+      "result": "No Pygmalion- or Zoomzi-named production branch, type, import, fixture selector, or conditional was found in Go core/application source; import.record is normalized and project-neutral."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ARCH-PF-001",
+      "priority": "P1",
+      "title": "Require an explicit project on every MCP application request",
+      "evidence": [
+        "internal/transport/mcp/server.go:261-280 validRequest accepts requests with empty project, workspace, and store fields.",
+        "internal/app/dispatch.go:62 constructs foundation.Selection from those possibly empty fields.",
+        "internal/app/foundation/foundation.go:222-227 forwards that empty selection to StoreResolver.",
+        "internal/platform/resolver.go:50-58 substitutes the MCP server process working directory when ProjectPath is empty.",
+        "docs/adr/0002-daemonless-cli.md, Optional MCP adapter, requires explicit project/workspace selection rather than ambient working-directory guessing when an MCP host can address multiple roots."
+      ],
+      "impact": "A syntactically valid mutating MCP request that omits project selection is dispatched against whichever project contains the server process working directory. Because the same MCP server accepts arbitrary request.project values and therefore addresses multiple roots, omission can create tasks, messages, handoffs, reservations, or Git observations in the wrong canonical project instead of failing closed.",
+      "required_fix": "Make the MCP adapter reject application requests without an explicit canonical project selection before dispatch (and advertise that requirement in tools/list), then add a negative test proving an omitted selector never reaches Dispatcher."
+    },
+    {
+      "id": "ARCH-PF-002",
+      "priority": "P2",
+      "title": "Bind Git inventory scans to the selected project root",
+      "evidence": [
+        "internal/app/dispatch_recovery.go:205-220 accepts payload.directory and passes it unchanged to git.Service.Scan while labeling the result with resolved.Project.",
+        "internal/app/git/service.go:121-128 invokes Scanner.Scan with that directory and performs no relationship check between Directory or the returned observation identity and ProjectID.",
+        "internal/platform/git_scanner.go:51-111 runs read-only Git commands in the supplied directory and reports that repository's common directory/top level.",
+        "docs/adr/0003-canonical-state-and-generated-views.md, Canonical data and invariants item 1, requires every record to belong to exactly one resolved project/workspace scope; docs/THREAT_MODEL.md invariant 5 requires filesystem scope to be explicit and validated against its intended root."
+      ],
+      "impact": "Calling git inventory with --project A and a directory in unrelated repository B persists B's worktrees, branches, and classifications as project A's canonical Git snapshot. Subsequent board, cleanup-plan, and adoption queries for A then operate on incorrectly scoped observations.",
+      "required_fix": "Resolve the scan target from the selected project root, or validate the requested directory/observed Git common directory against resolved.ProjectRoot and resolved.GitCommonDir before persistence; cover cross-repository rejection and linked-worktree acceptance."
+    }
+  ],
+  "remaining_risks": [
+    "The requested docs/architecture/*.md path does not exist; this review treated the three accepted docs/adr/*.md records as the current architecture authority.",
+    "Windows-only ACL, payload, SQLite path, and watch tests were inspected but not executed on this Darwin reviewer host; required Windows CI evidence remains necessary.",
+    "The source tree has no Git commit baseline, so git diff and git diff --cached were empty and git log reported no commits; this review therefore covered the current workspace as a whole rather than a commit-relative patch."
+  ],
+  "source_state": "current-workspace-post-fix"
+}

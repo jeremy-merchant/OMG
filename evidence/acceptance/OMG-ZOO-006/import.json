@@ -1,0 +1,8 @@
+{
+  "baseline_clean": true,
+  "baseline_head": "45c637cc84c2407c465905e19d220fe597c04dde",
+  "darwin_arm64_binary_sha256": "070bb358748d980b9e9b32bc558fb3e2df1b1f71fa8351f370ea5e7a2694bd04",
+  "product": "zoomzi",
+  "result": "PASS",
+  "source_archive_sha256": "de4f8c055a652a26e6f20ed822a8fce51920cde1ccc4baf115ad50c3e0537e2a"
+}

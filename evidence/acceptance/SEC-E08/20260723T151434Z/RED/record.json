@@ -1,0 +1,57 @@
+{
+  "acceptance_id": "SEC-E08",
+  "assertion": "Required disposition remains blocked.",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent reviewer must record the required SEC-E08 disposition for this exact candidate hash.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T151434Z",
+  "controlled_rejection": "No criterion-specific independent disposition is asserted.",
+  "overall_status": "PENDING",
+  "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+  "result": "PENDING",
+  "stage": "RED",
+  "phase": "RED",
+  "status": "PENDING",
+  "commands_executed": [
+    {
+      "assertion": "Observed definitive final source archive and Darwin arm64 binary hashes.",
+      "command": "rtk proxy shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+      "exit_code": 0,
+      "observed": {
+        "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+        "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+      }
+    },
+    {
+      "assertion": "Observed exactly 311 source archive members.",
+      "command": "rtk proxy sh -c 'tar -tzf dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz | wc -l'",
+      "exit_code": 0,
+      "observed": {
+        "archive_members": 311
+      }
+    },
+    {
+      "assertion": "Observed final local release status through the Darwin arm64 binary.",
+      "command": "rtk dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 release status --json",
+      "exit_code": 0,
+      "observed": {
+        "status": "NOT PUBLISHED"
+      }
+    },
+    {
+      "assertion": "Offline archive/member inspection was performed; it cannot substitute for required human or legal review.",
+      "command": "functions.eval: Offline archive member inspection",
+      "exit_code": 0,
+      "observed": {
+        "disposition": "INCONCLUSIVE_MANUAL_REVIEW_REQUIRED",
+        "member_count": 311,
+        "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+      }
+    }
+  ]
+}

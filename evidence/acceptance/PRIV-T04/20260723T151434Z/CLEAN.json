@@ -1,0 +1,27 @@
+{
+  "acceptance_id": "PRIV-T04",
+  "assertion": "Focused Go test temporary directories were automatically cleaned; disposable extracted renderer fixture and Windows cross-compile outputs were removed. No source, dist, index, gate, or report artifact was mutated.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T151434Z",
+  "cleanup_code": "C0",
+  "cleanup_verified": true,
+  "phase": "CLEAN",
+  "schema_version": 2,
+  "status": "PENDING",
+  "stage": "CLEAN",
+  "overall_status": "PENDING",
+  "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+  "commands_executed": [
+    {
+      "assertion": "Fresh isolated 0700 extracted-source fixture was removed after offline test execution.",
+      "command": "rtk proxy rm -rf [isolated-fixture]",
+      "exit_code": 0
+    }
+  ]
+}

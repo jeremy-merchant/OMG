@@ -1,0 +1,46 @@
+{
+  "acceptance_id": "OMG-PYG-003",
+  "aggregate_status": "PENDING",
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "disposable_clone_removed": true,
+  "fixture": {
+    "kind": "fresh_local_no_local_disposable_clone",
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "path_redacted": "$DISPOSABLE_CLONE"
+  },
+  "generated_at_utc": "2026-07-23T11:00:47.719083Z",
+  "migration_plan": {
+    "backup_checksum": "11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792",
+    "from_version": 0,
+    "id": "c6c1410aff05b98d6594c84e5b8a945a",
+    "to_version": 8
+  },
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "installation": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "stage_completeness": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

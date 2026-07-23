@@ -1,0 +1,39 @@
+{
+  "assertion": "The CLI negative case failed, but with unavailable rather than the row-specific domain outcome; mapped source-level negative behavior passed.",
+  "blocker": "Current rebuilt candidate returned unavailable/foundation service is unavailable (exit 4) for the disposable daemonless init and follow-on scenario, preventing the required positive CLI observation.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1",
+    "version_command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+    "version_exit_code": 0
+  },
+  "captured_at_utc": "2026-07-23T10:46:32.002373Z",
+  "cli_probe": "captures/disposable-cli-probe.json",
+  "fixture_binding": {
+    "approval_state": "absent; no apply requiring human approval was performed",
+    "cleanup": "fixture removed after probe; no user or external project was modified",
+    "identifier": "omg-ac-012-20260723T104632Z",
+    "kind": "fresh disposable local fixture",
+    "revision": "generated locally"
+  },
+  "mapped_go_tests": {
+    "assertion": "Named mapped Go tests passed against source bound to the current source archive hash.",
+    "command": "rtk go test -v focused mapped packages -run '<mapped named tests>'",
+    "exit_code": 0,
+    "observed_tests": [
+      "TestNativeLineagePersistsWithoutReceiptOrAuditLeakage",
+      "TestLineageResponsesSanitizePresentationFields"
+    ]
+  },
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "row_id": "OMG-AC-012",
+  "stage": "RED",
+  "stage_status": "PENDING",
+  "version_surface": "captures/candidate-version.json"
+}

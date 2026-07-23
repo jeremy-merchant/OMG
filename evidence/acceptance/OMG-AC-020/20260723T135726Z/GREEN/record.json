@@ -1,0 +1,19 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T13:57:26Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "review_record_sha256": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "6bf30d1719de7f37da3e80223d0314910e11307a83a1fa526f648cfa1d5cd2bc",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "publication_state": "NOT PUBLISHED",
+  "stage": "GREEN",
+  "result": "PASS",
+  "assertions": [
+    "code/goal=APPROVE; architecture=CLEAR; QA=PASSED; security/privacy=CLEAR; all remaining_blockers arrays are empty."
+  ],
+  "blockers": []
+}

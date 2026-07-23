@@ -1,0 +1,1 @@
+rtk go test ./internal/platform ./internal/app/handoff -run Test.*(NonGit|Workspace|Project) -count=1

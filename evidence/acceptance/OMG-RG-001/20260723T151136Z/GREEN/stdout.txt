@@ -1,0 +1,1 @@
+{"ok":true,"data":{"version":"v0.1.0-rc.1"},"meta":{"schema_version":1,"command_version":1},"warnings":[]}

@@ -1,0 +1,23 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T13:53:20Z",
+  "result": "PENDING",
+  "five_stage_completeness": true,
+  "stages": {
+    "PIN": "c6877d2c4e4110df4989783a52b1d3b2ef97aba9878aa0d8eb0ffb5b9e107421",
+    "RED": "baffa5a7f5be70c891256fb3a91746c325698287c770e99a7fcce372100b6302",
+    "GREEN": "255aaca77860d9de23b7c329f972d40a99c01653c974cccdcc541e467229c5bb",
+    "SURFACE": "987fdc83316753467070d244917d07392accd5156768d8f47a56efca8bb3f106",
+    "CLEAN": "770c48d4b9d4a3140127d122722ab27a7856a5ad4489411548b96dce88ba8fa0"
+  },
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "review_records": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "eafb1a5cf3886697ad6288d3dbfdbf8b9b0b4959fe98f48c82122fa4cfd43eab",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "command_count": 0,
+  "fixture_removed": true,
+  "freeze": "JSON and five-stage completeness validated before chmod 0444/0555"
+}

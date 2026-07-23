@@ -1,0 +1,72 @@
+{
+  "authorized_next_action": "NONE: locally observable row procedure completed.",
+  "candidate_hashes": {
+    "darwin_amd64_sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "linux_amd64_sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+    "linux_arm64_sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "windows_amd64_sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952"
+  },
+  "five_stages": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "fixture_mode_octal": "0700",
+  "integrity_validation": "SHA-256 recomputation required; listed hashes cover every stage file.",
+  "network_execution": "offline proxy-denial environment",
+  "not_published": true,
+  "observed_platform": "darwin/arm64",
+  "overall_status": "PASS",
+  "recorded_at_utc": "2026-07-23T15:11:37.784523Z",
+  "root_utc": "20260723T151136Z",
+  "row_id": "OMG-PRO-004",
+  "schema_version": 2,
+  "source_archive_files": 255,
+  "source_archive_members": 311,
+  "stage_sha256": {
+    "CLEAN": {
+      "command.txt": "6110f4630ae4b593e901eee9f1098bdc3ccbea1ac9d08f67e2001a106d33d929",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "625d181ae52ef3870446c8617bed02d40b8afa691ab6cf105bf6fa1f2a749f93",
+      "metadata.json": "216c1e31f7d92e57820c86d6e6da78e41defa55b539d4ad6389bb6398f2b738e",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "GREEN": {
+      "command.txt": "533739eb29426e141fa0a8660c7c499557b3dbc6a0e9e7ef78e9585fd74e9cd6",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "e248284d774d7118a57065ee36cb230279c28dcd0a3d0a283aa84f225031cc4c",
+      "metadata.json": "0416869326461d68a9151db63b4a329310816986b80c684f72399d86c930acb9",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "d8dc190d41b90c04d818ddbebbdf4daef029c2fc3c4d4b4801fbe82a4cbdb1f1"
+    },
+    "PIN": {
+      "command.txt": "533739eb29426e141fa0a8660c7c499557b3dbc6a0e9e7ef78e9585fd74e9cd6",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "71a70c8c49eadbff2a54482cdea8e1afe44420df6ae66043389576b3191a08e9",
+      "metadata.json": "47e2ecc5a78fbe34658fa72e46f5e27d18c79eb8e289e7072ec8d5b799adbab7",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "d8dc190d41b90c04d818ddbebbdf4daef029c2fc3c4d4b4801fbe82a4cbdb1f1"
+    },
+    "RED": {
+      "command.txt": "59bad4d1204f7ffdce0c5057b9d1f7d1b5be40e508012e3ce6917b434a6df87f",
+      "exit-code.txt": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d",
+      "expected.txt": "dd110ddc65aadffb49d0a4d457478aec4015870f7ed4cb69935002b00209182e",
+      "metadata.json": "58b0b53f17eb1f8e6f873fa31442eb583d8c0db4fc51747febc91e6dfb8271ac",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "da9a795af8914bfe93c15f0567c99cfd2e0a3ea33677fb936d95ac06a34bd105"
+    },
+    "SURFACE": {
+      "command.txt": "53231816145036e5589d4cee08169c60d815ea9180186a40922465d4ef12a6a6",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "f1382b9ccbb2417c156515024701a7de9f1af46bfebafd28fe443f34ae4ad607",
+      "metadata.json": "f7bf974520e4ee3fe97be94396f1f4fc80b34f56bd636cfa51fe8adc7b7cda6c",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "7bca01f1e7582495d9dade926bf32735cba000f9b87f5b7e7ba83daa03bc63cb"
+    }
+  }
+}

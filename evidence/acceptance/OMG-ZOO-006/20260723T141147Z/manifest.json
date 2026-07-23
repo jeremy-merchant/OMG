@@ -1,0 +1,134 @@
+{
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "cleanup_verified": true,
+  "files": [
+    {
+      "path": "CLEAN/command.txt",
+      "sha256": "96c09c42a7a832372172a291b66dc0c007161983bf6a9634076d244acb0f86d5"
+    },
+    {
+      "path": "CLEAN/exit-code.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "CLEAN/record.json",
+      "sha256": "a960388f6ae2d263db511d719c95d5d7fc2be630e3e14c8df5fab8e3df5b6c2c"
+    },
+    {
+      "path": "CLEAN/stderr.txt",
+      "sha256": "c9ca24989ba3b724b11f122d02ef870671bd3e88947416e6fe4925574b037b94"
+    },
+    {
+      "path": "CLEAN/stdout.txt",
+      "sha256": "45944431c71fdb0bff71d73a796793ff7658e7b4584a26461a9e5bb549fb1456"
+    },
+    {
+      "path": "GREEN/command.txt",
+      "sha256": "d7e4f1a6a9fa6374a34b6156b93e752134abdfc9a5e9a6b8ca9c51f33a71bd09"
+    },
+    {
+      "path": "GREEN/exit-code.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "GREEN/record.json",
+      "sha256": "bdb20a356d64c1a430a86f44b5cf0ef6b9e4fce0ed2c4d1e0188d1f1de118ac0"
+    },
+    {
+      "path": "GREEN/stderr.txt",
+      "sha256": "c9ca24989ba3b724b11f122d02ef870671bd3e88947416e6fe4925574b037b94"
+    },
+    {
+      "path": "GREEN/stdout.txt",
+      "sha256": "cfa3b9196f4f11833499ae3c89f1635eec561981d96a89d05e383db87046dc38"
+    },
+    {
+      "path": "PIN/command.txt",
+      "sha256": "f8bfdb221384146ad06021f2c2fb1d44a05744f6d51fd2b17307d1cd5740ca6f"
+    },
+    {
+      "path": "PIN/exit-code.txt",
+      "sha256": "52f96c26a39ed25108a6db43d6e11c6051eba8a498a5baab1891adfa7ac7c262"
+    },
+    {
+      "path": "PIN/record.json",
+      "sha256": "059fc1ba9d6d4f49f86704d9b43ca65998e44a7ddc2c59a3838107b74674b3be"
+    },
+    {
+      "path": "PIN/stderr.txt",
+      "sha256": "c04e4b180221a707e9afe45560a76aa7a4f588a9d09df797489cfc5b6f7207df"
+    },
+    {
+      "path": "PIN/stdout.txt",
+      "sha256": "11ae14b02a340863875f50643221c49aa7fccd9d6666a08261e19c4b33df7640"
+    },
+    {
+      "path": "RED/command.txt",
+      "sha256": "95a9e186576429598daaac941c60853a1721a82e2f37f042a2ec913d9a4ebba4"
+    },
+    {
+      "path": "RED/exit-code.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "RED/record.json",
+      "sha256": "6b6b2cd9e2cc5670a79e4fd1f26ede13082dc800a99253e0d6cde2e6455f9416"
+    },
+    {
+      "path": "RED/stderr.txt",
+      "sha256": "c9ca24989ba3b724b11f122d02ef870671bd3e88947416e6fe4925574b037b94"
+    },
+    {
+      "path": "RED/stdout.txt",
+      "sha256": "14891940ac7cad21c479cdfe9a2860a2048c84d93d3d41a5d0a3c27a0c96dd2f"
+    },
+    {
+      "path": "SURFACE/command.txt",
+      "sha256": "c8485f579555a11b54c57d56e9c6d38ad831b7e848475347eb0a8ffd8135d14f"
+    },
+    {
+      "path": "SURFACE/exit-code.txt",
+      "sha256": "52f96c26a39ed25108a6db43d6e11c6051eba8a498a5baab1891adfa7ac7c262"
+    },
+    {
+      "path": "SURFACE/record.json",
+      "sha256": "16dd6745f3206b6a2ea3e5e88ca35ca0aeef18273e375a322dae65bf27d9d89f"
+    },
+    {
+      "path": "SURFACE/stderr.txt",
+      "sha256": "c04e4b180221a707e9afe45560a76aa7a4f588a9d09df797489cfc5b6f7207df"
+    },
+    {
+      "path": "SURFACE/stdout.txt",
+      "sha256": "009ff4a114f16a4d6bbece4db986af805dfc85d873130067f6b80b00f416b154"
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "dc1f9e339924b0d937cdb26b63d7148c8267699b80c85b80e76791876a55de02"
+    }
+  ],
+  "five_stages_present": true,
+  "integrity_algorithm": "sha256",
+  "json_validated": true,
+  "next_action": "Exact human approval and current candidate-bound Pygmalion normalized export are required before executing the disposable cross-project comparison.",
+  "overall_status": "PENDING",
+  "reason": "No current Pygmalion normalized canonical-domain export bound to the definitive candidate exists in the immutable Pygmalion evidence; PYG-004 is PENDING pending exact human migration/import apply approval and has no export artifact.",
+  "recorded_at": "2026-07-23T14:11:47.900505Z",
+  "root_timestamp_utc": "20260723T141147Z",
+  "row_id": "OMG-ZOO-006",
+  "stages": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

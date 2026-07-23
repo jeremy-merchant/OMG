@@ -1,0 +1,1 @@
+ok  	example.invalid/coordledger/internal/domain/git	0.619s

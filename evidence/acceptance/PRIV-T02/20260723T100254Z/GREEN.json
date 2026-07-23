@@ -1,0 +1,44 @@
+{
+  "acceptance_id": "PRIV-T02",
+  "blocker": "No current-candidate network-disabled workflow observation is bound to Darwin SHA c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565; prior artifact has a different binary SHA and is not reused.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/view/render.go",
+    "internal/transport/mcp/server.go",
+    "internal/transport/cli/cli.go"
+  ],
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/view -run ^(TestRenderHTMLEscapesAndHasAccessibleStaticDocument)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ],
+      "output": "=== RUN   TestRenderHTMLEscapesAndHasAccessibleStaticDocument\n--- PASS: TestRenderHTMLEscapesAndHasAccessibleStaticDocument (0.00s)\nPASS\nok  \texample.invalid/coordledger/internal/view\t1.480s\n",
+      "private_path_redacted": false
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/transport/cli -run ^(TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState"
+      ],
+      "output": "=== RUN   TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState\n--- PASS: TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState (0.13s)\nPASS\nok  \texample.invalid/coordledger/internal/transport/cli\t1.488s\n",
+      "private_path_redacted": false
+    }
+  ],
+  "phase": "GREEN",
+  "positive_assertion": "Mapped named tests establish the safe behavior on the current source candidate.",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PENDING"
+}

@@ -1,0 +1,65 @@
+{
+  "collaboration": {
+    "ack": 0,
+    "claim": 0,
+    "complete": 0,
+    "delegate_issue": 0,
+    "delegate_register": 0,
+    "deliver": 0,
+    "dependency": 0,
+    "handoff": 0,
+    "human": 0,
+    "message": 0,
+    "owner": 0,
+    "progress": 0,
+    "read": 0,
+    "reservation_conflict": 0,
+    "reservation_owner": 0,
+    "reservation_warnings": [
+      "advisory reservation conflict: res-zoomzi-child (certain)"
+    ],
+    "review_claim": 0,
+    "review_run": 0,
+    "reviewer": 0,
+    "run": 0,
+    "transition": 0
+  },
+  "git": {
+    "adopt": 0,
+    "after_classification": [
+      "active_owned"
+    ],
+    "before_classification": [
+      "dirty_unowned"
+    ],
+    "checkpoint": 0,
+    "cleanup_plan": 0,
+    "final": 0,
+    "first": 0,
+    "interrupt": 0,
+    "stale": 0
+  },
+  "imports": [
+    {
+      "exit": 0,
+      "replay_identical": true,
+      "state": "planned"
+    },
+    {
+      "exit": 0,
+      "replay_identical": true,
+      "state": "active"
+    },
+    {
+      "exit": 0,
+      "replay_identical": true,
+      "state": "blocked"
+    },
+    {
+      "exit": 0,
+      "replay_identical": true,
+      "state": "ambiguous"
+    }
+  ],
+  "result": "PASS"
+}

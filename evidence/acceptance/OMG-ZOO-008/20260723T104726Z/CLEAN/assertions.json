@@ -1,0 +1,6 @@
+{
+  "assertion": "the disposable clone was initialized and its original dirty baseline captured; human approval required for the rehearsal is absent",
+  "criterion": "Rollback and preservation rehearsal",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "status": "PASS"
+}

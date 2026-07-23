@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "reviewer": "PostFixQA-2",
+  "verdict": "PASSED",
+  "reviewed_at_utc": "2026-07-23T03:07:51Z",
+  "scope": [
+    "Current post-fix automated verification and regression-test source for restore planning, migration approval, delegation-token handling, SQLite policy, concurrency, and Windows security boundaries.",
+    "Persisted race, vet, five-target cross-build, native Windows, acceptance-matrix, release-gate, CI configuration, and publication-governance evidence.",
+    "Evidence review only: no full-suite, formatter, linter, build, or source-modifying command was run by this reviewer."
+  ],
+  "evidence_checked": {
+    "automated_local_proof": [
+      {
+        "evidence": "evidence/release/sec-priv-source-test-map.json",
+        "result": "PASS",
+        "details": "The current-workspace-post-fix map records 26 automated security/privacy entries as PASS, a race run of 465 tests across 34 packages, clean go vet, and successful cross-builds for darwin/arm64, darwin/amd64, linux/arm64, linux/amd64, and windows/amd64. Its filesystem modification time is later than every current Go source/test file inspected."
+      },
+      {
+        "evidence": "internal/app/foundation/restore_test.go; internal/store/sqlite/backup_inspection_test.go",
+        "result": "COVERED",
+        "details": "Restore-plan tests validate checksum, integrity, compatibility, absolute distinct paths, a fresh destination, non-mutation of existing/fresh destinations, and fail-closed corrupt or incompatible backup inspection. The map traces these checks to SEC-T15."
+      },
+      {
+        "evidence": "internal/app/lineage/security_test.go; internal/safety/safety_test.go; internal/config/project_test.go; internal/app/foundation/foundation_test.go; internal/app/dependency/service_integration_test.go",
+        "result": "COVERED",
+        "details": "Token tests cover verifier-only persistence, wrong/expired/revoked/reused/wrong-project redemption, a 32-worker one-winner redemption race, fixed-length token detection/redaction including suffixed credentials, and rejection before configuration, foundation-store, resume/adopt, and dependency persistence boundaries. SEC-T06 and SEC-T07 are explicitly mapped to the lineage tests."
+      },
+      {
+        "evidence": "internal/store/sqlite/configuration_test.go; internal/store/sqlite/migration_approval_acceptance_test.go; internal/store/sqlite/store_security_test.go; internal/store/sqlite/scoped_receipts_audit_migration_test.go",
+        "result": "COVERED",
+        "details": "SQLite tests exercise foreign keys, busy timeout, WAL eligibility and DELETE fallback, deterministic bounded and cancelable retries, newer/checksum-divergent schema rejection, absent/mismatched/expired/future approval rejection without mutation, exactly-once approval consumption, replay rejection, failed-apply rollback with retained backup, exact URI-significant backup paths, and the v4-to-v5 receipt/audit migration. SEC-T14, SEC-T15, and SEC-T17 are explicitly mapped."
+      },
+      {
+        "evidence": "internal/store/sqlite/coordination_test.go; internal/app/dependency/service_integration_test.go; internal/app/dependency/replay_integration_test.go",
+        "result": "COVERED",
+        "details": "The source contains observable contention and replay tests for a single claim winner, dependency cycle rejection, criterion-driven unblock, and exactly-once notification/reconciliation. SEC-T16 and acceptance rows OMG-AC-005/006 and OMG-CAP-005/008 describe the corresponding behaviors."
+      }
+    ],
+    "windows_native_proof": [
+      {
+        "evidence": "evidence/release/native-windows/20260723T024125Z/results.json",
+        "result": "SUPERSEDED_PARTIAL",
+        "details": "On native Windows/amd64, windowsacl IsPrivate, SQLite secure-state DACL, and watch ACL/reparse/lock/lease focused tests passed. The same run exposed the then-current migration-plan output failure, so its overall FAIL is retained rather than hidden."
+      },
+      {
+        "evidence": "evidence/release/native-windows/20260723T024823Z/results.json; evidence/release/native-windows/20260723T024823Z/transcript.txt",
+        "result": "PASS_FOCUSED_WITH_EXPECTED_APPROVAL_BLOCK",
+        "details": "The follow-up native build passed focused CLI migration-output, private payload, and non-argv token transport tests; rejected a broad output parent; accepted a private DACL parent; created the plan and backup; and correctly refused migration apply without an approval file."
+      },
+      {
+        "evidence": "evidence/release/native-windows/20260723T025251Z/results.json; evidence/release/native-windows/20260723T025251Z/transcript.txt",
+        "result": "PASS",
+        "details": "The latest native lifecycle passed fresh init, private-parent plan creation, backup, bounded approved migration apply, consumed-approval replay rejection, post-apply doctor integrity, and disposable-fixture cleanup. Coordination read/write smoke was explicitly not run and is not represented as covered by this artifact."
+      }
+    ],
+    "ci_only_limitations": [
+      {
+        "evidence": ".github/workflows/ci.yml",
+        "result": "CONFIGURED_NOT_EXECUTED",
+        "details": "CI defines Ubuntu, macOS, and Windows vet/race/native lifecycle jobs; native smoke runners for all five required OS/architecture pairs; and a separate five-target cross-build matrix. This local repository has no hosted-run result for the exact current source."
+      },
+      {
+        "evidence": "docs/ACCEPTANCE_MATRIX.md; evidence/release/final-gate.json; evidence/release/FINAL_REPORT.md",
+        "result": "PENDING_EXTERNAL",
+        "details": "The matrix correctly labels CI-All/platform-wide assertions separately. The canonical gate still has 49 pending external criteria and publication NOT PUBLISHED. final-gate.json and FINAL_REPORT.md predate the post-fix native evidence and still describe native Windows as wholly pending; they are not evidence that the hosted CI-All gate has passed."
+      }
+    ],
+    "human_gated_items": [
+      {
+        "evidence": "docs/ACCEPTANCE_MATRIX.md",
+        "result": "REMAINS_GATED",
+        "details": "OMG-AC-016 and OMG-CAP-015 keep migration or external restore mutation approval-bound; OMG-AC-020 is reviewer-gated; OMG-AC-021 and OMG-RG-003 keep publication NOT PUBLISHED without explicit authorization; OMG-RG-001/002 retain release, identity, legal, and human gate requirements."
+      },
+      {
+        "evidence": "evidence/release/native-windows/20260723T025251Z/results.json",
+        "result": "BOUNDED_APPROVAL_OBSERVED",
+        "details": "The native migration apply used an explicit approval bounded to the exact plan fields and backup checksum with a ten-minute expiry, and replay was rejected. This disposable-fixture approval does not authorize publication, deployment, or any other external mutation."
+      }
+    ],
+    "acceptance_traceability": [
+      {
+        "evidence": "docs/ACCEPTANCE_MATRIX.md; evidence/release/sec-priv-source-test-map.json",
+        "result": "TRACEABLE",
+        "details": "Stable acceptance rows define PIN/RED/GREEN/SURFACE/CLEAN evidence, platform labels, and human gates. The current source-test map links the reviewed token, recovery, claim-race, migration, and SQLite-policy tests to SEC-T06, SEC-T07, SEC-T14, SEC-T15, SEC-T16, and SEC-T17; the capability ledger independently names the corresponding OMG-CAP behaviors."
+      }
+    ]
+  },
+  "findings": [],
+  "remaining_risks": [
+    "Hosted CI has not executed the exact current source, so CI-All and other platform-wide criteria remain publication blockers even though local QA and the available native Windows fixtures pass their stated scope.",
+    "The latest native lifecycle did not include a coordination read/write smoke; the configured native Windows CI lifecycle and broader hosted suite remain the required proof for that cross-platform path.",
+    "The latest native artifacts are not cryptographically bound to a final current-workspace source archive. Comparison with the 20260723T024823Z native source snapshot found only a behavior-preserving retry-delay extraction in production plus test additions, but exact-source hosted CI and regenerated release evidence remain required before release.",
+    "evidence/release/final-gate.json and evidence/release/FINAL_REPORT.md contain older test totals and pre-fix native-Windows status. They must be regenerated and re-pinned before serving as a final release gate; this QA verdict does not amend or override their NOT PUBLISHED disposition.",
+    "Sixteen independent-review entries in the current security/privacy source-test map were still PENDING_POST_FIX_REVIEW when inspected; this QA artifact satisfies only the QA review assignment and does not stand in for the other required independent reviewers."
+  ],
+  "publication_status": "NOT PUBLISHED",
+  "source_state": "current-workspace-post-fix"
+}

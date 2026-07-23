@@ -1,0 +1,10 @@
+{
+  "hostile_strings_visible_as_text": true,
+  "global_script_marker": null,
+  "script_elements": 0,
+  "image_elements": 0,
+  "javascript_links": 0,
+  "external_stylesheets": 0,
+  "resource_requests": [],
+  "assertion": "hostile markup remained inert text and created no executable or fetch-capable DOM"
+}

@@ -1,0 +1,10 @@
+{
+  "acceptance_id": "OMG-AC-013",
+  "captured_at": "2026-07-22T15:57:48Z",
+  "platform": "darwin/arm64",
+  "browser_surface": "Chromium via cmux",
+  "fixture_generator": "examples/board-preview",
+  "fixture": "deterministic BoardSnapshot containing hostile HTML, script, URL, Markdown, control-boundary, ampersand, and CJK text",
+  "network_monitor": "performance resource observation",
+  "approval_required": false
+}

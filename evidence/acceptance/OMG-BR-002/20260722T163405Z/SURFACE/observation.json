@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-BR-002",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "render_surface": "offline local browser",
+  "reviewed": [
+    "brand/assets/preview-light.svg",
+    "brand/assets/preview-dark.svg",
+    "brand/assets/png/social-preview-1200x630.png"
+  ],
+  "observations": [
+    "light preview renders the primary O-M-G mark, geometric wordmark, English tagline, and high-contrast NOT PUBLISHED banner",
+    "dark preview renders the dark-theme lockup and accent without clipping or overlap",
+    "social preview renders at 1200x630 with stable hierarchy and no external resources",
+    "previews use the new local geometric replacement and do not include the private former K-shaped concept"
+  ],
+  "result": "PASS"
+}

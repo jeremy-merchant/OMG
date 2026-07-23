@@ -1,0 +1,22 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-22T16:47:47Z",
+  "controlled_invalid_cases": [
+    {
+      "case": "missing working-name decision",
+      "observed_errors": ["missing-or-invalid-decision", "missing-owner", "stale-decision-record"],
+      "rejected": true
+    },
+    {
+      "case": "stale identity binding",
+      "observed_errors": ["identity-mismatch"],
+      "rejected": true
+    },
+    {
+      "case": "missing SBOM artifact",
+      "observed_errors": ["missing:sbom.spdx.json"],
+      "rejected": true
+    }
+  ],
+  "result": "PASS"
+}

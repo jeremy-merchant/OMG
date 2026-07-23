@@ -1,0 +1,43 @@
+Native Windows validation transcript (sanitized)
+UTC: 2026-07-23T02:21:59Z
+Host: 192.168.0.2
+
+[baseline] exit 0
+Microsoft Windows NT 10.0.26200.0
+Is64BitOperatingSystem=True
+PowerShell=5.1.26100.8875
+Git=C:\Program Files\Git\cmd\git.exe
+Go=C:\Program Files\Go\bin\go.exe
+
+[transfer]
+Transferred the RC Windows binary, SHA256SUMS, release-manifest.json, and source archive into a fresh disposable remote fixture.
+
+[hash] exit 0
+expected=43d1a0e10d51c4fa03a90f4e8c82e553fb9ed9f33efd1ae3f644d233e32a2952
+actual=43d1a0e10d51c4fa03a90f4e8c82e553fb9ed9f33efd1ae3f644d233e32a2952
+RESULT=PASS
+
+[version] omg-v0.1.0-rc.1-windows-amd64.exe version --json; exit 0
+{"ok":true,"data":{"version":"v0.1.0-rc.1"},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+
+[init] omg-v0.1.0-rc.1-windows-amd64.exe init --project <fixture>\project --json; exit 4
+{"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4}}
+
+[doctor] omg-v0.1.0-rc.1-windows-amd64.exe doctor --project <fixture>\project --integrity --json; exit 0
+{"ok":true,"data":{"pending_migrations":0,"initialized":false},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+
+[focused secure state] go test ./internal/store/sqlite -run TestWindowsSecureStatePath -count=1; exit 1
+--- FAIL: TestWindowsSecureStatePathCreatesPrivateDACL
+    sqlite: state path DACL is not private
+
+[focused migration output] go test ./internal/transport/cli -run TestMigrationPlanOutput -count=1; exit 1
+--- FAIL: TestMigrationPlanOutputCreatesOnlyNewPrivateRegularFile
+    init exit=4: foundation service is unavailable
+--- FAIL: TestMigrationPlanOutputRejectsUnsafeDestinationsWithoutMutation
+    init exit=4: foundation service is unavailable
+
+[focused watch] go test ./internal/watch -run Windows|Lock|Lease|Reparse|ACL -count=1; exit 1
+Windows watch reparse/broad-path scenarios failed at setup: watch state path DACL is not private.
+
+[cleanup] Remove-Item <fixture> -Recurse -Force; Test-Path <fixture>; exit 0
+EXISTS_AFTER_CLEANUP=False

@@ -1,0 +1,23 @@
+{
+  "assertion": "Required native release runner matrix",
+  "blocker": "Native required-runner evidence is absent: macOS amd64, Linux amd64/arm64, and Windows amd64 release-smoke observations must be independently produced; local cross-builds are not native runner evidence.",
+  "candidate_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "candidate_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+  "command": "sh -c go version; shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64; ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "fixture": "disposable fixture removed after run",
+  "hash_binding": {
+    "candidate_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "source_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T10:47:08.316014Z",
+  "root_utc": "20260723T104708Z",
+  "row_id": "OMG-PRO-006",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+  "stage": "PIN",
+  "status": "PENDING"
+}

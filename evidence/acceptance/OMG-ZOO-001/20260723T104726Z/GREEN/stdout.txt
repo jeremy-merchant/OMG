@@ -1,0 +1,1 @@
+binary version output matched the pinned v0.1.0-rc.1 value; SHA-256 matched exactly

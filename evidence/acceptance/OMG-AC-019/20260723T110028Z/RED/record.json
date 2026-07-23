@@ -1,0 +1,18 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "assertion": "manifest candidate.local_only=true, status=NOT PUBLISHED, publication_authorized=false; no publish command run.",
+  "binding": {
+    "command_schema_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "fixture": "fresh disposable state with isolated HOME and explicit XDG config/state",
+    "network": "offline; Linux lifecycle used Docker --network none",
+    "release_manifest_sha256": "13d400d82956227d9aa1f9c109f226aa2a5f6110799f67f4c1cfdb610ad34455",
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198"
+  },
+  "candidate_version": "v0.1.0-rc.1",
+  "captured_at": "2026-07-23T11:00:28Z",
+  "mapped_behavior": "publication remains locked absent authorization",
+  "result": "PASS",
+  "safety": "No approval was invented; no publish, sign, install, remote, original/external project mutation, or external network action occurred.",
+  "stage": "RED"
+}

@@ -1,0 +1,412 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "comment": "Generated from the exact darwin/arm64 RC binary module metadata; the same source and locked module graph build all five local artifacts. NOT PUBLISHED.",
+  "creationInfo": {
+    "created": "2026-07-23T14:58:22Z",
+    "creators": [
+      "Tool: OMG local deterministic SBOM generator",
+      "Tool: Go 1.26.2 go-version-m"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentDescribes": [
+    "SPDXRef-Package-OMG"
+  ],
+  "documentNamespace": "urn:uuid:82c8d6428560578093d052fb9a82cbc6",
+  "name": "OMG v0.1.0-rc.1 binary SBOM",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-OMG",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+        }
+      ],
+      "comment": "Private local candidate; NOT PUBLISHED.",
+      "copyrightText": "Copyright 2026 OMG contributors",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/example.invalid/coordledger@v0.1.0-rc.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "OMG",
+      "primaryPackagePurpose": "APPLICATION",
+      "versionInfo": "v0.1.0-rc.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-dustin-go-humanize",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "1b392163b4f954d8449301f43d52608f3f9f5f5ae106b47ba514f79839297826"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/dustin/go-humanize/@v/v1.0.1.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/dustin/go-humanize@v1.0.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "github.com/dustin/go-humanize",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.0.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-google-uuid",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "348bda24330eb231c0f27d630212d2833ac0cf2d4782bfa136b6f9edefbde05d"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/google/uuid/@v/v1.6.0.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/google/uuid@v1.6.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "github.com/google/uuid",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.6.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-mattn-go-isatty",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "c5f0f4883b842a70e4974deae258a607ebc7f86c4b12d2ff8dbe315494965846"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/mattn/go-isatty/@v/v0.0.20.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/mattn/go-isatty@v0.0.20",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "github.com/mattn/go-isatty",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v0.0.20"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-ncruces-go-strftime",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6d8d0c402dbc5000d098799a179760a4b98899c4a14a2da41d4f572dd871fdfe"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/ncruces/go-strftime/@v/v0.1.9.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/ncruces/go-strftime@v0.1.9",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "github.com/ncruces/go-strftime",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v0.1.9"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-pelletier-go-toml-v2",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "9b27bd5ee850ea0be7e61dbcf958a52abacfa1055a9f0e4f330fd3074b7911ce"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/pelletier/go-toml/v2/@v/v2.2.4.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/pelletier/go-toml/v2@v2.2.4",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "github.com/pelletier/go-toml/v2",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v2.2.4"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-github.com-remyoudompheng-bigfft",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5b4f4854973de2272ae0d8d8ddc95becb93c3b5a89f01741105f33d226d4d2b1"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/github.com/remyoudompheng/bigfft/@v/v0.0.0-20230129092748-24d4a6f8daec.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "github.com/remyoudompheng/bigfft",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v0.0.0-20230129092748-24d4a6f8daec"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang.org-x-exp",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "336ac333acf7161a338bd3bb356b3102483fcaa4bf95027a3e6932215dd83fea"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/golang.org/x/exp/@v/v0.0.0-20250620022241-b7579e27df2b.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/golang.org/x/exp@v0.0.0-20250620022241-b7579e27df2b",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "golang.org/x/exp",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v0.0.0-20250620022241-b7579e27df2b"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang.org-x-sys",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "1f9639b09d8bd8945dcafed1385d617bf94f76f16c7749891c5c364e1287c4b0"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/golang.org/x/sys/@v/v0.34.0.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/golang.org/x/sys@v0.34.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "golang.org/x/sys",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v0.34.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-modernc.org-libc",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "71f09b8d351c76c2b2c9965f11429fa0770fdd2d1692fcf78e04b30721165424"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/modernc.org/libc/@v/v1.66.3.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/modernc.org/libc@v1.66.3",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "modernc.org/libc",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.66.3"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-modernc.org-mathutil",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "18265519775a37c813a81d4c7ffbaca7563f852aa0236bc01863f88d9302c4e5"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/modernc.org/mathutil/@v/v1.7.1.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/modernc.org/mathutil@v1.7.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "modernc.org/mathutil",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.7.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-modernc.org-memory",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a38402f1a310ce673008adeddd4c7f6479b014fcc4ea17f66392db911b3e85b2"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/modernc.org/memory/@v/v1.11.0.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/modernc.org/memory@v1.11.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "modernc.org/memory",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.11.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-modernc.org-sqlite",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "01c96eefeb608e0710552859aa29b8d416f0f42868d32ffb5b3629b57aa411e9"
+        }
+      ],
+      "comment": "Included in the stripped CGO-free RC binary according to `go version -m`; license identifier verified from the downloaded module LICENSE file.",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://proxy.golang.org/modernc.org/sqlite/@v/v1.38.2.zip",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/modernc.org/sqlite@v1.38.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "name": "modernc.org/sqlite",
+      "primaryPackagePurpose": "LIBRARY",
+      "versionInfo": "v1.38.2"
+    }
+  ],
+  "relationships": [
+    {
+      "relatedSpdxElement": "SPDXRef-Package-OMG",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-dustin-go-humanize",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-google-uuid",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-mattn-go-isatty",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-ncruces-go-strftime",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-pelletier-go-toml-v2",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-github.com-remyoudompheng-bigfft",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-golang.org-x-exp",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-golang.org-x-sys",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-modernc.org-libc",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-modernc.org-mathutil",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-modernc.org-memory",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-modernc.org-sqlite",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-OMG"
+    }
+  ],
+  "spdxVersion": "SPDX-2.3"
+}

@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-ZOO-005",
+  "assertion": "Focused parent-loss adoption test passed, but live clone setup requires the separately required migration approval.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "command": "remove disposable clone and isolated HOME only; compare original status fingerprint",
+  "fixture_kind": "fresh disposable Zoomzi copy; path redacted",
+  "fixture_revision": "6425f6bde660abf1d2c188138321bcf3f2c152ac",
+  "missing_proof": null,
+  "recorded_at": "2026-07-23T10:58:45Z",
+  "stage": "CLEAN",
+  "status": "PASS"
+}

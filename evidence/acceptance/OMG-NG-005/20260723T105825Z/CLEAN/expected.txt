@@ -1,0 +1,4 @@
+{
+  "assertion": "Disposable fixture was removed.",
+  "expected_exit_code": 0
+}

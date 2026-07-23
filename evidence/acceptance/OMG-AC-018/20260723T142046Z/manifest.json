@@ -1,0 +1,23 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-23T14:20:46Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "release_manifest_sha256": "3aa5b6490f3c5254dd3072b262213aa445beaad5415876202fe18d61d7bcb3b2",
+  "source_archive_members": 304,
+  "fixture": "fresh /private/tmp root with root/home/config/state/store/cache/project all 0700",
+  "publication_state": "NOT PUBLISHED",
+  "result": "PENDING",
+  "five_stage_completeness": true,
+  "stages": {
+    "PIN": "4882e799336b5fb5c78863c7729546de0b1507ac19ee2ef57e5be33b46e1f58c",
+    "RED": "70e69daa45b303b4aa00570a035164a634075fe6357d602797d897e6b250ce79",
+    "GREEN": "e1e85f4b05661d6233faed243251b4322f67813db56dc5b2bd823088b97148a3",
+    "SURFACE": "4c2d7bf52157fb4a71eff4ce0d56beb1d4b628d580c97e20454c83ae7bb8661f",
+    "CLEAN": "e97c8278acb3e8a956bfb26ab3d27654ac30e7fb646a9062e9536615ac9500ad"
+  },
+  "command_count": 4,
+  "fixture_removed": true,
+  "privacy_scan": "no raw token or private fixture path found",
+  "freeze": "JSON, dual binding in every record, mode/ACL preconditions, stage completeness, and leak scan validated before chmod 0444/0555"
+}

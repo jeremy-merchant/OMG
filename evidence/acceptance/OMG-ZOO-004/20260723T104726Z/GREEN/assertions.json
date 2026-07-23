@@ -1,0 +1,6 @@
+{
+  "assertion": "focused reservation lifecycle test passed; conflict is advisory and deterministic",
+  "criterion": "Controlled wait/overlap coordination",
+  "missing_proof": null,
+  "status": "PASS"
+}

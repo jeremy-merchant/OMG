@@ -1,0 +1,28 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "binding": {
+    "command_schema_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "fixture": "fresh disposable local state",
+    "network": "disabled for Linux container; no external network used",
+    "release_manifest_sha256": "473473eecf73140237c101d5091001ef565a060ceec5f2afdab3ecc523b53a65",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "candidate_version": "v0.1.0-rc.1",
+  "captured_at": "2026-07-23T10:47:33Z",
+  "evidence_policy": "No raw token, private path, approval, publication command, original/external project mutation, or remote operation was performed.",
+  "exact_readme_commands": [
+    "go build -trimpath -o ./bin/omg ./cmd/omg",
+    "./bin/omg version --json",
+    "./bin/omg release status --json",
+    "init, migration plan, backup create, explicit approval-file migration apply, doctor, board all, export html"
+  ],
+  "fixture": "fresh empty disposable project plus extracted archive checkout",
+  "readme_sha256": "fa9573bc22c706c3760d90821153db2f0abb09e74d3361d1d956d853ff6141d1",
+  "result": "PASS",
+  "source_archive": {
+    "members": 292,
+    "sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "stage": "PIN"
+}

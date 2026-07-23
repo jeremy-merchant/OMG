@@ -1,0 +1,1 @@
+rtk proxy go test ./internal/transport/cli -run ^(TestHelpTextAndJSON|TestWriteSuccessNeutralizesTerminalControlsInTypedResults|TestRunVersionJSONUsesStableEnvelope|TestGenericRuntimeWrapperExecutesOnlyExplicitArgv|TestShellInitAndCompletionCommandsEmitStaticScripts)$

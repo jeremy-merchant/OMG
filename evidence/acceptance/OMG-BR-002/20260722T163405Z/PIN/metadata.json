@@ -1,0 +1,18 @@
+{
+  "acceptance_id": "OMG-BR-002",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "platform": "darwin/arm64",
+  "status": "NOT PUBLISHED",
+  "publication_approval_required": true,
+  "preview_sources": {
+    "brand/assets/preview-light.svg": "0b085214f5b32f6b763a5e4824d1841325cf9eb50948eac6f71dd46d8d5adfef",
+    "brand/assets/preview-dark.svg": "972582b3b8f3ccd188155a8de199f5337141bd1328b5c592fabb60f8f92a6c24",
+    "brand/assets/preview-social.svg": "e25d84cb15c78c8d3b2ac7aa60603c4fc39573c0336a885e335a49ca010c42a0"
+  },
+  "preview_rasters": {
+    "brand/assets/png/preview-light-1120x640.png": "5142fdfc1aaac43a03f4291d94fa0bd6c1f50a17fc05b5db10bd442beb7bbf2c",
+    "brand/assets/png/preview-dark-1120x640.png": "d44b6350aca677155119c4eaa7d1af853221119d30e42abf336154d4e5585ebd",
+    "brand/assets/png/social-preview-1200x630.png": "c0cf26c47b881dc201fc370cf356e7ee63d41f9262b38fdbc36227f1f4301bc9"
+  },
+  "legal_clearance": "not granted"
+}

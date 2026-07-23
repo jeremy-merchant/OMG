@@ -1,0 +1,14 @@
+{
+  "landmarks": ["navigation: Board navigation", "banner", "main", "contentinfo"],
+  "heading_structure": "one h1 followed by one h2 for each of nine named regions",
+  "region_names": ["Identity", "Current tasks/runs", "Progress", "Dependencies", "Inbox", "Handoffs", "Reservations", "Git warnings/assets", "Suggested safe actions"],
+  "tables": "each table has an accessible caption and Details column header",
+  "skip_link": {
+    "text": "Skip to board content",
+    "href": "#board",
+    "tab_index": 0,
+    "target": "main#board",
+    "activation_observed": true
+  },
+  "visual_observation": "At a 697px viewport, text wraps within cells, no section overflows horizontally, focus target exists, and dark-theme content remains readable."
+}

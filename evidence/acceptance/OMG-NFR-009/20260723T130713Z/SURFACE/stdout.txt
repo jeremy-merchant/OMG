@@ -1,0 +1,30 @@
+{"ok":true,"data":{"version":"v0.1.0-rc.1"},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+OMG / COORDINATION LEDGER                                           v0.1.0-rc.1
+A local coordination ledger for every coding agent.
+──────────────────────────────────────────────────────────────────────────────
+
+Usage:
+  omg <command> [subcommand] [options]
+
+SETUP + HEALTH
+  init        doctor      preflight    migration    backup      version
+  release
+
+COORDINATION
+  human       session     delegate     checkpoint   task        progress
+  dependency  message     handoff      reserve      receipt
+
+VIEWS + INTEGRATIONS
+  board       export      import       git          integration run
+  shell-init  completion  watch        mcp
+
+COMMON OPTIONS
+  --project <path>       Select a project root
+  --workspace <path>     Select a workspace
+  --store <path>         Use an explicit SQLite store
+  --json                 Emit a stable JSON envelope
+  --payload <json>       Supply a strict command payload
+  --payload-file <path>  Read a strict command payload from a file
+  --payload-stdin        Read a strict command payload from stdin
+
+Reference  docs/COMMAND_REFERENCE.md

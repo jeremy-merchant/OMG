@@ -1,0 +1,1 @@
+{"archive_sha256": "b286e1ab3b2b57573d33efe8aaebd4db8f49c637c736d7a34c6657fc38119539", "external_project_changed": false, "fixture_removed": true, "inventory_matches": true, "procedure": "C1", "restore_path": "<disposable>/restore/fixture", "restore_removed_before_evidence": false}

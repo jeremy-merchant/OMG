@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/transport/cli ./internal/transport/mcp -run 'Test.*(Receipt|Envelope|JSON|MCP)' -count=1

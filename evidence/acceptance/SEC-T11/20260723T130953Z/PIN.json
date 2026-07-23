@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "SEC-T11",
+  "approval_state": "ABSENT; no approval invented.",
+  "assertion": "Both definitive local RC SHA-256 values literally matched the assigned values before focused execution.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T130953Z",
+  "command": "rtk shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "exit_code": 0,
+  "phase": "PIN",
+  "schema_version": 2,
+  "status": "PENDING"
+}

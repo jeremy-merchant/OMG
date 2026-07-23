@@ -1,0 +1,1 @@
+Focused rejection/negative contract test must pass; it verifies the prohibited path is rejected without performing the prohibited operation.

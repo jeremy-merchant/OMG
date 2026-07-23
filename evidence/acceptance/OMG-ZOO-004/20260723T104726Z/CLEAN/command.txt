@@ -1,0 +1,1 @@
+go test ./internal/domain/reservation -run TestReservationLifecycleAndConflict -count=1

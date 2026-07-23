@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-NG-001",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: independent architecture reviewer must confirm no LLM selection/calling path.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "d470ffaeaf5a2ec3b8ec6ffd74fdae8a86d97e1b3417d85d2b6a90499f9e8a7a",
+    "GREEN/record.json": "e3017df52d20351a9f0eeaa3fc5c9349d26401275361377019a577e55415fec2",
+    "PIN/record.json": "3f532bc6b4875f0fb7693c94b91073ea4f0208bdf15e01c71cc1f43d5d89090f",
+    "RED/record.json": "4cee10a05c8520aeaf5a307a3c29315cbb51132010bd889d8d4edff650eff329",
+    "SURFACE/record.json": "c2ebb2d85842fdebefadc90be4992297feffed67e44225774841644b625bff24"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

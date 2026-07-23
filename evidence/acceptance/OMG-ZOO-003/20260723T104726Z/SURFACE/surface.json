@@ -1,0 +1,7 @@
+{
+  "criterion": "Second runtime discovery, duplicate-claim rejection, handoff continuation",
+  "observable": "focused handoff integration tests passed: parent-loss handoff remains queryable and single-target adoption succeeds",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

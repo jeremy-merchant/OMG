@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/transport/cli	2.518s
+ok  	example.invalid/coordledger/internal/transport/mcp	0.267s

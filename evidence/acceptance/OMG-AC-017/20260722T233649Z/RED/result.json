@@ -1,0 +1,12 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-22T23:36:49Z",
+  "case": "execute Windows PE artifact on incompatible Darwin host",
+  "artifact": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-windows-amd64.exe",
+  "command": "<windows-artifact> version --json",
+  "exit_code": 126,
+  "observed": "cannot execute binary file",
+  "safe_failure": true,
+  "mutation_observed": false,
+  "result": "PASS"
+}

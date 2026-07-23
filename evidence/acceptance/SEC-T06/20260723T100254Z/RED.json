@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "SEC-T06",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/app/lineage/service.go",
+    "internal/store/sqlite/coordination.go"
+  ],
+  "negative_assertion": "Named tests directly exercise this row\u2019s mapped hostile, invalid, or misuse input condition.",
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app/lineage -run ^(TestDelegationTokenSecurity)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestDelegationTokenSecurity"
+      ],
+      "output": "=== RUN   TestDelegationTokenSecurity\n--- PASS: TestDelegationTokenSecurity (0.43s)\nPASS\nok  \texample.invalid/coordledger/internal/app/lineage\t1.757s\n",
+      "private_path_redacted": false
+    }
+  ],
+  "phase": "RED",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

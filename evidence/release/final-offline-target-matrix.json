@@ -1,0 +1,196 @@
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-07-23T15:04:12Z",
+  "publication_status": "NOT PUBLISHED",
+  "status": "NATIVE_PLATFORM_PENDING",
+  "status_reason": "Required native Windows runtime evidence is absent; build and PE-header checks are not a substitute for native Windows execution.",
+  "scope": "Current immutable release-candidate artifacts were checked offline. Disposable HOME, project, store, and build fixtures were removed after each check.",
+  "artifact_hashes": {
+    "omg-v0.1.0-rc.1-source.tar.gz": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "omg-v0.1.0-rc.1-darwin-arm64": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "omg-v0.1.0-rc.1-darwin-amd64": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+    "omg-v0.1.0-rc.1-linux-arm64": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+    "omg-v0.1.0-rc.1-linux-amd64": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+    "omg-v0.1.0-rc.1-windows-amd64.exe": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952"
+  },
+  "source_archive": {
+    "artifact": "omg-v0.1.0-rc.1-source.tar.gz",
+    "sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "member_count": 311,
+    "file_count": 255,
+    "checks": [
+      {
+        "command": "shasum -a 256 $ARTIFACT",
+        "exit_code": 0,
+        "observed_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+      },
+      {
+        "command": "tar -tf $ARTIFACT | wc -l",
+        "exit_code": 0,
+        "observed_member_count": 311
+      }
+    ]
+  },
+  "target_workflows": [
+    {
+      "platform": "darwin/arm64",
+      "status": "PASS",
+      "execution_mode": "native Darwin arm64 host execution",
+      "network_enforcement": "sandbox-exec profile: (version 1) (deny network*) (allow default)",
+      "fixture_cleanup": "verified",
+      "checks": [
+        {
+          "name": "artifact SHA-256",
+          "command": "shasum -a 256 $ARTIFACT",
+          "exit_code": 0,
+          "observed_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f"
+        },
+        {
+          "name": "version",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' $ARTIFACT version --json",
+          "exit_code": 0
+        },
+        {
+          "name": "init",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' $ARTIFACT init --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json",
+          "exit_code": 0
+        },
+        {
+          "name": "doctor",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' $ARTIFACT doctor --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json",
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "platform": "darwin/amd64",
+      "status": "PASS_TRANSLATED",
+      "execution_mode": "Rosetta 2 translated execution on a Darwin arm64 host; sysctl.proc_translated returned 1 under arch -x86_64",
+      "network_enforcement": "sandbox-exec profile: (version 1) (deny network*) (allow default)",
+      "fixture_cleanup": "verified",
+      "checks": [
+        {
+          "name": "artifact SHA-256",
+          "command": "shasum -a 256 $ARTIFACT",
+          "exit_code": 0,
+          "observed_sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95"
+        },
+        {
+          "name": "Rosetta translation status",
+          "command": "arch -x86_64 /usr/sbin/sysctl -in sysctl.proc_translated",
+          "exit_code": 0,
+          "observed_value": "1"
+        },
+        {
+          "name": "version",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' arch -x86_64 $ARTIFACT version --json",
+          "exit_code": 0
+        },
+        {
+          "name": "init",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' arch -x86_64 $ARTIFACT init --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json",
+          "exit_code": 0
+        },
+        {
+          "name": "doctor",
+          "command": "HOME=$FIXTURE_HOME sandbox-exec -p '$NETWORK_DENY_PROFILE' arch -x86_64 $ARTIFACT doctor --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json",
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "platform": "linux/arm64",
+      "status": "PASS_CONTAINERIZED",
+      "execution_mode": "Linux arm64 Docker container execution; this is containerized evidence, not a native Darwin-host claim.",
+      "network_enforcement": "Docker --network none",
+      "fixture_cleanup": "verified by trap inside --rm container",
+      "checks": [
+        {
+          "name": "artifact SHA-256",
+          "command": "shasum -a 256 $ARTIFACT",
+          "exit_code": 0,
+          "observed_sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be"
+        },
+        {
+          "name": "version",
+          "command": "docker run --rm --network none --platform linux/arm64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg version --json'",
+          "exit_code": 0
+        },
+        {
+          "name": "init",
+          "command": "docker run --rm --network none --platform linux/arm64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg init --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json'",
+          "exit_code": 0
+        },
+        {
+          "name": "doctor",
+          "command": "docker run --rm --network none --platform linux/arm64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg doctor --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json'",
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "platform": "linux/amd64",
+      "status": "PASS_EMULATED_CONTAINER",
+      "execution_mode": "Linux amd64 Docker container execution requested with --platform linux/amd64 on an arm64 Docker host; it is emulated/containerized evidence, not native amd64 evidence.",
+      "network_enforcement": "Docker --network none",
+      "fixture_cleanup": "verified by trap inside --rm container",
+      "checks": [
+        {
+          "name": "artifact SHA-256",
+          "command": "shasum -a 256 $ARTIFACT",
+          "exit_code": 0,
+          "observed_sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593"
+        },
+        {
+          "name": "version",
+          "command": "docker run --rm --network none --platform linux/amd64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg version --json'",
+          "exit_code": 0
+        },
+        {
+          "name": "init",
+          "command": "docker run --rm --network none --platform linux/amd64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg init --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json'",
+          "exit_code": 0
+        },
+        {
+          "name": "doctor",
+          "command": "docker run --rm --network none --platform linux/amd64 -v $ARTIFACT:/opt/omg:ro alpine:3.20 sh -ceu 'HOME=$FIXTURE_HOME /opt/omg doctor --project $FIXTURE_PROJECT --store $FIXTURE_STORE --json'",
+          "exit_code": 0
+        }
+      ]
+    },
+    {
+      "platform": "windows/amd64",
+      "status": "NATIVE_PLATFORM_PENDING",
+      "execution_mode": "Native Windows runtime was not available on this Darwin host. No Wine, cross-compile, or PE-header result is represented as native execution.",
+      "required_native_runtime": true,
+      "checks": [
+        {
+          "name": "candidate artifact SHA-256",
+          "command": "shasum -a 256 $ARTIFACT",
+          "exit_code": 0,
+          "observed_sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952"
+        },
+        {
+          "name": "offline cross-compile build check",
+          "command": "GOPROXY=off GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -o $FIXTURE_OUTPUT ./cmd/omg",
+          "exit_code": 0,
+          "classification": "build-only; not native runtime evidence"
+        },
+        {
+          "name": "cross-compiled PE header",
+          "command": "file -b $FIXTURE_OUTPUT",
+          "exit_code": 0,
+          "observed_header": "PE32+ executable (console) x86-64, for MS Windows",
+          "classification": "header-only; not native runtime evidence"
+        },
+        {
+          "name": "candidate PE header",
+          "command": "file -b $ARTIFACT",
+          "exit_code": 0,
+          "observed_header": "PE32+ executable (console) x86-64, for MS Windows",
+          "classification": "header-only; not native runtime evidence"
+        }
+      ]
+    }
+  ]
+}

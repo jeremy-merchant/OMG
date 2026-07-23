@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app/git -run ^(TestServiceGitInventoryScanReplayAndQueries|TestCurrentAndCleanupPlanAreReadOnlyAndPreserveAssetMetadata)$",
+      "cwd": "<source-archive>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:13:24.949874Z",
+      "package": "./internal/app/git",
+      "stderr": "",
+      "stdout": "Go test: 2 passed in 1 packages\n",
+      "tests": [
+        "TestServiceGitInventoryScanReplayAndQueries",
+        "TestCurrentAndCleanupPlanAreReadOnlyAndPreserveAssetMetadata"
+      ]
+    }
+  ],
+  "row_id": "OMG-CAP-012",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

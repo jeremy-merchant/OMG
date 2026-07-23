@@ -1,0 +1,47 @@
+{
+  "acceptance_id": "OMG-AC-021",
+  "blocker": "No publication approval exists; publication was not attempted and status is NOT PUBLISHED.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "directories": "0555",
+    "dual_bound_every_record": true,
+    "files": "0444",
+    "json_valid": true,
+    "leak_scan": "PASS",
+    "network_offline": true,
+    "stage_hashes_valid": true
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 2,
+  "result": "PENDING",
+  "root_timestamp_utc": "2026-07-23T15:12:38.535944Z",
+  "row_id": "OMG-AC-021",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  },
+  "stages": {
+    "CLEAN": "51b402036b1b2a09a09384128774624ac4f1cfba4a36a9eaa324fae6b8e4ce36",
+    "GREEN": "5048cb67c4dd22dabaa32174ba88f5cdc18cf6a442770737710983b2c843ed73",
+    "PIN": "cad049b8dedbec444c4e8a4f25145290095c451cc41efcbdc77b92a39888ff33",
+    "RED": "7b57451e1937fff9918dd7a2872223aec901125d8b0c65410561773ac577f54d",
+    "SURFACE": "add6a2b47bf27bee0ed20958bfd4c38765c2e79642a31bbbdaed221e0d688563"
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project <FIXTURE>/project --json",
+    "cwd": "<REPO>",
+    "exit_code": 0,
+    "observed_at_utc": "2026-07-23T14:12:09.999158Z",
+    "stderr": "",
+    "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+  },
+  {
+    "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 export json --project <FIXTURE>/project --output <FIXTURE>/out.json",
+    "cwd": "<REPO>",
+    "exit_code": 4,
+    "observed_at_utc": "2026-07-23T14:12:10.063020Z",
+    "stderr": "",
+    "stdout": "OMG / ERROR \u00b7 unavailable \u00b7 schema migration is required \u00b7 exit=4 \u00b7 retryable=false\n"
+  }
+]

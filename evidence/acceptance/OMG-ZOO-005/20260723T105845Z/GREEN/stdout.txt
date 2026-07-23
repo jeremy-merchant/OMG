@@ -1,0 +1,1 @@
+PENDING: Focused parent-loss adoption test passed, but live clone setup requires the separately required migration approval.

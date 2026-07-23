@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-22T16:47:47Z",
+  "cleanup": {
+    "publication_status": "NOT PUBLISHED",
+    "publish_action_performed": false,
+    "tag_created": false,
+    "remote_created": false,
+    "registry_upload_performed": false,
+    "domain_action_performed": false,
+    "signature_files": 0,
+    "installation_performed": false,
+    "source_archive_excludes_private_gjc_sessions": true,
+    "source_archive_excludes_local_evidence": true
+  },
+  "result": "PASS"
+}

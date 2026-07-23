@@ -1,0 +1,21 @@
+{
+  "acceptance_id": "PRIV-T01",
+  "command_count": 4,
+  "root_timestamp_utc": "20260723T130953Z",
+  "stage_files": {
+    "CLEAN.json": "b3a402edb2dbae059679c1bd686360b579bfbf3708f0fa40ec88eef0b0ca8008",
+    "GREEN.json": "7a7813b6d14857af59f92abec8a76082a23213e0dc4f46cd02c63ca9775d0b71",
+    "PIN.json": "59557516faf32f12d702c40837f8873406abb84bf2622754e5f8d0e3c627d4b4",
+    "RED.json": "b2d027480c2c4dabf3752df2e2509a3f0f380cd9ddb43a5a8d8424391e564070",
+    "SURFACE.json": "341b338ac5a4890939b70874951c953c1ab665f4a1b975e683ed37f86fec7c6c"
+  },
+  "status": "PASS",
+  "validation": {
+    "acceptance_id_consistent": true,
+    "candidate_hashes_consistent": true,
+    "five_stages_complete": true,
+    "json_valid": true,
+    "no_raw_secret_or_private_path": true,
+    "publication_state": "NOT PUBLISHED"
+  }
+}

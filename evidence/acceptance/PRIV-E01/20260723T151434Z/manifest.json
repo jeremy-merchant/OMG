@@ -1,0 +1,34 @@
+{
+  "acceptance_id": "PRIV-E01",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent reviewer must record the required PRIV-E01 disposition for this exact candidate hash.",
+  "candidate_hashes": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+  },
+  "captured_at_utc": "20260723T151434Z",
+  "files": {
+    "PIN/record.json": "2a7abe178220bf1c7a5e7b494b010c9d4815245fc4ffa30eeaca27ba5bba43c7",
+    "RED/record.json": "5b56e0e3d53dc2ebe87e2a806d205b93c5a4d969f274fac0a0729b9141c0b355",
+    "GREEN/record.json": "c5476876a15c66cc2b2faee575cfc5daf9a62cd84863a4b822f50bf47b72772d",
+    "SURFACE/record.json": "8c58c2cf6693c5c3dbd90db7f562f4f16c6d1695b1379c4cc6ed4e7d0e21615a",
+    "CLEAN/record.json": "37e6da6eea6092c706390556a545871daaff6ab65fb6725aacb10ff30d10d4e8"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 2
+}

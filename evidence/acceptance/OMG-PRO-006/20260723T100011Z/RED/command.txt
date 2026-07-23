@@ -1,0 +1,1 @@
+No Windows executable invoked; cross-compilation is not native execution.

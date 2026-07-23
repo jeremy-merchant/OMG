@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-22T23:27:17Z",
+  "steps": [
+    {"step": "go build -trimpath -o ./bin/omg ./cmd/omg", "exit_code": 0},
+    {"step": "version --json", "exit_code": 0, "observed_version": "devel"},
+    {"step": "release status --json", "exit_code": 0, "observed_status": "NOT PUBLISHED"},
+    {"step": "init --project <fresh-project> --json", "exit_code": 0, "pending_migrations": 4},
+    {"step": "migration plan", "exit_code": 0, "from_version": 0, "to_version": 4},
+    {"step": "backup create", "exit_code": 0, "checksum": "11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792"},
+    {"step": "separately approved migration apply", "exit_code": 0, "applied": true},
+    {"step": "doctor --integrity --json", "exit_code": 0, "integrity": true, "pending_migrations": 0},
+    {"step": "board all --format tty", "exit_code": 0, "empty_board": true},
+    {"step": "export html", "exit_code": 0, "sha256": "a5948c67fc289547d1ce5f0f3e1f5378f38a611dd5d1c1debd78aee97f8bccc2"}
+  ],
+  "result": "PASS"
+}

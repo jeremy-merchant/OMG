@@ -1,0 +1,15 @@
+{
+  "acceptance_id": "OMG-AC-014",
+  "captured_at": "2026-07-22T15:50:02Z",
+  "platform": "darwin/arm64",
+  "go_version": "go1.26.2",
+  "binary": {
+    "name": "omg-adapter-example-bin",
+    "sha256": "53151cfddf73b26b29bf1422b51ccd7b1aa34e7dca2361633892bdb74301a770"
+  },
+  "source_revision": null,
+  "source_revision_status": "repository has no HEAD commit",
+  "approval_required": false,
+  "fixture": "disposable temporary directory created by examples/adapter-roundtrip",
+  "watch_started": false
+}

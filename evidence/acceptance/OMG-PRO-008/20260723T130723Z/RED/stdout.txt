@@ -1,0 +1,1 @@
+ok  	example.invalid/coordledger/internal/app	0.323s [no tests to run]

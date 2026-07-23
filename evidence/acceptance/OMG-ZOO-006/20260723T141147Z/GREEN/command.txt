@@ -1,0 +1,1 @@
+rtk python3 -c "import pathlib; root=pathlib.Path('evidence/acceptance'); paths=sorted(p for p in root.glob('OMG-PYG-*/**/*') if p.is_file() and 'export' in p.name.lower()); print('NORMALIZED_EXPORT_COUNT='+str(len(paths))); [print(p) for p in paths]"

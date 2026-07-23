@@ -1,0 +1,21 @@
+{
+  "acceptance_id": "SEC-T02",
+  "command_count": 3,
+  "root_timestamp_utc": "20260723T130953Z",
+  "stage_files": {
+    "CLEAN.json": "c7cc78ba033a8f4feacc0ff8242c10380e776b6a52e4bb7a52c5db301f84a605",
+    "GREEN.json": "08efbe88da4c9d439696457ace999a48a614499f636bc266291b1ba68cd7062e",
+    "PIN.json": "e1f635456ab5355803a6458e158b38cfdfca90f0ab8b4839ca10dc0be7a7cccb",
+    "RED.json": "bdf18e850ed1a60c160808c43e3f4e680f70b66162f4730f496b1158a9c71722",
+    "SURFACE.json": "5c389b21a3ec3162bb0e7ae77823903835395f21ae568b79f340a0ffdab618a8"
+  },
+  "status": "PASS",
+  "validation": {
+    "acceptance_id_consistent": true,
+    "candidate_hashes_consistent": true,
+    "five_stages_complete": true,
+    "json_valid": true,
+    "no_raw_secret_or_private_path": true,
+    "publication_state": "NOT PUBLISHED"
+  }
+}

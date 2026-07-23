@@ -1,0 +1,18 @@
+{
+  "assertion": "Disposable fixture was removed.",
+  "blocker": "",
+  "candidate_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "candidate_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+  "command": "sh -c test ! -e /private/tmp/omg-evidence-omg-pro-004-20260723T104708Z",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T10:47:08.316014Z",
+  "root_utc": "20260723T104708Z",
+  "row_id": "OMG-PRO-004",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+  "stage": "CLEAN",
+  "status": "PASS"
+}

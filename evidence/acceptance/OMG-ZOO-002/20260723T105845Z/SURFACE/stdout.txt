@@ -1,0 +1,1 @@
+PASS: Disposable init created standard OMG project configuration under isolated HOME; adapter configuration remained disposable and project-local.

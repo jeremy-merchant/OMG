@@ -1,0 +1,29 @@
+{
+  "acceptance_id": "OMG-BR-001",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "platform": "darwin/arm64",
+  "status": "NOT PUBLISHED",
+  "publication_approval_required": true,
+  "authoritative_sources": [
+    "brand/BRAND_GUIDE.md",
+    "brand/PROVENANCE.md",
+    "brand/FONT_LICENSES.md",
+    "brand/assets/logo-grid.svg",
+    "brand/assets/logo-primary.svg",
+    "brand/assets/logo-mono.svg",
+    "brand/assets/wordmark.svg",
+    "brand/assets/lockup-horizontal.svg",
+    "brand/assets/lockup-stacked.svg",
+    "brand/assets/favicon.svg"
+  ],
+  "replacement_requirement": "private former K-shaped concept is not shipped or represented as approved",
+  "source_hashes": {
+    "brand/assets/favicon.svg": "5d21772344e064df33c3501eab1aa5396fb915b8f5cb132afb25338335aa3921",
+    "brand/assets/lockup-horizontal.svg": "067d91b4d052b1f665f08aabc7b12e2bfeb677aa5b1ff35ba198dd2e6b18ec65",
+    "brand/assets/lockup-stacked.svg": "7470fe39d28c2be2255cf9a8773278ef4419ebaa19e364abb88cc35591d3c130",
+    "brand/assets/logo-grid.svg": "f24f5aee6b82636e84ab0da238190d5837db6f17c53a168bc3a0916e2282eef7",
+    "brand/assets/logo-mono.svg": "2740acea51e3dbb6dab79d8406c4fbe14783ee5b8f445e3cfcee5872e5710fd1",
+    "brand/assets/logo-primary.svg": "e663f9fed6ba5fc23605c878bec3693a9fee2e8462de56faf7769487e75c7b2d",
+    "brand/assets/wordmark.svg": "92100706b9c89ae71580c568dd223daa41864702d69d7caca43801072f99539e"
+  }
+}

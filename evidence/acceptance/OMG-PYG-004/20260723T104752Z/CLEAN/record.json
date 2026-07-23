@@ -1,0 +1,49 @@
+{
+  "acceptance_id": "OMG-PYG-004",
+  "approval": {
+    "human_acceptance": "PENDING",
+    "migration_apply": "PENDING: no separate human approval file bound to this disposable clone, plan, backup, and UTC window",
+    "proof_authorization": "release manifest records pygmalion_proof_authorized=true"
+  },
+  "assertions": [
+    "disposable clone removed after evidence",
+    "only the disposable clone was removed",
+    "original final HEAD equals original initial HEAD",
+    "original final status observation is empty",
+    "no remote, publication, push, deploy, or installation action was executed"
+  ],
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    "rm -rf $DISPOSABLE_CLONE"
+  ],
+  "criterion_expected": "Approved import is idempotent and ambiguous records are imported_unverified.",
+  "exit_codes": [
+    0
+  ],
+  "fixture": {
+    "initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "kind": "fresh_local_no_local_disposable_clone",
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_final_head_after_cleanup": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "path_redacted": "$DISPOSABLE_CLONE"
+  },
+  "generated_at_utc": "2026-07-23T10:47:52.590486Z",
+  "missing_proof": [],
+  "privacy": {
+    "network_or_remote_action": false,
+    "private_paths_recorded": false,
+    "publication_action": false,
+    "raw_tokens_recorded": false
+  },
+  "result": "PASS",
+  "stage": "CLEAN"
+}

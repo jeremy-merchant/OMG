@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/platform ./internal/app/query -run 'Test.*(Worktree|Git)' -count=1

@@ -1,0 +1,62 @@
+{
+  "aggregate_status": "PENDING",
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "generated_at_utc": "2026-07-23T15:34:07.423347Z",
+  "human_acceptance": "PENDING",
+  "not_published": "NOT PUBLISHED",
+  "prohibitions": {
+    "deployment": false,
+    "installation": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "rollback_rehearsal": false,
+    "schema_apply": false
+  },
+  "proof": "zoomzi",
+  "pygmalion_source_proof": "evidence/project-proofs/pygmalion.json",
+  "row_command_counts": {
+    "OMG-ZOO-001": 3,
+    "OMG-ZOO-002": 5,
+    "OMG-ZOO-003": 5,
+    "OMG-ZOO-004": 5,
+    "OMG-ZOO-005": 5,
+    "OMG-ZOO-006": 5,
+    "OMG-ZOO-007": 5,
+    "OMG-ZOO-008": 5
+  },
+  "row_evidence": {
+    "OMG-ZOO-001": "evidence/acceptance/OMG-ZOO-001/20260723T151827Z",
+    "OMG-ZOO-002": "evidence/acceptance/OMG-ZOO-002/20260723T151725Z",
+    "OMG-ZOO-003": "evidence/acceptance/OMG-ZOO-003/20260723T151729Z",
+    "OMG-ZOO-004": "evidence/acceptance/OMG-ZOO-004/20260723T151733Z",
+    "OMG-ZOO-005": "evidence/acceptance/OMG-ZOO-005/20260723T151737Z",
+    "OMG-ZOO-006": "evidence/acceptance/OMG-ZOO-006/20260723T151741Z",
+    "OMG-ZOO-007": "evidence/acceptance/OMG-ZOO-007/20260723T151745Z",
+    "OMG-ZOO-008": "evidence/acceptance/OMG-ZOO-008/20260723T151748Z"
+  },
+  "row_results": {
+    "OMG-ZOO-001": "PASS",
+    "OMG-ZOO-002": "PENDING",
+    "OMG-ZOO-003": "PENDING",
+    "OMG-ZOO-004": "PENDING",
+    "OMG-ZOO-005": "PENDING",
+    "OMG-ZOO-006": "PENDING",
+    "OMG-ZOO-007": "PENDING",
+    "OMG-ZOO-008": "PENDING"
+  },
+  "source_archive_files_observed": 255,
+  "source_archive_members_observed": 311,
+  "workflow": {
+    "cleanup_verified": true,
+    "fresh_disposable_clone_per_row": true,
+    "isolated_home_per_row": true,
+    "original_fingerprints_preserved": true
+  }
+}

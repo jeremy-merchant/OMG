@@ -1,0 +1,69 @@
+{
+  "artifacts": [
+    {
+      "artifact": "omg-v0.1.0-rc.1-darwin-arm64",
+      "destination": "OPERATOR_MUST_CHOOSE_AN_EXPLICIT_LOCAL_DESTINATION",
+      "goarch": "arm64",
+      "goos": "darwin",
+      "installed_name": "omg",
+      "sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+      "size_bytes": 8554562
+    },
+    {
+      "artifact": "omg-v0.1.0-rc.1-darwin-amd64",
+      "destination": "OPERATOR_MUST_CHOOSE_AN_EXPLICIT_LOCAL_DESTINATION",
+      "goarch": "amd64",
+      "goos": "darwin",
+      "installed_name": "omg",
+      "sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+      "size_bytes": 9049792
+    },
+    {
+      "artifact": "omg-v0.1.0-rc.1-linux-arm64",
+      "destination": "OPERATOR_MUST_CHOOSE_AN_EXPLICIT_LOCAL_DESTINATION",
+      "goarch": "arm64",
+      "goos": "linux",
+      "installed_name": "omg",
+      "sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+      "size_bytes": 8388770
+    },
+    {
+      "artifact": "omg-v0.1.0-rc.1-linux-amd64",
+      "destination": "OPERATOR_MUST_CHOOSE_AN_EXPLICIT_LOCAL_DESTINATION",
+      "goarch": "amd64",
+      "goos": "linux",
+      "installed_name": "omg",
+      "sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+      "size_bytes": 8872098
+    },
+    {
+      "artifact": "omg-v0.1.0-rc.1-windows-amd64.exe",
+      "destination": "OPERATOR_MUST_CHOOSE_AN_EXPLICIT_LOCAL_DESTINATION",
+      "goarch": "amd64",
+      "goos": "windows",
+      "installed_name": "omg.exe",
+      "sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952",
+      "size_bytes": 9149952
+    }
+  ],
+  "installation_action": "No installation was performed by this manifest; it is an operator-reviewed draft only.",
+  "preconditions": [
+    "Select exactly one artifact matching the local OS and architecture.",
+    "Verify its SHA-256 digest against SHA256SUMS before copying.",
+    "Choose an explicit local destination; do not resolve or download any registry package named omg.",
+    "Do not overwrite an existing executable without a separate operator-reviewed backup and rollback plan."
+  ],
+  "schema_version": 1,
+  "status": "DRAFT \u2014 NOT PUBLISHED",
+  "uninstall": "Remove only the exact copied executable after verifying its recorded destination and checksum; preserve .omg state and backups unless a separate retention decision authorizes their removal.",
+  "verification": {
+    "unix": "shasum -a 256 -c SHA256SUMS; ./omg-v0.1.0-rc.1-<os>-<arch> version --json; ./omg-v0.1.0-rc.1-<os>-<arch> release status --json",
+    "windows": "Get-FileHash .\\omg-v0.1.0-rc.1-windows-amd64.exe -Algorithm SHA256; .\\omg-v0.1.0-rc.1-windows-amd64.exe version --json; .\\omg-v0.1.0-rc.1-windows-amd64.exe release status --json"
+  },
+  "version": "v0.1.0-rc.1",
+  "working_name_decision": {
+    "accountable_owner": "kiunlee",
+    "outcome": "retain OMG for private local RC only",
+    "record": "docs/brand/NAME_CLEARANCE.md#private-local-rc-working-name-decision"
+  }
+}

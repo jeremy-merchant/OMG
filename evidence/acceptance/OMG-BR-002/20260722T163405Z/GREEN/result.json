@@ -1,0 +1,18 @@
+{
+  "acceptance_id": "OMG-BR-002",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "checks": {
+    "light_preview_xml_valid": true,
+    "dark_preview_xml_valid": true,
+    "social_preview_xml_valid": true,
+    "visible_not_published_banner_each": true,
+    "script_image_filter_gradient_mask_count": 0,
+    "light_png_dimensions": [1120, 640],
+    "dark_png_dimensions": [1120, 640],
+    "social_png_dimensions": [1200, 630],
+    "light_theme_minimum_contrast": 5.1686,
+    "dark_theme_minimum_contrast": 4.8540,
+    "status_banner_contrast": 8.3101
+  },
+  "result": "PASS"
+}

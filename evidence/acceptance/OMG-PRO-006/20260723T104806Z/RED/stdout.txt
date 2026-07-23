@@ -1,0 +1,1 @@
+{"ok":false,"error":{"code":"invalid_argument","message":"unsupported command argument","retryable":false,"exit_code":2},"meta":{"schema_version":1,"command_version":1},"warnings":[]}

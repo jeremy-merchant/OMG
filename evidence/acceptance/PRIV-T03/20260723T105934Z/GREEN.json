@@ -1,0 +1,50 @@
+{
+  "acceptance_id": "PRIV-T03",
+  "blocker": null,
+  "candidate": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T105934Z",
+  "isolated_candidate_workflow": {
+    "assertions": [
+      "valid JSON envelope",
+      "private explicit store created",
+      "disposable root removed"
+    ],
+    "command": "HOME=<isolated-private-home> rtk dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project <disposable-project> --store <disposable-private-store> --json",
+    "exit_code": 0
+  },
+  "mapped_sources": [
+    "internal/view/render.go",
+    "internal/safety/safety.go"
+  ],
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/view -run '^(TestAllRenderersExposeADR0003MetadataAndGitAdvisory|TestRenderHTMLEscapesAndHasAccessibleStaticDocument)$'",
+      "exit_code": 0,
+      "named_tests": [
+        "TestAllRenderersExposeADR0003MetadataAndGitAdvisory",
+        "TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ]
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app/query -run '^(TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields)$'",
+      "exit_code": 0,
+      "named_tests": [
+        "TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields"
+      ]
+    }
+  ],
+  "phase": "GREEN",
+  "positive_assertion": "Mapped focused tests and current disposable candidate workflow establish the safe automated behavior.",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

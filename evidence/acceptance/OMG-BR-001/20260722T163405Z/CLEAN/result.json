@@ -1,0 +1,12 @@
+{
+  "acceptance_id": "OMG-BR-001",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "cleanup": {
+    "repository_test_fixtures_created": false,
+    "external_source_artwork_added": false,
+    "image_model_output_added": false,
+    "embedded_raster_in_svg": false,
+    "publish_or_release_action_performed": false
+  },
+  "result": "PASS"
+}

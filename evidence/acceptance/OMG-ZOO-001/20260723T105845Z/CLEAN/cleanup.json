@@ -1,0 +1,10 @@
+{
+  "disposable_clone_removed": true,
+  "isolated_home_removed": true,
+  "original_mutated": false,
+  "original_status_fingerprint_after": "d960b183bb375e14128cbb41b9576dda607b6e664d68df4c966416c783a78dfe",
+  "original_status_fingerprint_before": "d960b183bb375e14128cbb41b9576dda607b6e664d68df4c966416c783a78dfe",
+  "private_paths_redacted": true,
+  "remote_or_publication_action": false,
+  "status": "PASS"
+}

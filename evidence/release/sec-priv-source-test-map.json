@@ -1,0 +1,604 @@
+{
+  "entries": [
+    {
+      "id": "SEC-T01",
+      "kind": "automated",
+      "sources": [
+        "internal/domain/coordination/coordination.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/domain/coordination::TestRestrictedActionsAreUnconditionallyDeniedForUntrustedOrigins",
+        "./internal/domain/coordination::TestEveryMessageTypeAndRecipientACKLifecycle"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T02",
+      "kind": "automated",
+      "sources": [
+        "internal/runtime/run.go",
+        "internal/view/render.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/runtime::TestRunPreservesExactArgvWithoutShellExpansion",
+        "./internal/view::TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T03",
+      "kind": "automated",
+      "sources": [
+        "internal/platform/git_scanner.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/platform::TestGitScannerFakeRunnerUsesOnlyFixedReadOnlyArgv",
+        "./internal/platform::TestGitScannerEnvironmentAndOutputCapAreSafe"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T04",
+      "kind": "automated",
+      "sources": [
+        "internal/safety/safety.go",
+        "internal/app/query/service.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/query::TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields",
+        "./internal/app/query::TestBoardQueryRedactsSeededLegacyDelegationToken"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T05",
+      "kind": "automated",
+      "sources": [
+        "internal/safety/safety.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/safety::TestRejectDelegationTokenDetectsFixedLengthCredentialSubstrings",
+        "./internal/safety::TestRejectDelegationTokenPermitsInvalidLookalikes",
+        "./internal/safety::TestRedactDelegationTokenReplacesEachFixedLengthCredentialSubstring"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T06",
+      "kind": "automated",
+      "sources": [
+        "internal/app/lineage/service.go",
+        "internal/store/sqlite/coordination.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/lineage::TestDelegationTokenSecurity"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T07",
+      "kind": "automated",
+      "sources": [
+        "internal/app/lineage/service.go",
+        "internal/store/sqlite/coordination.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/lineage::TestDelegationTokenSecurity",
+        "./internal/app/lineage::TestDelegationTokenConcurrentRedemptionHasOneWinner"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T08",
+      "kind": "automated",
+      "sources": [
+        "internal/transport/cli/payload_transport.go",
+        "internal/transport/cli/payload_transport_unix.go",
+        "internal/transport/cli/payload_transport_windows.go",
+        "internal/windowsacl/private_windows.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/transport/cli::TestDelegationRegistrationRequiresNonArgvPayloadTransport",
+        "./internal/transport/cli::TestReadPrivatePayloadFileUnixSecurityBoundary",
+        "./internal/transport/cli::TestReadPrivatePayloadFileWindowsSecurityBoundary"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T09",
+      "kind": "automated",
+      "sources": [
+        "internal/integration/instructions/surface.go",
+        "internal/platform/resolver.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/integration/instructions::TestRejectsMalformedAndUnsafeInputsWithoutMutation",
+        "./internal/platform::TestResolveCanonicalizesSymlinkedProjectRoots",
+        "./internal/platform::TestResolveNonGitIDIsStable"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T10",
+      "kind": "automated",
+      "sources": [
+        "internal/store/sqlite/path_security_unix.go",
+        "internal/store/sqlite/path_security_windows.go",
+        "internal/transport/cli/plan_output.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/store/sqlite::TestOpenSecuresManagedStateAndRejectsUnsafeFinalPath",
+        "./internal/store/sqlite::TestUnixSecureStatePathRejectsSpecialAncestor",
+        "./internal/store/sqlite::TestWindowsSecureStatePathRejectsReparseAncestorForExistingManagedDirectory",
+        "./internal/transport/cli::TestMigrationPlanOutputRejectsFIFOWithoutMutation"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T11",
+      "kind": "automated",
+      "sources": [
+        "internal/store/sqlite/path_security_unix.go",
+        "internal/store/sqlite/path_security_windows.go",
+        "internal/windowsacl/private_windows.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/store/sqlite::TestOpenSecuresManagedStateWithPrivatePOSIXModes",
+        "./internal/store/sqlite::TestWindowsSecureStatePathCreatesPrivateDACL",
+        "./internal/windowsacl::TestIsPrivateUsesACESemanticsNotSDDLFormatting"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T12",
+      "kind": "automated",
+      "sources": [
+        "internal/view/render.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/view::TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T13",
+      "kind": "automated",
+      "sources": [
+        "internal/app/importrecord/service.go",
+        "internal/app/dispatch_import.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app::TestDispatchImportRejectsUnknownPayloadFields",
+        "./internal/app::TestDispatchImportValidatesSourceState",
+        "./internal/app/importrecord::TestApplyAmbiguousIsImportedUnverified",
+        "./internal/app/importrecord::TestApplyCreatesCanonicalRecordsAndReplaysIdempotently"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T14",
+      "kind": "automated",
+      "sources": [
+        "internal/store/sqlite/store.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/store/sqlite::TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup",
+        "./internal/store/sqlite::TestApprovedMigrationAndFailurePreserveBackup"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T15",
+      "kind": "automated",
+      "sources": [
+        "internal/app/foundation/restore.go",
+        "internal/store/sqlite/backup_inspection.go",
+        "internal/store/sqlite/store.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/foundation::TestPlanRestoreValidatesBackupAndLeavesFreshDestinationUntouched",
+        "./internal/app/foundation::TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation",
+        "./internal/store/sqlite::TestInspectBackupValidatesChecksumIntegrityAndSchema",
+        "./internal/store/sqlite::TestSQLiteRejectsNewerAndChecksumDivergentSchemaState"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T16",
+      "kind": "automated",
+      "sources": [
+        "internal/store/sqlite/coordination.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/store/sqlite::TestCoordinationClaimRaceHasOneWinner"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T17",
+      "kind": "automated",
+      "sources": [
+        "internal/store/sqlite/store.go",
+        "internal/store/sqlite/backup_inspection.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/store/sqlite::TestSQLiteConfiguresForeignKeysBusyTimeoutAndJournalPolicy",
+        "./internal/store/sqlite::TestSQLiteRetryPolicyIsDeterministicBoundedAndCancelable",
+        "./internal/store/sqlite::TestConcurrentShortWritesRemainConsistent",
+        "./internal/store/sqlite::TestInspectBackupValidatesChecksumIntegrityAndSchema"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T18",
+      "kind": "automated",
+      "sources": [
+        "internal/watch/watch.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/watch::TestStatusDoesNotTreatReusedPIDAsActive",
+        "./internal/watch::TestStatusMarksExpiredLeaseStale",
+        "./internal/watch::TestStatusFailsClosedForCorruptOrOversizeLease"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T19",
+      "kind": "automated",
+      "sources": [
+        "internal/transport/mcp/server.go",
+        "internal/transport/cli/payload_transport.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/transport/mcp::TestServeBoundsFramesAndStructuredOutput",
+        "./internal/transport/mcp::TestServeSerializesApplicationErrorsWithoutCLIOutput",
+        "./internal/transport/cli::TestDelegationRegistrationRequiresNonArgvPayloadTransport"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T20",
+      "kind": "automated",
+      "sources": [
+        "internal/transport/cli/cli.go",
+        "internal/transport/mcp/server.go",
+        "internal/app/dispatch.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/transport/cli::TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "SEC-T21",
+      "kind": "automated",
+      "sources": [
+        "internal/domain/coordination/coordination.go",
+        "internal/app/git/service.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/domain/coordination::TestRestrictedActionsAreUnconditionallyDeniedForUntrustedOrigins",
+        "./internal/app::TestDispatchRecoveryGitCleanupPlanIsAdvisoryAndDoesNotScan",
+        "./internal/git::TestCleanupPlanIsCandidateOnlyAndBlocksUncertainAssets"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "PRIV-T01",
+      "kind": "automated",
+      "sources": [
+        "internal/safety/safety.go",
+        "internal/app/query/service.go",
+        "internal/view/render.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/query::TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields",
+        "./internal/app::TestDispatchCoordinationQueryDoesNotLeakMessageBody",
+        "./internal/app/lineage::TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "PRIV-T02",
+      "kind": "automated",
+      "sources": [
+        "internal/view/render.go",
+        "internal/transport/mcp/server.go",
+        "internal/transport/cli/cli.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/view::TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+        "./internal/transport/cli::TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "PRIV-T03",
+      "kind": "automated",
+      "sources": [
+        "internal/view/render.go",
+        "internal/safety/safety.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/view::TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+        "./internal/view::TestAllRenderersExposeADR0003MetadataAndGitAdvisory",
+        "./internal/app/query::TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "PRIV-T04",
+      "kind": "automated",
+      "sources": [
+        "internal/transport/cli/payload_transport.go",
+        "internal/transport/cli/payload_transport_unix.go",
+        "internal/transport/cli/payload_transport_windows.go",
+        "internal/app/lineage/service.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/transport/cli::TestDelegationRegistrationRequiresNonArgvPayloadTransport",
+        "./internal/transport/cli::TestReadPrivatePayloadFileUnixSecurityBoundary",
+        "./internal/transport/cli::TestReadPrivatePayloadFileWindowsSecurityBoundary",
+        "./internal/app/lineage::TestDelegationTokenSecurity"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "id": "PRIV-T05",
+      "kind": "automated",
+      "sources": [
+        "internal/app/foundation/restore.go",
+        "internal/store/sqlite/store.go",
+        "internal/store/sqlite/backup_inspection.go"
+      ],
+      "status": "PASS",
+      "tests": [
+        "./internal/app/foundation::TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation",
+        "./internal/store/sqlite::TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup",
+        "./internal/store/sqlite::TestInspectBackupValidatesChecksumIntegrityAndSchema"
+      ],
+      "verification": "rtk go test -race -count=1 ./... => 465 passed in 34 packages"
+    },
+    {
+      "covers": [
+        "SEC-T01",
+        "SEC-T02"
+      ],
+      "id": "SEC-E01",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T03"
+      ],
+      "id": "SEC-E02",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T06",
+        "SEC-T07"
+      ],
+      "id": "SEC-E03",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T08"
+      ],
+      "id": "SEC-E04",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T09",
+        "SEC-T10"
+      ],
+      "id": "SEC-E05",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T11"
+      ],
+      "id": "SEC-E06",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T12"
+      ],
+      "id": "SEC-E07",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T13"
+      ],
+      "id": "SEC-E08",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T14",
+        "SEC-T15"
+      ],
+      "id": "SEC-E09",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T16",
+        "SEC-T17"
+      ],
+      "id": "SEC-E10",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T18"
+      ],
+      "id": "SEC-E11",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T19",
+        "SEC-T20"
+      ],
+      "id": "SEC-E12",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "SEC-T21"
+      ],
+      "id": "SEC-E13",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "PRIV-T02"
+      ],
+      "id": "PRIV-E01",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "PRIV-T01",
+        "PRIV-T03",
+        "PRIV-T04"
+      ],
+      "id": "PRIV-E02",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    },
+    {
+      "covers": [
+        "PRIV-T05"
+      ],
+      "id": "PRIV-E03",
+      "kind": "independent-review",
+      "review_artifacts": [
+        "evidence/reviews/post-fix/security-privacy.json",
+        "evidence/reviews/post-fix/security-privacy.md"
+      ],
+      "status": "PENDING_POST_FIX_REVIEW"
+    }
+  ],
+  "generated_at_utc": "2026-07-23T03:00:00Z",
+  "schema_version": 1,
+  "source_state": "current-workspace-post-fix",
+  "verification": {
+    "cross_builds": [
+      "darwin/arm64",
+      "darwin/amd64",
+      "linux/arm64",
+      "linux/amd64",
+      "windows/amd64"
+    ],
+    "race": "465 passed in 34 packages",
+    "vet": "no issues",
+    "windows_focused": "evidence/release/native-windows/20260723T024823Z/results.json",
+    "windows_lifecycle": "evidence/release/native-windows/20260723T025251Z/results.json"
+  }
+}

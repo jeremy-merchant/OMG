@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app -run 'TestDispatchPreflightQueryRejectsUnknownPayloadFields' -count=1

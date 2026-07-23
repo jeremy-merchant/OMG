@@ -1,0 +1,25 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-22T16:47:47Z",
+  "native_artifact": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "version_output": {
+    "ok": true,
+    "data": {"version": "v0.1.0-rc.1"},
+    "meta": {"schema_version": 1, "command_version": 1},
+    "warnings": []
+  },
+  "release_status_output": {
+    "ok": true,
+    "data": {"status": "NOT PUBLISHED"},
+    "meta": {"schema_version": 1, "command_version": 1},
+    "warnings": []
+  },
+  "binary_formats": {
+    "darwin-amd64": "Mach-O 64-bit executable x86_64",
+    "darwin-arm64": "Mach-O 64-bit executable arm64",
+    "linux-amd64": "ELF 64-bit x86-64 statically linked",
+    "linux-arm64": "ELF 64-bit ARM aarch64 statically linked",
+    "windows-amd64": "PE32+ console executable x86-64"
+  },
+  "result": "PASS"
+}

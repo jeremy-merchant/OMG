@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app/lineage ./internal/domain/coordination -run 'Test.*(Delegation|Message)' -count=1

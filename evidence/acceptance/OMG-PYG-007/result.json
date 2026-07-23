@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-PYG-007",
+  "acceptance_status": "HUMAN_REVIEW_PENDING",
+  "binary_sha256": "070bb358748d980b9e9b32bc558fb3e2df1b1f71fa8351f370ea5e7a2694bd04",
+  "evidence_status": "EXECUTABLE_EVIDENCE_PASSED",
+  "product": "pygmalion",
+  "schema_version": 1,
+  "source_archive_sha256": "de4f8c055a652a26e6f20ed822a8fce51920cde1ccc4baf115ad50c3e0537e2a",
+  "stages": [
+    "import",
+    "preflight",
+    "run",
+    "verify",
+    "cleanup"
+  ],
+  "summary": "Generic canonical state rendered in four offline formats without project-specific core behavior"
+}

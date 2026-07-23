@@ -1,0 +1,10 @@
+[
+  {
+    "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 reserve add --project <FIXTURE>/project --idempotency-key ac009-red --payload {\"id\":\"res-red\",\"pattern_kind\":\"exact\",\"pattern\":\"acceptance/conflict/file.go\",\"case_sensitivity\":\"sensitive\",\"mode\":\"exclusive\",\"human_id\":\"missing\",\"session_id\":\"missing\",\"task_id\":\"missing\",\"run_id\":\"missing\",\"intent\":\"conflict\",\"ttl_seconds\":300} --json",
+    "cwd": "<REPO>",
+    "exit_code": 4,
+    "observed_at_utc": "2026-07-23T14:12:08.470398Z",
+    "stderr": "",
+    "stdout": "{\"ok\":false,\"error\":{\"code\":\"uninitialized\",\"message\":\"project is not initialized\",\"retryable\":false,\"exit_code\":4},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+  }
+]

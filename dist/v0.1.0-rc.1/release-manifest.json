@@ -1,0 +1,174 @@
+{
+  "brand_evidence": [
+    {
+      "acceptance_id": "OMG-BR-001",
+      "path": "evidence/acceptance/OMG-BR-001/20260722T163405Z/GREEN/result.json",
+      "sha256": "05e45f18b72459c1075abddc3c60b44bea699de9e95fc7d282d950ce95544f58"
+    },
+    {
+      "acceptance_id": "OMG-BR-002",
+      "path": "evidence/acceptance/OMG-BR-002/20260722T163405Z/GREEN/result.json",
+      "sha256": "f1394b184dcedf8d6728b322b4577be661768932977046f540dc3a00260d325a"
+    }
+  ],
+  "build": {
+    "cgo_enabled": false,
+    "go_flags": "-buildvcs=false",
+    "ldflags": "-s -X main.version=v0.1.0-rc.1",
+    "targets": [
+      {
+        "artifact": "omg-v0.1.0-rc.1-darwin-arm64",
+        "goarch": "arm64",
+        "goos": "darwin",
+        "sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+        "size_bytes": 8554562
+      },
+      {
+        "artifact": "omg-v0.1.0-rc.1-darwin-amd64",
+        "goarch": "amd64",
+        "goos": "darwin",
+        "sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+        "size_bytes": 9049792
+      },
+      {
+        "artifact": "omg-v0.1.0-rc.1-linux-arm64",
+        "goarch": "arm64",
+        "goos": "linux",
+        "sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+        "size_bytes": 8388770
+      },
+      {
+        "artifact": "omg-v0.1.0-rc.1-linux-amd64",
+        "goarch": "amd64",
+        "goos": "linux",
+        "sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+        "size_bytes": 8872098
+      },
+      {
+        "artifact": "omg-v0.1.0-rc.1-windows-amd64.exe",
+        "goarch": "amd64",
+        "goos": "windows",
+        "sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952",
+        "size_bytes": 9149952
+      }
+    ],
+    "toolchain": "go1.26.2 darwin/arm64",
+    "trimpath": true
+  },
+  "bundle": {
+    "artifacts": [
+      {
+        "name": "CHANGELOG.md",
+        "sha256": "4d31f12e133273ff2087de68f0ec0e2724129ff1d15817d75d7fe46e3d89c3db",
+        "size_bytes": 3612
+      },
+      {
+        "name": "RELEASE_NOTES.md",
+        "sha256": "f36e08ed3cfc729be8a6f3e003118bb1b95da731070e091172f460ce3b4ace93",
+        "size_bytes": 3734
+      },
+      {
+        "name": "ROLLBACK.md",
+        "sha256": "3e870ac4b2a7d65eb53f2da960dcf9692e0c2b851beb2bf4e0f279f0913267f5",
+        "size_bytes": 1541
+      },
+      {
+        "name": "THIRD_PARTY_NOTICES.txt",
+        "sha256": "6b6102efc464cba6d79a25ba2acf2a5d8988b684b23ba2daae064d25ce0bf7d3",
+        "size_bytes": 25124
+      },
+      {
+        "name": "install-manifest.draft.json",
+        "sha256": "f1aa73da49fdca2112561105704e0620580329f4981accf1218f60ceb56673e3",
+        "size_bytes": 3052
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-darwin-amd64",
+        "sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+        "size_bytes": 9049792
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-darwin-arm64",
+        "sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+        "size_bytes": 8554562
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-linux-amd64",
+        "sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+        "size_bytes": 8872098
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-linux-arm64",
+        "sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+        "size_bytes": 8388770
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-source.tar.gz",
+        "sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+        "size_bytes": 617566
+      },
+      {
+        "name": "omg-v0.1.0-rc.1-windows-amd64.exe",
+        "sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952",
+        "size_bytes": 9149952
+      },
+      {
+        "name": "provenance.intoto.json",
+        "sha256": "08b3a28267ebf8914c6bc530990343c14ecb97e4500f5425bb8cd78033f1dff2",
+        "size_bytes": 3116
+      },
+      {
+        "name": "sbom.spdx.json",
+        "sha256": "25f8583686279b3f1d50f039a78bab17eb95f2e06870ac60600d3d492fd9e5c5",
+        "size_bytes": 15503
+      }
+    ],
+    "sha256sums": {
+      "artifact": "SHA256SUMS",
+      "entries": 13,
+      "sha256": "04aa14b4f5e822fae3b1326a9024e6edab5189931442d21e647629c0f2663341"
+    }
+  },
+  "candidate": {
+    "created_at": "2026-07-23T14:58:22Z",
+    "immutable": true,
+    "local_only": true,
+    "name": "OMG",
+    "status": "NOT PUBLISHED",
+    "version": "v0.1.0-rc.1"
+  },
+  "contracts": {
+    "application_version": "v0.1.0-rc.1",
+    "command_schema_version": 1,
+    "go_module": "example.invalid/coordledger",
+    "schema_version": 1
+  },
+  "current_evidence_gate": {
+    "binding": "The current evidence gate binds this immutable candidate manifest by candidate version, source archive SHA-256, and candidate binary SHA-256 values.",
+    "path": "evidence/release/final-gate.json"
+  },
+  "invalidated_by": [
+    "identity change",
+    "source archive change",
+    "binary checksum change",
+    "schema or command contract change"
+  ],
+  "notes": "This manifest pins stable private local candidate metadata only. Mutable gate evidence, review dispositions, project proofs, and publication authorization are recorded outside this candidate manifest.",
+  "schema_version": 1,
+  "source": {
+    "archive": "omg-v0.1.0-rc.1-source.tar.gz",
+    "identity": "source-archive-sha256",
+    "members": 311,
+    "revision_status": "repository has no HEAD commit",
+    "sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+  },
+  "working_name_decision": {
+    "accountable_owner": "kiunlee",
+    "decision_date": "2026-07-22",
+    "legal_clearance": false,
+    "outcome": "retain OMG for private local RC only",
+    "public_distribution_authorized": false,
+    "record": "docs/brand/NAME_CLEARANCE.md#private-local-rc-working-name-decision",
+    "record_sha256": "005a9f3af0513f9a2c8935e337fcb07816f7666b8aec754b04fe7509201fceab"
+  }
+}

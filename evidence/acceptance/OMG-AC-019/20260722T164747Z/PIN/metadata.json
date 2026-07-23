@@ -1,0 +1,26 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-22T16:47:47Z",
+  "version": "v0.1.0-rc.1",
+  "schema_version": 1,
+  "command_schema_version": 1,
+  "platform": "darwin/arm64",
+  "source_revision_status": "repository has no HEAD commit",
+  "source_identity": {
+    "artifact": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "sha256": "9dec4a71813dffe63fcd9e18d8f5f922a3e052257ecb2a0589e1f5091fa28a7b"
+  },
+  "working_name_decision": {
+    "outcome": "retain OMG for private local RC only",
+    "decision_date": "2026-07-22",
+    "accountable_owner": "kiunlee",
+    "record": "docs/brand/NAME_CLEARANCE.md#private-local-rc-working-name-decision",
+    "record_sha256": "005a9f3af0513f9a2c8935e337fcb07816f7666b8aec754b04fe7509201fceab"
+  },
+  "release_manifest": {
+    "path": "dist/v0.1.0-rc.1/release-manifest.json",
+    "sha256": "92267cdd5b8ec6f31c744b8344d5c117ac68281a8d15efabf16504153260e506"
+  },
+  "publication_approval": false,
+  "status": "NOT PUBLISHED"
+}

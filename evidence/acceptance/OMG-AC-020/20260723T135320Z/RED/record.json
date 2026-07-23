@@ -1,0 +1,24 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T13:53:20Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "review_records": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "eafb1a5cf3886697ad6288d3dbfdbf8b9b0b4959fe98f48c82122fa4cfd43eab",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "reviewers": {
+    "code-goal": "VerifyFinalGoalFixes",
+    "architecture": "VerifyFinalArchitectureFixes",
+    "qa": "DefinitiveReleaseQAReview",
+    "security-privacy": "VerifyFinalDefensiveFixes"
+  },
+  "publication_state": "NOT PUBLISHED",
+  "stage": "RED",
+  "result": "PASS",
+  "assertions": [
+    "QA verdict is CLEAR, not the matrix-required literal PASSED; a disposition synonym cannot satisfy the gate."
+  ],
+  "blockers": []
+}

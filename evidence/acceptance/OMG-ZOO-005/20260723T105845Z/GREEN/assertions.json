@@ -1,0 +1,7 @@
+{
+  "criterion": "Orphan adoption without cleanup",
+  "detail": "Focused parent-loss adoption test passed, but live clone setup requires the separately required migration approval.",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PENDING"
+}

@@ -1,0 +1,13 @@
+{
+  "result": "BLOCKED",
+  "artifact": {"sha256": "a2ded8fae493e71c3afe7bb8bc76c8ad569187deae9d1848ade924ea80b667ef", "version": "v0.1.0-rc.1", "release_status": "NOT PUBLISHED"},
+  "checks": [
+    {"name": "init", "result": "PASS", "exit_code": 0},
+    {"name": "private plan", "result": "PASS", "exit_code": 0},
+    {"name": "backup", "result": "PASS", "exit_code": 0},
+    {"name": "bounded approval apply", "result": "BLOCKED", "exit_code": 2, "output": "migration approval is invalid"},
+    {"name": "doctor integrity", "result": "PASS", "exit_code": 0, "output": "pending_migrations=5; integrity=true"},
+    {"name": "focused Windows tests and coordination/export/config protections", "result": "BLOCKED", "reason": "not run after lifecycle approval was rejected"}
+  ],
+  "remote_cleanup": {"result": "PASS", "exists_after_cleanup": false}
+}

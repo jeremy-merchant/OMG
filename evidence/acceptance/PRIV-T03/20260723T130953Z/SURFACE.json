@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "PRIV-T03",
+  "assertion": "Observable surface assertions passed through the focused mapped tests.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T130953Z",
+  "four_surfaces": {
+    "HTML": "TestRenderHTMLEscapesAndHasAccessibleStaticDocument plus direct renderer/CSP observation passed",
+    "JSON": "TestAllRenderersExposeADR0003MetadataAndGitAdvisory passed",
+    "Markdown": "TestAllRenderersExposeADR0003MetadataAndGitAdvisory passed",
+    "TTY": "TestAllRenderersExposeADR0003MetadataAndGitAdvisory passed"
+  },
+  "phase": "SURFACE",
+  "renderer_observation": {
+    "command": "rtk proxy go test -count=1 -v ./internal/view -run '^(TestEvidenceHTMLCSPObservation)$'",
+    "exit_code": 0,
+    "observed": {
+      "accessibility_landmarks": true,
+      "active_injection": false,
+      "csp_default_src_none": true,
+      "csp_hashed_style": true,
+      "escaped_hostile_content": true,
+      "remote_assets": false
+    },
+    "source_binding": "Disposable extraction of the definitive source archive; fixture was removed after observation."
+  },
+  "schema_version": 2,
+  "status": "PASS"
+}

@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/platform ./internal/config -run 'Test.*(Project|Resolver|Local)' -count=1

@@ -1,0 +1,27 @@
+{
+  "assertion": "Candidate archive and Darwin arm64 binary checksums were observed to match the current candidate binding; version JSON exited 0 and reported v0.1.0-rc.1.",
+  "blocker": null,
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa",
+    "version": "v0.1.0-rc.1",
+    "version_command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+    "version_command_exit_code": 0
+  },
+  "captured_at_utc": "2026-07-23T09:59:40.094412Z",
+  "focused_command": "rtk go test ./internal/store/sqlite -run '^(TestCoordinationClaimRaceHasOneWinner|TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup)$' -count=1 -v",
+  "focused_command_exit_code": 0,
+  "focused_command_observation": "All listed focused Go test package invocations completed with exit code 0; filtered output reported only package pass counts.",
+  "mapped_tests": [
+    "internal/store/sqlite: TestCoordinationClaimRaceHasOneWinner"
+  ],
+  "overall_status": "PASS",
+  "record_schema_version": 1,
+  "row_id": "OMG-CAP-005",
+  "stage": "PIN",
+  "stage_status": "PASS"
+}

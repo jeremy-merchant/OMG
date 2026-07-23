@@ -1399,3 +1399,102 @@ func TestShellInitAndCompletionCommandsEmitStaticScripts(t *testing.T) {
 		t.Fatalf("unsupported shell exit=%d: %s", exit, output)
 	}
 }
+
+func TestPreflightRejectsUnsupportedOptionPresenceBeforeDispatch(t *testing.T) {
+	project := t.TempDir()
+	for _, test := range []struct {
+		name string
+		args []string
+	}{
+		{"subcommand", []string{"preflight", "status", "--project", project, "--json"}},
+		{"empty session", []string{"preflight", "--session", "", "--project", project, "--json"}},
+		{"integrity", []string{"preflight", "--integrity", "--project", project, "--json"}},
+		{"status", []string{"preflight", "--status", "--project", project, "--json"}},
+		{"stdio", []string{"preflight", "--stdio", "--project", project, "--json"}},
+		{"runtime", []string{"preflight", "--runtime", "codex", "--project", project, "--json"}},
+		{"empty runtime", []string{"preflight", "--runtime", "", "--project", project, "--json"}},
+		{"output", []string{"preflight", "--output", "report.json", "--project", project, "--json"}},
+		{"empty output", []string{"preflight", "--output", "", "--project", project, "--json"}},
+		{"plan file", []string{"preflight", "--plan-file", "plan.json", "--project", project, "--json"}},
+		{"empty plan file", []string{"preflight", "--plan-file", "", "--project", project, "--json"}},
+		{"approval file", []string{"preflight", "--approval-file", "approval.json", "--project", project, "--json"}},
+		{"empty approval file", []string{"preflight", "--approval-file", "", "--project", project, "--json"}},
+		{"idempotency key", []string{"preflight", "--idempotency-key", "key", "--project", project, "--json"}},
+		{"empty idempotency key", []string{"preflight", "--idempotency-key", "", "--project", project, "--json"}},
+		{"format", []string{"preflight", "--format", "html", "--project", project, "--json"}},
+		{"empty format", []string{"preflight", "--format", "", "--project", project, "--json"}},
+		{"task", []string{"preflight", "--task", "task-1", "--project", project, "--json"}},
+		{"empty task", []string{"preflight", "--task", "", "--project", project, "--json"}},
+		{"payload", []string{"preflight", "--payload", "{}", "--project", project, "--json"}},
+		{"empty payload", []string{"preflight", "--payload", "", "--project", project, "--json"}},
+		{"payload file", []string{"preflight", "--payload-file", "payload.json", "--project", project, "--json"}},
+		{"empty payload file", []string{"preflight", "--payload-file", "", "--project", project, "--json"}},
+		{"payload stdin", []string{"preflight", "--payload-stdin", "--project", project, "--json"}},
+		{"trailing argv", []string{"preflight", "--project", project, "--json", "--", "child"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			service := bootstrap.CLIService(bootstrap.Foundation())
+			dispatcher := &recordingDispatcher{}
+			service.Dispatcher = dispatcher
+			var output bytes.Buffer
+			exit := RunWithApplication(context.Background(), test.args, "test-version", strings.NewReader(""), &output, io.Discard, service)
+			if exit != ExitUsage {
+				t.Fatalf("exit=%d output=%s", exit, output.String())
+			}
+			if len(dispatcher.requests) != 0 {
+				t.Fatalf("preflight dispatched %d queries", len(dispatcher.requests))
+			}
+		})
+	}
+}
+
+func TestExportRejectsUnsupportedOptionsBeforeQueryDispatch(t *testing.T) {
+	project := t.TempDir()
+	for _, test := range []struct {
+		name string
+		args []string
+	}{
+		{"missing JSON mode", []string{"export", "--project", project}},
+		{"missing output", []string{"export", "html", "--project", project}},
+		{"empty output", []string{"export", "html", "--output", "", "--project", project}},
+		{"JSON with format subcommand", []string{"export", "html", "--output", "board.html", "--project", project, "--json"}},
+		{"invalid subcommand", []string{"export", "xml", "--output", "board.xml", "--project", project}},
+		{"integrity", []string{"export", "--integrity", "--project", project, "--json"}},
+		{"status", []string{"export", "--status", "--project", project, "--json"}},
+		{"stdio", []string{"export", "--stdio", "--project", project, "--json"}},
+		{"runtime", []string{"export", "--runtime", "codex", "--project", project, "--json"}},
+		{"empty runtime", []string{"export", "--runtime", "", "--project", project, "--json"}},
+		{"format", []string{"export", "--format", "html", "--project", project, "--json"}},
+		{"empty format", []string{"export", "--format", "", "--project", project, "--json"}},
+		{"session", []string{"export", "--session", "session-1", "--project", project, "--json"}},
+		{"empty session", []string{"export", "--session", "", "--project", project, "--json"}},
+		{"task", []string{"export", "--task", "task-1", "--project", project, "--json"}},
+		{"empty task", []string{"export", "--task", "", "--project", project, "--json"}},
+		{"plan file", []string{"export", "--plan-file", "plan.json", "--project", project, "--json"}},
+		{"empty plan file", []string{"export", "--plan-file", "", "--project", project, "--json"}},
+		{"approval file", []string{"export", "--approval-file", "approval.json", "--project", project, "--json"}},
+		{"empty approval file", []string{"export", "--approval-file", "", "--project", project, "--json"}},
+		{"idempotency key", []string{"export", "--idempotency-key", "key", "--project", project, "--json"}},
+		{"empty idempotency key", []string{"export", "--idempotency-key", "", "--project", project, "--json"}},
+		{"payload", []string{"export", "--payload", "{}", "--project", project, "--json"}},
+		{"empty payload", []string{"export", "--payload", "", "--project", project, "--json"}},
+		{"payload file", []string{"export", "--payload-file", "payload.json", "--project", project, "--json"}},
+		{"empty payload file", []string{"export", "--payload-file", "", "--project", project, "--json"}},
+		{"payload stdin", []string{"export", "--payload-stdin", "--project", project, "--json"}},
+		{"trailing argv", []string{"export", "--project", project, "--json", "--", "child"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			service := bootstrap.CLIService(bootstrap.Foundation())
+			dispatcher := &recordingDispatcher{}
+			service.Dispatcher = dispatcher
+			var output bytes.Buffer
+			exit := RunWithApplication(context.Background(), test.args, "test-version", strings.NewReader(""), &output, io.Discard, service)
+			if exit != ExitUsage {
+				t.Fatalf("exit=%d output=%s", exit, output.String())
+			}
+			if len(dispatcher.requests) != 0 {
+				t.Fatalf("export dispatched %d queries", len(dispatcher.requests))
+			}
+		})
+	}
+}

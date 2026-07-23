@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app/query ./internal/transport/cli -run 'Test.*(Redact|Export)' -count=1

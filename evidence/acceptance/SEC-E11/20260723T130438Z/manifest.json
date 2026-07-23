@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "SEC-E11",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent reviewer must record the required SEC-E11 threat-model evidence disposition for this exact candidate hash.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "1b289dd5718b1bf39cd1efd867a5aabb8d21a56308ecd64d9034a604ae74950b",
+    "GREEN/record.json": "44b017c5b13fc99c910bdd0c7c6d1cc997e3d44cad3c7acba306b12a999bff38",
+    "PIN/record.json": "8c619c6ce3322fa3456e7240818a83d0f434c17cc55cc29d915f93e2f6a56fca",
+    "RED/record.json": "8624fa2f95d14c5d23b149fe0b3713e4cc863c1bdbf327fe6e4838edb9dee926",
+    "SURFACE/record.json": "2eee2cd7924ac11dad8589d87e1bf3810d7558ef8433ee09fe4da937f16e88e9"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

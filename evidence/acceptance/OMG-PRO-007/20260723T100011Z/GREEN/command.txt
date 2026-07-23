@@ -1,0 +1,1 @@
+rtk proxy go test ./internal/domain/git -run ^(TestCommandPlansAreReadOnly|TestCleanupPlanIsCandidateOnlyAndBlocksUncertainAssets|TestReconcileOwnershipExplicitAdoptionWinsAndStateFailsClosed)$

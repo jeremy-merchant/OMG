@@ -1,0 +1,42 @@
+{
+  "acceptance_id": "OMG-PYG-002",
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "files": [
+    {
+      "path": "CLEAN/record.json",
+      "sha256": "a5f4b3798befccdbae13a998bac6e3af668cbd0779a670583073698acf2bb493"
+    },
+    {
+      "path": "GREEN/record.json",
+      "sha256": "43a7353818a0a052a32dc859a2f39966d55b52ba5a04df6b9f8038fbd131cf7e"
+    },
+    {
+      "path": "PIN/record.json",
+      "sha256": "b712b6fc7cdf942e7f9100811d08a2440ade301b841ca9d738cf2faebc15b7ab"
+    },
+    {
+      "path": "RED/record.json",
+      "sha256": "ea877372e769f634b8104279b90c64d3a0e1f698915db149ccc6c90c40d1e7b1"
+    },
+    {
+      "path": "SURFACE/record.json",
+      "sha256": "8b2b73f8936d5f443e5ee0ca0a12ef41cdcbd1b04a75f8ed4f99c575e82191c1"
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "690df1fe12119b502d4aa6290a1675a328335f10c4ace72f0f4d79ed6829342e"
+    }
+  ],
+  "five_stages_present": true,
+  "integrity_validated": true,
+  "json_validated": true,
+  "private_paths_recorded": false,
+  "root_utc": "20260723T151351Z",
+  "tokens_recorded": false
+}

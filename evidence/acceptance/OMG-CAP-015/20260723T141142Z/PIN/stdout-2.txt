@@ -1,0 +1,1 @@
+{"ok":true,"data":{"pending_migrations":8,"initialized":true},"meta":{"schema_version":1,"command_version":1},"warnings":[]}

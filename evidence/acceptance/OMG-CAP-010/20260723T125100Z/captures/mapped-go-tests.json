@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "observed_at_utc": "2026-07-23T10:59:17.493177Z",
+  "source_archive_sha256": "e8fca1d2fc90a6febe034bd9e67bf146eec6ef5dce3a71940ba639deccdae444",
+  "tests": [
+    "TestHandoffEvidenceSupersessionDecisionAdoptionAndSafePayloads"
+  ]
+}

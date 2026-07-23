@@ -1,0 +1,34 @@
+{
+  "acceptance_id": "SEC-E07",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent reviewer must record the required SEC-E07 disposition for this exact candidate hash.",
+  "candidate_hashes": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+  },
+  "captured_at_utc": "20260723T151434Z",
+  "files": {
+    "PIN/record.json": "baaa0af87579f9f47e5dd3af8def76b4e7954fcd54bb9a212c3a43d16901536c",
+    "RED/record.json": "21a7ce4abdaff82511d814558fcb29e8d89cb1211bd4669912a756719217eb21",
+    "GREEN/record.json": "09cddaf3555658af954866c3209afe6d1e8fd9312a8771c03dfe7ad30cb9dfea",
+    "SURFACE/record.json": "5b9267d21da258b146b76681f884efb9356b53f37ee2bc7bbd04bee6ef6125ce",
+    "CLEAN/record.json": "619f26a890f813b719ae8c7017f61e6fb90b45a7d16d11f992dd50fbee25e186"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 2
+}

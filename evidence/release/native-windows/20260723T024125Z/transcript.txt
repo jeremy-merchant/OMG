@@ -1,0 +1,35 @@
+Native Windows validation of current source, sanitized
+Host: 192.168.0.2; OS: Microsoft Windows NT 10.0.26200.0; architecture: amd64
+
+Build (local):
+GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=v0.1.0-rc.1+native-fix" -o omg-v0.1.0-rc.1-native-fix-windows-amd64.exe ./cmd/omg
+exit 0
+
+Focused tests (native Windows):
+go test ./internal/windowsacl -run TestIsPrivate -count=1
+ok internal/windowsacl; exit 0
+
+go test ./internal/store/sqlite -run TestWindowsSecureStatePath -count=1
+ok internal/store/sqlite; exit 0
+
+go test ./internal/transport/cli -run 'TestMigrationPlanOutput|TestReadPrivatePayloadFileWindowsSecurityBoundary|TestDelegationRegistrationRequiresNonArgvPayloadTransport' -count=1
+FAIL TestMigrationPlanOutputCreatesOnlyNewPrivateRegularFile: safe destination exit=4; unable to write migration plan
+exit 1
+
+go test ./internal/watch -run 'Windows|ACL|Reparse|Lock|Lease' -count=1
+ok internal/watch; exit 0
+
+Lifecycle (native Windows):
+omg version --json; exit 0
+{"ok":true,"data":{"version":"v0.1.0-rc.1+native-fix"}}
+
+omg init --project <fresh> --json; exit 0
+{"ok":true,"data":{"pending_migrations":5,"initialized":true}}
+
+omg migration plan --project <fresh> --output <fresh>\plan.json --json; exit 4
+{"ok":false,"error":{"code":"unavailable","message":"unable to write migration plan","retryable":false,"exit_code":4}}
+
+omg doctor --project <fresh> --integrity --json; exit 0
+{"ok":true,"data":{"pending_migrations":5,"integrity":true,"initialized":true}}
+
+Migration backup/apply not run: migration plan creation failed.

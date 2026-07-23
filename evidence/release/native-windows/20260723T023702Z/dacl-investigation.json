@@ -1,0 +1,28 @@
+{
+  "result": "PASS",
+  "scope": "native Windows DACL descriptor mismatch investigation",
+  "remote_fixture": "C:\\Users\\kiunlee\\OMG-native-windows-dacl-20260723T023702Z",
+  "probe": {
+    "command": "go test ./internal/store/sqlite -run TestProbePrivateDACL -count=1 -v; go test ./internal/watch -run TestProbePrivateDACL -count=1 -v",
+    "sqlite_exit_code": 0,
+    "watch_exit_code": 0
+  },
+  "expected_from_code": "O:<CURRENT_USER_SID>D:(A;;FA;;;<CURRENT_USER_SID>)",
+  "observed_after_apply_private_dacl": {
+    "sqlite_state_directory": "O:<CURRENT_USER_SID>D:PAI(A;;FA;;;<CURRENT_USER_SID>)",
+    "watch_state_directory": "O:<CURRENT_USER_SID>D:PAI(A;;FA;;;<CURRENT_USER_SID>)",
+    "dacl_control_flags": ["P (protected DACL)", "AI (auto-inherited DACL)"],
+    "ace_shape": "exactly one allow ACE granting FA to the current-user SID"
+  },
+  "comparison": {
+    "current_normalization": "replaces D:P with D:, leaving AI and producing D:AI(A;;FA;;;<CURRENT_USER_SID>)",
+    "expected": "D:(A;;FA;;;<CURRENT_USER_SID>)",
+    "result": "mismatch caused solely by the reported AI control flag"
+  },
+  "semantic_assessment": {
+    "result": "PASS",
+    "canonicalizing_away_P_and_AI_for_comparison_preserves_owner_only_one_ACE_semantics": true,
+    "reason": "The observed descriptor has the expected owner and exactly one full-access ACE for that owner. P/AI are DACL control metadata, not additional principals or ACE grants. Application must continue requesting PROTECTED_DACL_SECURITY_INFORMATION when setting the DACL."
+  },
+  "recommended_minimal_fix": "In both sqlite and watch validatePrivateDACL, compare owner plus canonical DACL ACE content while accepting the benign reported P/AI control flags; do not weaken applyPrivateDACL or accept extra ACEs/principals."
+}

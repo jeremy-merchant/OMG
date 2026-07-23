@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/watch	(cached)
+ok  	example.invalid/coordledger/internal/transport/cli	(cached)

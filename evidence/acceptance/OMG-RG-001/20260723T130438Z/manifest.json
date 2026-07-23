@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-RG-001",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent gate reviewer must record criterion-specific D1-D6 completion.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "fb619fb53e40fea3a0837d71e3a785468fb7d43de7e7a5adb8217b224e01c803",
+    "GREEN/record.json": "6e1062ba443f5faa224a1f71ed33538b8b0c245273e0b0d12dac5c6a7c4a5c1a",
+    "PIN/record.json": "9d9aae6977c7ea6f0df8bf34e42faf6731c3bb5fc5979e607f1d3ed828f1e658",
+    "RED/record.json": "be446ffd904fb17dc36fc67d2fdcb8588b49d3f9f831b75c5a5ef005328c43ca",
+    "SURFACE/record.json": "25dd445c1ad9a960161ccaf49efeb68b5336f9eb686db4f42113201d27e53f68"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

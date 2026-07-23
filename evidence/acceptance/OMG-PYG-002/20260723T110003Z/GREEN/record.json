@@ -1,0 +1,50 @@
+{
+  "acceptance_id": "OMG-PYG-002",
+  "assertions": [
+    "candidate binding is exact",
+    "isolated disposable clone only"
+  ],
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    "omg init --project $DISPOSABLE_CLONE --json",
+    "omg migration plan --project $DISPOSABLE_CLONE --output $DISPOSABLE_CLONE/.omg/migration-plan.json --json",
+    "omg backup create --project $DISPOSABLE_CLONE --plan-file $DISPOSABLE_CLONE/.omg/migration-plan.json --json"
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0
+  ],
+  "fixture": {
+    "kind": "fresh_local_no_local_disposable_clone",
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "path_redacted": "$DISPOSABLE_CLONE"
+  },
+  "generated_at_utc": "2026-07-23T11:00:47.719083Z",
+  "missing_proof": [
+    "Separate human migration-apply approval bound to this fresh clone, plan, backup, command, and UTC validity window; the live import/collaboration scenario cannot run without it."
+  ],
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "installation": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "result": "PENDING",
+  "stage": "GREEN"
+}

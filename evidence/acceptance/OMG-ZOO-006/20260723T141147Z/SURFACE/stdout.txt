@@ -1,0 +1,2 @@
+JSON parsed; candidate hashes bind Pygmalion evidence to the definitive source archive and Darwin arm64 binary, but no normalized export is listed.
+JSON parsed; the current Zoomzi-side fixture is pre-apply and is not a completed normalized canonical-domain export.

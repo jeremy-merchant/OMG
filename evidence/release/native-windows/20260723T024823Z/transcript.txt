@@ -1,0 +1,27 @@
+Current-source native Windows migration-output rerun, sanitized
+
+Build: GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=v0.1.0-rc.1+native-fix2" ./cmd/omg; exit 0
+
+Focused CLI test:
+go test ./internal/transport/cli -run 'TestMigrationPlanOutput|TestReadPrivatePayloadFileWindowsSecurityBoundary|TestDelegationRegistrationRequiresNonArgvPayloadTransport' -count=1
+ok internal/transport/cli; exit 0
+
+Fresh init: exit 0
+{"ok":true,"data":{"pending_migrations":5,"initialized":true}}
+
+Negative broad-parent output: exit 4 (expected rejection)
+{"ok":false,"error":{"code":"unavailable","message":"unable to write migration plan","exit_code":4}}
+BROAD_EXISTS=False
+
+Positive private-parent output: exit 0
+Private parent SDDL (sanitized): O:<CURRENT_USER_SID>G:<PRIMARY_GROUP_SID>D:PAI(A;;FA;;;<CURRENT_USER_SID>)
+PLAN_EXISTS=True
+
+Backup from private plan: exit 0
+{"ok":true,"data":{"checksum":"11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792"}}
+
+Apply without approval file: exit 2 (expected refusal)
+{"ok":false,"error":{"code":"invalid_argument","message":"migration apply requires plan and approval files","exit_code":2}}
+
+Doctor integrity: exit 0
+{"ok":true,"data":{"pending_migrations":5,"integrity":true,"initialized":true}}

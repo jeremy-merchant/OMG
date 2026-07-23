@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "binding": {
+    "command_schema_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "fixture": "fresh disposable local state",
+    "network": "disabled for Linux container; no external network used",
+    "release_manifest_sha256": "473473eecf73140237c101d5091001ef565a060ceec5f2afdab3ecc523b53a65",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "candidate_version": "v0.1.0-rc.1",
+  "captured_at": "2026-07-23T10:47:33Z",
+  "cleanup": "The fresh extracted checkout, quickstart project, generated binary, and attempted state are disposable-only and scheduled for deletion; no source/release artifact was altered.",
+  "evidence_policy": "No raw token, private path, approval, publication command, original/external project mutation, or remote operation was performed.",
+  "result": "PASS",
+  "stage": "CLEAN"
+}

@@ -1,0 +1,4 @@
+go version go1.26.2 darwin/arm64
+c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73  dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz
+7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3  dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64
+{"ok":true,"data":{"version":"v0.1.0-rc.1"},"meta":{"schema_version":1,"command_version":1},"warnings":[]}

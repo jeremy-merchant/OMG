@@ -1,0 +1,24 @@
+{
+  "acceptance_id": "OMG-BR-001",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "automated_checks": {
+    "svg_count": 10,
+    "expected_svg_set_exact": true,
+    "xml_parse_failures": 0,
+    "unsafe_svg_failures": 0,
+    "core_text_failures": 0,
+    "core_status_metadata_failures": 0,
+    "required_document_failures": 0,
+    "png_count": 7,
+    "png_signature_or_dimension_failures": 0,
+    "minimum_ui_contrast_passed": true
+  },
+  "contrast_ratios": {
+    "light_foreground_on_background": 17.8525,
+    "light_accent_on_background": 5.1686,
+    "dark_foreground_on_background": 17.0629,
+    "dark_accent_on_background": 4.8540,
+    "preview_status_white_on_red": 8.3101
+  },
+  "result": "PASS"
+}

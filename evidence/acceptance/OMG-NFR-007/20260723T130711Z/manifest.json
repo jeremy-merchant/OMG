@@ -1,0 +1,96 @@
+{
+  "blocker": "",
+  "candidate_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "five_stage_completeness": {
+    "CLEAN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "GREEN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "PIN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "RED": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "SURFACE": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ]
+  },
+  "not_published": true,
+  "overall_status": "PASS",
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T13:07:11.066825Z",
+  "root_utc": "20260723T130711Z",
+  "row_id": "OMG-NFR-007",
+  "schema_version": 1,
+  "source_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "stage_sha256": {
+    "CLEAN": {
+      "command.txt": "10fb199c9e3c8818f65f65b093873342e1e1ac2faee38d57cd1ff72f4a686580",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "e53860e30996b14c6faa49e16270b79935090c9f9ed872bd31d9c094c8fa8b6f",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "GREEN": {
+      "command.txt": "a182055cd8aaeab6221cfb52833d4e2e6136f2b5bfc8829f4d63255de31c75d4",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "89caf274bcb90f5d1ae66f8ef5dce80de624c6497002b38a8558912a3e3b1ef6",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "7fe5d8708e363fefe231511e3819cbb068618a135c6f3c48faddce292364b986"
+    },
+    "PIN": {
+      "command.txt": "3ff74325d4fed7141f0ae9cfbef9beede2e51528a5653d3bc545f48e56d62809",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "a5d129de348ff87b1d7af80a6f23d4d2348b8fa77017b11c62292bedc565ecff",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "0263e771ec4a4453b2c86a9adbb6d1312faa27615b2d0d3db65d0431fb03b289"
+    },
+    "RED": {
+      "command.txt": "7640fc7b3f863869d4e9ae06a4d4aff9001d32e0c58595922717c3ba3603bbc2",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "e5eca79453407a723546e526832c30e33034eb7d1c2c8901c01ab063b84a4c59",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "ff2f4829832e8b183061150003a1169aaa612cf195feb956cfbe151efcbdf1cb"
+    },
+    "SURFACE": {
+      "command.txt": "c8d724da0e5a34eaea775271264f7d6f90e600f47eef9e49694604118dd55cf3",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "7d562c7490af3a0f71250a3f283908801c8c6b7a08d03d629df674672fdc2397",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "feece00908863e6c2920a183744a390259ebe020525127c6cfa10a3e26a242a4"
+    }
+  }
+}

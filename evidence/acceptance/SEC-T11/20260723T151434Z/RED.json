@@ -1,0 +1,31 @@
+{
+  "acceptance_id": "SEC-T11",
+  "assertion": "Focused mapped hostile/negative-case assertions passed with no broad package test substituted.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T151434Z",
+  "next_action": "Run the row-mapped Windows security tests natively on windows/amd64 and publish a Windows evidence root; Darwin cross-compilation remains insufficient.",
+  "phase": "RED",
+  "schema_version": 2,
+  "status": "PENDING",
+  "stage": "RED",
+  "overall_status": "PENDING",
+  "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+  "commands_executed": [
+    {
+      "assertion": "Focused mapped final extracted-source test executed offline.",
+      "command": "rtk go test -race -count=1 -v ./internal/store/sqlite -run '^(TestOpenSecuresManagedStateWithPrivatePOSIXModes)$'",
+      "exit_code": 0
+    }
+  ],
+  "test_execution": {
+    "environment": "network-offline",
+    "fixture_permissions": "0700",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+  }
+}

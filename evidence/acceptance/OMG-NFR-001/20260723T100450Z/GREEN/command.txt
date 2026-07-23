@@ -1,0 +1,1 @@
+rtk go test ./... -run ^$ -count=1

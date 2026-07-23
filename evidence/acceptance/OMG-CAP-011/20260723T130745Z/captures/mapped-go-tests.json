@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/domain/reservation -run ^(TestReservationLifecycleAndConflict|TestLifecycleUsesInjectedClock)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:08:16.650558Z",
+      "package": "./internal/domain/reservation",
+      "stderr": "",
+      "stdout": "Go test: 2 passed in 1 packages\n",
+      "tests": [
+        "TestReservationLifecycleAndConflict",
+        "TestLifecycleUsesInjectedClock"
+      ]
+    }
+  ],
+  "row_id": "OMG-CAP-011",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

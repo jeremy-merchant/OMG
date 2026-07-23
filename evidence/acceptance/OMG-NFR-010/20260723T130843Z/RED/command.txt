@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/runtime -run 'TestRunReportsMissingBinaryAndRedactsPaths' -count=1

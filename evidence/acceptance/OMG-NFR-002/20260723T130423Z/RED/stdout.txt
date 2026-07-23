@@ -1,0 +1,1 @@
+ok  	example.invalid/coordledger/internal/store/sqlite	1.266s

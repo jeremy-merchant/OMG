@@ -1,0 +1,26 @@
+{
+  "record_schema_version": 1,
+  "acceptance_id": "OMG-AC-013",
+  "stage": "RED",
+  "captured_at_utc": "2026-07-23T10:02:28Z",
+  "overall_status": "PENDING",
+  "candidate_binding": {
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa",
+    "binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565"
+  },
+  "command": "rtk go test ./internal/view -run '^TestRenderHTMLEscapesAndHasAccessibleStaticDocument$' -count=1 -v",
+  "exit_code": 0,
+  "hostile_content_observation": {
+    "literal_hostile_strings_visible_as_inert_text": [
+      "</td><script>globalThis.pwned=1</script> & 협업",
+      "<img src=x onerror=alert(1)>",
+      "[click](javascript:alert(1)) <script>alert(3)</script>"
+    ],
+    "script_elements": 0,
+    "image_elements": 0,
+    "javascript_links": [],
+    "window_pwned": null,
+    "result": "PASS"
+  },
+  "blocker": "Overall criterion remains pending: keyboard-only navigation and a screen-reader audit are not established."
+}

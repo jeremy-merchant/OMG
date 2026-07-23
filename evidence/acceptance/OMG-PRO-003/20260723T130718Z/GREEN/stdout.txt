@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/app	0.485s
+ok  	example.invalid/coordledger/internal/app/git	0.925s

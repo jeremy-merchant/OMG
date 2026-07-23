@@ -1,0 +1,1 @@
+go test ./internal/watch ./internal/transport/mcp ./internal/shell -run Test

@@ -1,0 +1,23 @@
+{
+  "blocker": "A fresh private-HOME fixture initialized and produced a migration plan, but all domain commands requiring schema apply remain intentionally unperformed; migration plan --output also returned unavailable, preventing backup-plan-file continuation.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "classification_basis": "Current-source exact mapped tests plus isolated-HOME CLI init/plan rerun. PASS only for rows whose complete mapped behavior was directly observed; pending rows retain their row-specific missing observation.",
+  "overall_status": "PASS",
+  "root_timestamp_utc": "20260723T110623Z",
+  "row_id": "OMG-CAP-014",
+  "stages": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ]
+}

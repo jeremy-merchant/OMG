@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/safety	0.261s
+ok  	example.invalid/coordledger/internal/app	(cached)

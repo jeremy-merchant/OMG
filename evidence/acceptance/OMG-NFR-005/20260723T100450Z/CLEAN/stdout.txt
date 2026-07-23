@@ -1,0 +1,7 @@
+OUTPUT (last 5 lines):
+  	--version
+  	--wordexp
+  Shell options:
+  	-irsD or -c command or -O shopt_option		(invocation only)
+  	-abefhkmnptuvxBCHP or -o option
+

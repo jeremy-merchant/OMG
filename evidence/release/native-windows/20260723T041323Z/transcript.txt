@@ -1,0 +1,6 @@
+Windows privacy-focused validation
+Binary SHA256: a2ded8fae493e71c3afe7bb8bc76c8ad569187deae9d1848ade924ea80b667ef
+Source archive SHA256: f120a7969b8c5b729183a2cf8368133967d94e5a1dd3400bb07afcf1ebdefd56
+platform TestStableIDNormalizesWindowsPathCase: PASS exit 0
+CLI export/payload focused test: BLOCKED build failure in internal/store/sqlite/coordination_p3b.go:137 (`:=` no new variables; RowsAffected int64 assigned to []byte n) and line 141 (n != 1 type mismatch).
+PRIV-T02 workflow/firewall validation not run after current-source compilation failure.

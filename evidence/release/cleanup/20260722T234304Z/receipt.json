@@ -1,0 +1,56 @@
+{
+  "captured_at": "2026-07-22T23:43:04Z",
+  "candidate": "v0.1.0-rc.1",
+  "cleanup": {
+    "removed_temp_paths": [
+      "/tmp/omg-logo-16.svg",
+      "/tmp/omg-logo-32.svg",
+      "/tmp/omg-logo-128.svg",
+      "/tmp/omg-logo-512.svg",
+      "/tmp/omg-logo-direct.png",
+      "/tmp/omg-doc-smoke",
+      "/tmp/omg-adapter-example-bin",
+      "/tmp/omg-mcp-smoke-bin",
+      "/tmp/omg-watch-smoke-bin",
+      "/tmp/omg-watch-windows.test",
+      "/tmp/omg-shell-smoke-bin",
+      "/tmp/omg-shell-windows.test",
+      "/tmp/omg-run-smoke-bin",
+      "/tmp/omg-runtime-windows.test",
+      "/tmp/omg-surface-smoke-bin",
+      "/tmp/omg-p5-smoke-bin",
+      "/tmp/omg-p5-windows.test",
+      "/tmp/omg-platform-windows.test",
+      "/tmp/omg-platform.test.exe",
+      "/tmp/omg-git.test.exe",
+      "/tmp/omg-foundation",
+      "/tmp/omg-readme-smoke.oSBbgX",
+      "/tmp/omg-doc-project",
+      "/tmp/omg-integration-smoke.Vxiy6X",
+      "/tmp/omg-p5-smoke.9GcJJF",
+      "/tmp/omg-smoke.APogul"
+    ],
+    "temp_glob_after": [],
+    "omg_docker_containers_after": [],
+    "omg_smoke_images_after": [],
+    "matching_os_processes_after": [],
+    "hub_processes_active_after": [],
+    "hub_processes_exited": ["orca-runtime", "orca-runtime-live", "omg-watch-smoke"],
+    "rc_bundle_preserved": "dist/v0.1.0-rc.1"
+  },
+  "commands": {
+    "temp_check": "glob /tmp/omg-* and /private/tmp/omg-* -> no files",
+    "container_check": "docker ps -a --filter name=omg -> empty",
+    "image_check": "docker images --filter reference=omg-smoke:* -> empty",
+    "process_check": "pgrep matching OMG runtime/watch/MCP executables -> no match"
+  },
+  "prohibited_actions": {
+    "publication": false,
+    "registry_upload": false,
+    "remote_creation": false,
+    "push": false,
+    "deploy": false,
+    "user_project_deletion": false
+  },
+  "result": "PASS"
+}

@@ -1,0 +1,37 @@
+{
+  "assertion": "No migration apply was executed; all temporary HOME and fixture directories were removed.",
+  "commands": [
+    {
+      "exit_code": 4,
+      "name": "board all before init",
+      "result": "uninitialized/project is not initialized"
+    },
+    {
+      "exit_code": 0,
+      "name": "init",
+      "result": "initialized true; pending_migrations 8"
+    },
+    {
+      "exit_code": 0,
+      "name": "migration plan stdout",
+      "result": "plan from schema 0 to 8 observed"
+    },
+    {
+      "exit_code": 4,
+      "name": "migration plan with output",
+      "result": "unable to write migration plan"
+    },
+    {
+      "exit_code": 2,
+      "name": "backup create following unavailable plan output",
+      "result": "invalid migration plan"
+    },
+    {
+      "exit_code": 2,
+      "name": "migration apply without approval file",
+      "result": "migration apply requires plan and approval files"
+    }
+  ],
+  "fixture": "fresh disposable fixture removed after procedure; path omitted",
+  "private_home": "fresh disposable HOME removed after procedure; path omitted"
+}

@@ -1,0 +1,33 @@
+{
+  "assertion": "Focused current-source tests completed successfully for relevant domain behavior; this does not establish the literal end-to-end matrix stage.",
+  "blocker": "Missing proof: disposable delegation issue/register/revoke CLI lifecycle with expired, reused, revoked, and wrong-project raw-token attempts; candidate initialization also failed with unavailable/foundation service is unavailable (exit 4).",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa",
+    "version": "v0.1.0-rc.1",
+    "version_command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+    "version_command_exit_code": 0,
+    "version_command_output_path": "captures/candidate-version.json"
+  },
+  "captured_at_utc": "2026-07-23T10:03:53.837834Z",
+  "disposable_cli_probe": {
+    "command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project /private/tmp/omg-core-evidence-T9YsMv --json",
+    "exit_code": 4,
+    "observation": "Current Darwin candidate returned unavailable/foundation service is unavailable; no fixture state was created.",
+    "output_path": "captures/disposable-init.log"
+  },
+  "fixture_root": "/private/tmp (required disposable fixture root; no literal matrix CLI fixture was created in this record)",
+  "focused_command": "rtk go test ./internal/app ./internal/app/dependency ./internal/app/git ./internal/app/lineage ./internal/app/progress ./internal/app/query ./internal/app/reservation ./internal/domain/lineage ./internal/domain/reservation -run '^(TestDispatchBoardQueryReturnsCanonicalViewModel|TestDispatchBoardQueryRejectsMalformedSelector|TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys|TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnapshot|TestDispatchRecoveryGitInventoryAllowsUnattributedAndRejectsPartialLineage|TestDispatchLineageHumanCreateAndGet|TestLineageResponsesSanitizePresentationFields|TestDispatchLineageTaskCompletionReconcilesDependenciesWithOptionalActor|TestServiceGitInventoryScanReplayAndQueries|TestNativeLineagePersistsWithoutReceiptOrAuditLeakage|TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput|TestAppendHistoryIsOrderedImmutableAndSupportsOptionalRun|TestAppendReplayReturnsCanonicalProgressWithoutLeakingPrivateFields|TestBoardQueryAuthorizationModesFilteringAndDeterminism|TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields|TestBoardQueryResolvesNativeStateOnDemandWithoutLeakingLocator|TestBoardGitOwnershipOverlaysCanonicalAdoptionsWithoutMutatingObservation|TestUserSuppliedReservationIDsRejectSecretLikeMetadataWithoutMutation|TestCreateRejectsForeignHumanWithoutMutation|TestRunCompletionNeedsEvidence|TestLineageKindsValidate|TestNativeMetadataValidation|TestAgentSessionJSONOmitsPrivateLocators|TestReservationLifecycleAndConflict|TestOverrideRequiresHumanReason)$' -count=1 -v",
+  "focused_command_exit_code": 0,
+  "focused_command_observation": "Focused test command completed with exit code 0.",
+  "focused_command_output_path": "captures/focused-tests.log",
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "row_id": "OMG-AC-004",
+  "stage": "RED",
+  "stage_status": "PENDING"
+}

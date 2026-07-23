@@ -1,0 +1,19 @@
+{
+  "title": "Board",
+  "language": "en",
+  "main_sections": 9,
+  "table_captions": 9,
+  "duplicate_ids": [],
+  "horizontal_overflow_at_697px": false,
+  "sections_with_horizontal_overflow": 0,
+  "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+  "dark_theme_contrast_ratios": {
+    "body": 16.39,
+    "heading_1": 16.39,
+    "heading_2": 16.39,
+    "table_header": 13.30,
+    "table_cell": 16.39
+  },
+  "wcag_aa_text_contrast_minimum": 4.5,
+  "contrast_passed": true
+}

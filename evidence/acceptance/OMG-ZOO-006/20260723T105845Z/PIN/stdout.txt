@@ -1,0 +1,1 @@
+PASS: Focused core coordination tests passed; current Pygmalion aggregate is pending the same human migration approval, so no normalized live-domain comparison exists.

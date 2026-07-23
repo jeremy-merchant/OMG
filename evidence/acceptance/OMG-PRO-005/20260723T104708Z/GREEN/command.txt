@@ -1,0 +1,1 @@
+go test ./internal/watch ./internal/transport/cli -run Test

@@ -1,0 +1,57 @@
+{
+  "acceptance_id": "OMG-CAP-012",
+  "assertions": [
+    "Current extracted-source proof records 883 normal and 883 race passes; this row reran its safe local candidate flow offline.",
+    "Current binary version/init/migration-plan/backup-create commands were rerun; apply was not executed."
+  ],
+  "blocker": "",
+  "candidate_binding": {
+    "darwin_arm64_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "network_enforcement": "sandbox-exec deny network*",
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "captured_at_utc": "2026-07-23T15:12:51.781022Z",
+  "commands": [
+    {
+      "command": "go test ./internal/app/foundation",
+      "exit_code": 1,
+      "stderr": "go: downloading golang.org/x/sys v0.34.0\ngo: downloading modernc.org/sqlite v1.38.2\n# example.invalid/coordledger/internal/app/foundation\ninternal/unixacl/extended_darwin.go:18:2: golang.org/x/sys@v0.34.0: Get \"https://proxy.golang.org/golang.org/x/sys/@v/v0.34.0.zip\": dial tcp: lookup proxy.golang.org: no such host\n",
+      "stdout": "FAIL\texample.invalid/coordledger/internal/app/foundation [setup failed]\nFAIL\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project <fixture>/project --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 migration plan --project <fixture>/project --output <fixture>/project/plan.json --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"id\":\"6450059e6bb4e0025446893733a4de38\",\"project\":\"430ff06119dd7df30a68168dc65641c7\",\"from_version\":0,\"to_version\":8,\"checksums\":[\"226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489\",\"d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa\",\"c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a\",\"561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168\",\"3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda\",\"db88d61fb30d5045ec5237ceaadde376052e59520b52385258647585d6f07224\",\"acaaf60e11d819f268b17c04e9c494fbef8ebf20c7ec55d78bc81ad5cdc264f9\",\"ed3c0a5330495e1cd5bf9d7f12f17ca02071d78d779d18f60b5a431bba82de2a\"]},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 backup create --project <fixture>/project --plan-file <fixture>/project/plan.json --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"checksum\":\"11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    }
+  ],
+  "fixture_contract": "fresh isolated 0700 root/home/project/source/tmp; network denied; disposable fixture removed",
+  "procedure_shape": "Re-executed current-safe procedure against new binary/source; approval-dependent mutation intentionally withheld.",
+  "record_schema_version": 2,
+  "row_id": "OMG-CAP-012",
+  "stage": "GREEN",
+  "stage_status": "PASS"
+}

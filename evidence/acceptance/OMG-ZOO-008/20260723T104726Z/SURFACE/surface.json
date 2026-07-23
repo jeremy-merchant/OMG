@@ -1,0 +1,7 @@
+{
+  "criterion": "Rollback and preservation rehearsal",
+  "observable": "the disposable clone was initialized and its original dirty baseline captured; human approval required for the rehearsal is absent",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

@@ -1,0 +1,4 @@
+{
+  "assertion": "Focused behavior command completed successfully.",
+  "expected_exit_code": 0
+}

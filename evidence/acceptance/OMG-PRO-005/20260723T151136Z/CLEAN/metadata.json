@@ -1,0 +1,20 @@
+{
+  "acceptance_id": "OMG-PRO-005",
+  "authorized_next_action": "NONE: locally observable row procedure completed.",
+  "candidate_hashes": {
+    "darwin_amd64_sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "linux_amd64_sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593",
+    "linux_arm64_sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "windows_amd64_sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952"
+  },
+  "command_recorded": "omg fixture-cleanup",
+  "executed_at_utc": "2026-07-23T15:11:37.837251Z",
+  "exit_code": 0,
+  "fixture": "fresh isolated 0700 fixture; removed before immutable finalization",
+  "network_offline_environment": true,
+  "not_published": true,
+  "root_utc": "20260723T151136Z",
+  "stage": "CLEAN"
+}

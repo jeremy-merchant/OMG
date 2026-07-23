@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-RG-003",
+  "authorized_next_action": "LEGAL_PUBLICATION_PENDING: named human must grant explicit publication approval before any publication, remote, domain, or distribution action.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "4bace117e77a97e79a739847397d3686caa841558aea9adba1d8e7d890cdda96",
+    "GREEN/record.json": "d187ee7b9b13ad2100906182f05695b4ff298eb5f9077c5b48a63d1674aef411",
+    "PIN/record.json": "9140d30aef673cecba11507d16a6353ee58f8721b92970c3884a59ce3bbbbd9d",
+    "RED/record.json": "e963734abefe5e291b3c4517a0fa907574701d0b8a74c978c5e677d63a9c4556",
+    "SURFACE/record.json": "b411311772a7b99871da3ca81e9c4fc8fc5c28bb34421afebf981a86f2f807bf"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

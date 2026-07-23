@@ -1,0 +1,1 @@
+rtk proxy go test ./internal/watch -run ^(TestStatusStoppedWithoutLease|TestWatchDoesNotUseProcessControlAPIs|TestStatusDoesNotTreatReusedPIDAsActive)$

@@ -1,0 +1,47 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "blocker": "CI and native Linux/Windows runner evidence remains pending.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "directories": "0555",
+    "dual_bound_every_record": true,
+    "files": "0444",
+    "json_valid": true,
+    "leak_scan": "PASS",
+    "network_offline": true,
+    "stage_hashes_valid": true
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 2,
+  "result": "PENDING",
+  "root_timestamp_utc": "2026-07-23T15:12:34.428367Z",
+  "row_id": "OMG-AC-017",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  },
+  "stages": {
+    "CLEAN": "9f746bc0637cc9a548461990fe99a3637d3f8a5f8fd6b9ec70f3140546ee6d2a",
+    "GREEN": "26bc5cdf40cd5118036e738550a9371d232b5a4d9e7dad8220652357c82681ab",
+    "PIN": "76ab3181598a289af8d1f75b95cf05c8e9e7b659690a7cb64362bb0156dbed07",
+    "RED": "c38c1b7c964fd4e4e4cd9351a689138c4816535ed0e98b41269ce4f7a4afbcb1",
+    "SURFACE": "f1abe8e0167d8adfb62b5b65dd0ab8beb2681661ab84bb47ee51f5420d02d76d"
+  }
+}

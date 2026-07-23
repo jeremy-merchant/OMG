@@ -1,0 +1,6 @@
+{
+  "assertion": "focused handoff integration tests passed: parent-loss handoff remains queryable and single-target adoption succeeds",
+  "criterion": "Second runtime discovery, duplicate-claim rejection, handoff continuation",
+  "missing_proof": null,
+  "status": "PASS"
+}

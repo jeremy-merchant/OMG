@@ -1,0 +1,1 @@
+{"ok":false,"error":{"code":"unavailable","message":"schema migration is required","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}

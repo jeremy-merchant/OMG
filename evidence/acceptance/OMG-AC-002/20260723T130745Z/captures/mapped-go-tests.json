@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app -run ^(TestDispatchLineageHumanCreateAndGet|TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys|TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnapshot)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:07:47.885557Z",
+      "package": "./internal/app",
+      "stderr": "",
+      "stdout": "Go test: 3 passed in 1 packages\n",
+      "tests": [
+        "TestDispatchLineageHumanCreateAndGet",
+        "TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys",
+        "TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnapshot"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-002",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

@@ -1,0 +1,23 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-22T23:36:49Z",
+  "candidate_version": "v0.1.0-rc.1",
+  "release_manifest": {
+    "path": "dist/v0.1.0-rc.1/release-manifest.json",
+    "sha256": "92267cdd5b8ec6f31c744b8344d5c117ac68281a8d15efabf16504153260e506"
+  },
+  "targets": [
+    {"platform": "darwin/arm64", "sha256": "91215f825b1b3685d2fe6325424d8e0e70230e455df2e947dc2ad6affce4439e"},
+    {"platform": "darwin/amd64", "sha256": "25816be2912d5e0c123c4d5e93df7b1c89806eda7bca231d3ca1c4e3b473e27b"},
+    {"platform": "linux/arm64", "sha256": "9c7c31eea0536602c2bb06257d9c94280ec085edf65e6bc1850efc11eda4a52a"},
+    {"platform": "linux/amd64", "sha256": "693e7a61a1ca0c2d96d839590c8ab79bf2b23b15ed6ee0d97cae8b0a0aac87dc"},
+    {"platform": "windows/amd64", "sha256": "d97395ae6c3e37f38a7063a9d76f9337744c82c76d51049b4a66941e91e7e094"}
+  ],
+  "local_runtimes": {
+    "darwin_arm64": "native",
+    "darwin_amd64": "Rosetta x86_64",
+    "linux_arm64": "Docker Engine 29.4.0 native arm64",
+    "linux_amd64": "Docker Engine 29.4.0 amd64 emulation",
+    "windows_amd64": "no Windows runtime available"
+  }
+}

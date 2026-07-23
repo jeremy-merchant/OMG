@@ -1,0 +1,31 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/view -run ^(TestAllRenderersExposeADR0003MetadataAndGitAdvisory|TestRenderDeterministicAndEmptyReadable|TestRenderHTMLEscapesAndHasAccessibleStaticDocument|TestRenderJSONPreservesCanonicalEnvelope)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:06:41.463501Z",
+      "package": "./internal/view",
+      "stderr": "",
+      "stdout": "Go test: 8 passed in 1 packages\n",
+      "tests": [
+        "TestAllRenderersExposeADR0003MetadataAndGitAdvisory",
+        "TestRenderDeterministicAndEmptyReadable",
+        "TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+        "TestRenderJSONPreservesCanonicalEnvelope"
+      ]
+    },
+    {
+      "command": "rtk go test -count=1 ./internal/transport/cli -run ^(TestBoardAndStaticExportUseCurrentCanonicalStore)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:06:42.531936Z",
+      "package": "./internal/transport/cli",
+      "stderr": "",
+      "stdout": "Go test: 1 passed in 1 packages\n",
+      "tests": [
+        "TestBoardAndStaticExportUseCurrentCanonicalStore"
+      ]
+    }
+  ],
+  "row_id": "OMG-CAP-014",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

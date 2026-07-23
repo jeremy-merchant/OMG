@@ -1,0 +1,33 @@
+{
+  "result": "FAIL",
+  "validated_at_utc": "2026-07-23T02:41:25Z",
+  "machine": {
+    "host": "192.168.0.2",
+    "os": "Microsoft Windows NT 10.0.26200.0",
+    "arch": "amd64",
+    "go": "available"
+  },
+  "build": {
+    "result": "PASS",
+    "command": "GOOS=windows GOARCH=amd64 go build -ldflags -X main.version=v0.1.0-rc.1+native-fix -o <artifact> ./cmd/omg",
+    "binary": "omg-v0.1.0-rc.1-native-fix-windows-amd64.exe",
+    "version_json": "v0.1.0-rc.1+native-fix"
+  },
+  "focused_tests": [
+    {"name": "internal/windowsacl TestIsPrivate", "result": "PASS", "command": "go test ./internal/windowsacl -run TestIsPrivate -count=1", "exit_code": 0},
+    {"name": "sqlite TestWindowsSecureStatePath", "result": "PASS", "command": "go test ./internal/store/sqlite -run TestWindowsSecureStatePath -count=1", "exit_code": 0},
+    {"name": "cli migration and private payload security", "result": "FAIL", "command": "go test ./internal/transport/cli -run TestMigrationPlanOutput|TestReadPrivatePayloadFileWindowsSecurityBoundary|TestDelegationRegistrationRequiresNonArgvPayloadTransport -count=1", "exit_code": 1, "output": "TestMigrationPlanOutputCreatesOnlyNewPrivateRegularFile: safe destination exit=4; unable to write migration plan"},
+    {"name": "watch Windows ACL/reparse/lock/lease", "result": "PASS", "command": "go test ./internal/watch -run Windows|ACL|Reparse|Lock|Lease -count=1", "exit_code": 0}
+  ],
+  "native_lifecycle": [
+    {"name": "version --json", "result": "PASS", "exit_code": 0},
+    {"name": "init --project <fresh> --json", "result": "PASS", "exit_code": 0, "output": "initialized=true; pending_migrations=5"},
+    {"name": "migration plan --project <fresh> --output <fixture>\\plan.json --json", "result": "FAIL", "exit_code": 4, "output": "unable to write migration plan"},
+    {"name": "doctor --project <fresh> --integrity --json", "result": "PASS", "exit_code": 0, "output": "initialized=true; integrity=true; pending_migrations=5"}
+  ],
+  "remaining_blocker": "The current native Windows binary and matching focused CLI test cannot write a new migration plan to a fresh safe output path (exit 4). Migration backup/apply were not run because plan creation failed.",
+  "remote_fixture": {
+    "path": "C:\\Users\\kiunlee\\OMG-native-windows-fix-20260723T024125Z",
+    "cleanup": {"result": "PASS", "first_attempt": "PowerShell Remove-Item failed on an archive AppleDouble entry", "retry": "cmd rmdir /s /q", "exists_after_cleanup": false}
+  }
+}

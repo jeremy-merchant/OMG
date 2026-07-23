@@ -1,0 +1,32 @@
+{
+  "assertion": "Observed controlled uninitialized board query before init.",
+  "blocker": "Focused source tests passed, but the complete row-specific disposable CLI scenario was not observed through its required domain command family; next action: execute the row procedure after an independently approved initialized fixture is available.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_members": 304,
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T13:13:29.317034Z",
+  "fixture_binding": {
+    "approval_state": "absent; no approval-required apply performed",
+    "cleanup": "removed",
+    "fixture": "<DISPOSABLE>",
+    "home": "<DISPOSABLE>/home"
+  },
+  "mapped_go_tests": {
+    "all_exit_codes": [
+      0
+    ],
+    "capture": "captures/mapped-go-tests.json"
+  },
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "row_id": "OMG-CAP-015",
+  "stage": "RED",
+  "stage_status": "PASS"
+}

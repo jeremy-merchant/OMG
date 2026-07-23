@@ -1,0 +1,28 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-22T23:27:17Z",
+  "platform": "darwin/arm64",
+  "readme": {
+    "path": "README.md",
+    "sha256": "8b6edfffabacbbb739af234ba9c123152f3f0190c7688f8ec190daad95689135"
+  },
+  "source_archive": {
+    "path": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "sha256": "9dec4a71813dffe63fcd9e18d8f5f922a3e052257ecb2a0589e1f5091fa28a7b"
+  },
+  "fixture": {
+    "kind": "fresh disposable non-Git directory",
+    "initial_entries": 0,
+    "project_id": "f88e63a510ec6c464aab71249474bec3"
+  },
+  "built_binary_sha256": "d16becb013392dd1596ccf112176bfdd9e271fddec4bef2260244fd5bf11ee8b",
+  "approval": {
+    "scope": "one README replay migration apply only",
+    "approved_by": "kiunlee",
+    "timestamp": "2026-07-22T16:55:06Z",
+    "plan_id": "1bfbdf6cf2fbdb5248c855492ddc5ca0",
+    "plan_sha256": "4619ba3d4d417c127242fd6cbc90978d0390545d863e3b169eb2c684639b4fb0",
+    "approval_file_sha256": "74b74b5cf725172b26b4b7e89203a1d9cfb7bf0b48d4208bb95304495015fca5",
+    "backup_checksum": "11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792"
+  }
+}

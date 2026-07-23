@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/platform	2.262s
+ok  	example.invalid/coordledger/internal/domain/git	0.556s

@@ -1,0 +1,2 @@
+disposable_clone=ABSENT
+original_status_fingerprint=8c40681768d39959544b774783b3a80729bf4184e9348793ac390a29e629f486

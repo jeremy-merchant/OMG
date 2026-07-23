@@ -1,0 +1,9 @@
+{
+  "cleanup": "C2",
+  "fixture_disposition": "the example removed its OMG-managed blocks and then deleted only its own temporary directory",
+  "existing_target_restored_byte_for_byte": true,
+  "created_target_removed": true,
+  "symlink_or_user_repository_mutation": false,
+  "watch_process_started": false,
+  "network_listener_started": false
+}

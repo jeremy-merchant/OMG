@@ -1,0 +1,109 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://example.invalid/coordledger/buildtypes/go-cross/v1",
+      "externalParameters": {
+        "cgoEnabled": false,
+        "goPackage": "./cmd/omg",
+        "ldflags": "-s -X main.version=v0.1.0-rc.1",
+        "publicationStatus": "NOT PUBLISHED",
+        "targets": [
+          "darwin/arm64",
+          "darwin/amd64",
+          "linux/arm64",
+          "linux/amd64",
+          "windows/amd64"
+        ],
+        "trimpath": true,
+        "version": "v0.1.0-rc.1"
+      },
+      "internalParameters": {
+        "goFlags": "-buildvcs=false",
+        "sourceRevisionStatus": "repository has no HEAD commit; source archive SHA-256 is canonical"
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "sha256": "52e9255d79e6f0c7ae3493f8509bb09a7c9fc6da1c8ebfef4a61211a44465261"
+          },
+          "uri": "file:go.mod"
+        },
+        {
+          "digest": {
+            "sha256": "8ae5f33f5b5516c4b8e2e0f4bc5293434b414b55115a71bfb2f2e62721e3cc56"
+          },
+          "uri": "file:go.sum"
+        },
+        {
+          "digest": {
+            "sha256": "005a9f3af0513f9a2c8935e337fcb07816f7666b8aec754b04fe7509201fceab"
+          },
+          "uri": "file:docs/brand/NAME_CLEARANCE.md"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://go.dev/toolchain/go1.26.2"
+      },
+      "byproducts": [
+        {
+          "digest": {
+            "sha256": "25f8583686279b3f1d50f039a78bab17eb95f2e06870ac60600d3d492fd9e5c5"
+          },
+          "name": "sbom.spdx.json"
+        },
+        {
+          "digest": {
+            "sha256": "6b6102efc464cba6d79a25ba2acf2a5d8988b684b23ba2daae064d25ce0bf7d3"
+          },
+          "name": "THIRD_PARTY_NOTICES.txt"
+        }
+      ],
+      "metadata": {
+        "finishedOn": "2026-07-23T14:58:22Z",
+        "invocationId": "urn:uuid:cec0e0ad-19e8-5bb9-a93e-334681ad8c8b"
+      }
+    }
+  },
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "9eb23cf086c9257fa7d7c1c671db94c2a4faf915a97a2d92a72557419b70be95"
+      },
+      "name": "omg-v0.1.0-rc.1-darwin-amd64"
+    },
+    {
+      "digest": {
+        "sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f"
+      },
+      "name": "omg-v0.1.0-rc.1-darwin-arm64"
+    },
+    {
+      "digest": {
+        "sha256": "9a67805c63923463daa67b021c03e3665671057e863a869b40c90735e8511593"
+      },
+      "name": "omg-v0.1.0-rc.1-linux-amd64"
+    },
+    {
+      "digest": {
+        "sha256": "d41fd0489db1d63b5c0eec3b1f703d9a0880a8d3d3dc2a7072b35e31ab0438be"
+      },
+      "name": "omg-v0.1.0-rc.1-linux-arm64"
+    },
+    {
+      "digest": {
+        "sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+      },
+      "name": "omg-v0.1.0-rc.1-source.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "66d68d0ed06e4d2897e1b1db2de9d83fbaea8355ac0be231a61d3f67c0a49952"
+      },
+      "name": "omg-v0.1.0-rc.1-windows-amd64.exe"
+    }
+  ]
+}

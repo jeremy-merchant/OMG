@@ -1,0 +1,7 @@
+{
+  "criterion": "Offline parity report",
+  "detail": "Both current project aggregates are migration-gated; a semantic parity report cannot be truthfully generated before the approved live proofs.",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

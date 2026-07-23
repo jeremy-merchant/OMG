@@ -1,0 +1,41 @@
+{
+  "acceptance_id": "SEC-T17",
+  "assertion": "Evidence JSON was validated before final mode changes; raw delegation-token-shaped strings and private /Users paths are absent; disposable fixtures are not retained.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T104856Z",
+  "cleanup_code": "C1",
+  "immutable_permissions": {
+    "directory": "0555",
+    "files": "0444"
+  },
+  "mapped_sources": [
+    "internal/store/sqlite/store.go",
+    "internal/store/sqlite/backup_inspection.go"
+  ],
+  "phase": "CLEAN",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS",
+  "validation": {
+    "hash_binding": "PASS",
+    "json_parse": "PASS",
+    "private_path_scan": "PASS",
+    "required_stages": [
+      "PIN.json",
+      "RED.json",
+      "GREEN.json",
+      "SURFACE.json",
+      "CLEAN.json"
+    ],
+    "secret_scan": "PASS"
+  }
+}

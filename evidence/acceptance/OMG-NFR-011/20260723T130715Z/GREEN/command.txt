@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/platform ./internal/domain/git -run 'Test.*(Path|Worktree|Bare|Detached)' -count=1

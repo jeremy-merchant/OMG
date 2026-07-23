@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/watch	0.338s
+ok  	example.invalid/coordledger/internal/bootstrap	0.566s

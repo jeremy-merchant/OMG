@@ -1,0 +1,63 @@
+{
+  "acceptance_id": "OMG-AC-002",
+  "assertions": [
+    "Current extracted-source foundation package test passed.",
+    "Current binary init, migration plan, and backup create passed offline.",
+    "Migration apply deliberately was not executed without exact approval."
+  ],
+  "blocker": "A required locally observable command failed; No exact current fixture-specific human approval exists for migration apply. The observed init/plan/backup flow stopped before apply; no migration, import, or restore was performed.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "e20ada489c2e5511c2be60d44ade6e1e76695774abd9b10955b65934ca71a616",
+    "network_enforcement": "sandbox-exec deny network*",
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_members": 311,
+    "source_archive_sha256": "e4290417c5140c6828545cf8bba70c006e5cbacfa4dc072cc81eeb3c5625a433",
+    "source_file_members": 255,
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T14:41:36.655200Z",
+  "commands": [
+    {
+      "command": "go test ./internal/app/foundation",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "stderr": "go: downloading golang.org/x/sys v0.34.0\ngo: downloading modernc.org/sqlite v1.38.2\n# example.invalid/coordledger/internal/app/foundation\ninternal/unixacl/extended_darwin.go:18:2: golang.org/x/sys@v0.34.0: Get \"https://proxy.golang.org/golang.org/x/sys/@v/v0.34.0.zip\": dial tcp: lookup proxy.golang.org: no such host\n",
+      "stdout": "FAIL\texample.invalid/coordledger/internal/app/foundation [setup failed]\nFAIL\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project <fixture>/project --json",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 migration plan --project <fixture>/project --output <fixture>/project/plan.json --json",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"id\":\"a1bda4f73bf6053f52f0e9229ba66aff\",\"project\":\"ce54da8953ffa838adf553a95f411391\",\"from_version\":0,\"to_version\":8,\"checksums\":[\"226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489\",\"d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa\",\"c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a\",\"561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168\",\"3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda\",\"db88d61fb30d5045ec5237ceaadde376052e59520b52385258647585d6f07224\",\"acaaf60e11d819f268b17c04e9c494fbef8ebf20c7ec55d78bc81ad5cdc264f9\",\"ed3c0a5330495e1cd5bf9d7f12f17ca02071d78d779d18f60b5a431bba82de2a\"]},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 backup create --project <fixture>/project --plan-file <fixture>/project/plan.json --json",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"checksum\":\"11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    }
+  ],
+  "fixture_contract": "fresh isolated 0700 root/home/project/source/tmp; disposable fixture removed after capture",
+  "record_schema_version": 2,
+  "row_id": "OMG-AC-002",
+  "stage": "GREEN",
+  "stage_status": "PENDING"
+}

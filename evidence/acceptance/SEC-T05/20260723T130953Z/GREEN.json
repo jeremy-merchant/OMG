@@ -1,0 +1,21 @@
+{
+  "acceptance_id": "SEC-T05",
+  "assertion": "Focused mapped positive/containment assertions passed on darwin/arm64.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T130953Z",
+  "commands": [
+    {
+      "assertion": "Focused mapped test executed and passed; no package-wide summary substituted.",
+      "command": "rtk go test -race -count=1 -v ./internal/safety -run '^(TestRejectDelegationTokenDetectsFixedLengthCredentialSubstrings|TestRejectDelegationTokenPermitsInvalidLookalikes|TestRedactDelegationTokenReplacesEachFixedLengthCredentialSubstring)$'",
+      "exit_code": 0
+    }
+  ],
+  "phase": "GREEN",
+  "schema_version": 2,
+  "status": "PASS"
+}

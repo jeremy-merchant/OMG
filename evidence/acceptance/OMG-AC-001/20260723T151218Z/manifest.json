@@ -1,0 +1,47 @@
+{
+  "acceptance_id": "OMG-AC-001",
+  "blocker": "No exact current fixture-specific human approval exists for migration apply; no migration apply, import apply, or restore mutation was performed.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "directories": "0555",
+    "dual_bound_every_record": true,
+    "files": "0444",
+    "json_valid": true,
+    "leak_scan": "PASS",
+    "network_offline": true,
+    "stage_hashes_valid": true
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 2,
+  "result": "PENDING",
+  "root_timestamp_utc": "2026-07-23T15:12:18.177370Z",
+  "row_id": "OMG-AC-001",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  },
+  "stages": {
+    "CLEAN": "ebb5224877e0fb776e35a48d90fc74ebe8b10d06269a1c1d37c6bfb215e1ba94",
+    "GREEN": "9db8ef9fee24c71c1c769ff2621d8955db2f431d1d8d6af5779995a01260c75a",
+    "PIN": "839f0792df6285c66612fcc6e393b4d6d9287866c4ff875200725356c9645d19",
+    "RED": "258b330a90180fdf2af829cbb08bb172d9d752090f5414de1aee60d4e40b0b59",
+    "SURFACE": "c665de7b0777bee2044371d4b3f1fa6091ecc2a0083f1886088bebf6abe2dca4"
+  }
+}

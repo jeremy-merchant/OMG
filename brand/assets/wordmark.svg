@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg">
+  <metadata>NOT PUBLISHED</metadata>
+
+  
+  <!-- O -->
+  <circle cx="12" cy="12" r="8" fill="none" stroke="#0f172a" stroke-width="3" />
+  <!-- M -->
+  <path d="M 28 20 L 28 4 L 36 12 L 44 4 L 44 20" fill="none" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" />
+  <!-- G -->
+  <path d="M 68 8 A 8 8 0 1 0 68 16 H 60" fill="none" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+
+
+</svg>

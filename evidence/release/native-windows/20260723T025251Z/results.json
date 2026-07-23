@@ -1,0 +1,26 @@
+{
+  "result": "PASS",
+  "validated_at_utc": "2026-07-23T02:52:51Z",
+  "build": {"result": "PASS", "version": "v0.1.0-rc.1+native-final", "target": "windows/amd64"},
+  "lifecycle": [
+    {"name": "fresh init", "result": "PASS", "exit_code": 0},
+    {"name": "plan in protected private output parent", "result": "PASS", "exit_code": 0},
+    {"name": "backup create from generated plan", "result": "PASS", "exit_code": 0},
+    {"name": "apply with bounded approval", "result": "PASS", "exit_code": 0, "output": "applied=true"},
+    {"name": "consumed approval replay", "result": "PASS", "exit_code": 2, "expected": "rejected", "output": "migration approval is invalid"},
+    {"name": "doctor integrity after apply", "result": "PASS", "exit_code": 0, "output": "initialized=true; integrity=true; pending_migrations=0"},
+    {"name": "coordination read/write smoke", "result": "BLOCKED", "reason": "not run; migration lifecycle was the requested bounded native fixture scope and no pre-existing coordination payload was supplied"}
+  ],
+  "approval": {
+    "result": "PASS",
+    "approved_by": "kiunlee (explicit native-validation instruction)",
+    "evidence_reference": "native-windows/20260723T025251Z",
+    "command": "omg migration apply",
+    "expiry_bound": "10 minutes",
+    "bound_to": "exact generated plan fields and backup checksum"
+  },
+  "remote_fixture": {
+    "path": "<redacted-disposable-windows-fixture>",
+    "cleanup": {"result": "PASS", "command": "cmd rmdir /s /q", "exists_after_cleanup": false}
+  }
+}

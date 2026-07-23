@@ -1,0 +1,7 @@
+{
+  "criterion": "Candidate pin parity",
+  "detail": "Final binary SHA-256 and version JSON exactly matched the required binding.",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

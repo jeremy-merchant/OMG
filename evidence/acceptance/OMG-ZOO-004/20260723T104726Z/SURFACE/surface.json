@@ -1,0 +1,7 @@
+{
+  "criterion": "Controlled wait/overlap coordination",
+  "observable": "focused reservation lifecycle test passed; conflict is advisory and deterministic",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

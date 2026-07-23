@@ -1,0 +1,41 @@
+{
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "rtk shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650  dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64\\neee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79  dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz"
+    },
+    {
+      "command": "rtk dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}"
+    }
+  ],
+  "comparison_status": "PENDING",
+  "next_action": "Obtain the separate exact human migration/import apply approval for a fresh disposable Pygmalion clone, apply the approved import twice, capture and candidate-bind a normalized canonical-domain export, then replay the same core commands in a fresh disposable Zoomzi clone and compare the normalized exports.",
+  "observed": {
+    "binary_sha256_matches": true,
+    "pygmalion_candidate_binding_matches": true,
+    "pygmalion_pin_manifest": "evidence/acceptance/OMG-PYG-004/20260723T130610Z/manifest.json",
+    "schema_version": 1,
+    "source_archive_sha256_matches": true,
+    "version": "v0.1.0-rc.1"
+  },
+  "reason": "No current Pygmalion normalized canonical-domain export bound to the definitive candidate exists in the immutable Pygmalion evidence; PYG-004 is PENDING pending exact human migration/import apply approval and has no export artifact.",
+  "recorded_at": "2026-07-23T14:11:47.900505Z",
+  "row_id": "OMG-ZOO-006",
+  "stage": "PIN",
+  "status": "PASS",
+  "timestamp_utc": "20260723T141147Z"
+}

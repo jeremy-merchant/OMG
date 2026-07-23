@@ -1,0 +1,30 @@
+{
+  "captured_at": "2026-07-22T23:40:41.765809Z",
+  "candidate": "v0.1.0-rc.1",
+  "platform": "darwin/arm64",
+  "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "binary_bytes": 7545346,
+  "method": "100 sequential subprocess invocations per command after one warm-up; wall-clock perf_counter_ns; valid ok:true JSON required on every run",
+  "results": {
+    "version_json": {"iterations": 100, "min_ms": 9.287, "median_ms": 10.077, "p95_ms": 13.03, "max_ms": 19.241, "mean_ms": 10.495},
+    "release_status_json": {"iterations": 100, "min_ms": 9.462, "median_ms": 11.252, "p95_ms": 25.368, "max_ms": 38.096, "mean_ms": 13.31},
+    "doctor_json": {"iterations": 100, "min_ms": 9.964, "median_ms": 10.709, "p95_ms": 12.912, "max_ms": 22.65, "mean_ms": 11.179},
+    "init_single_ms": 40.387
+  },
+  "sqlite_verification": {
+    "command": "go test -count=1 ./internal/store/sqlite",
+    "passed_tests": 39,
+    "packages": 1
+  },
+  "target_assessment": {
+    "numeric_targets_found": false,
+    "spec_sources_checked": [
+      "docs/PRODUCT_SPEC.md",
+      "docs/ACCEPTANCE_MATRIX.md",
+      ".gjc/_session-019f891e-47ba-7000-aa63-1c14a9629cdb/specs/deep-interview-omg-master-spec.md"
+    ],
+    "verdict": "BASELINE_ONLY",
+    "reason": "The authoritative product and acceptance specifications define no quantitative startup, latency, throughput, or memory target; no pass/fail threshold was invented."
+  },
+  "cleanup": {"temporary_fixture_removed": true}
+}

@@ -1,0 +1,27 @@
+{
+  "acceptance_id": "PRIV-T01",
+  "candidate_hashes": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "darwin_arm64_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d"
+  },
+  "command_count": 6,
+  "root_timestamp_utc": "20260723T151434Z",
+  "stage_files": {
+    "PIN.json": "4be7398e4ad63d499713ddfc6bfb842bc6337e36d72d628b13e3416fcd8eff6c",
+    "RED.json": "b3d6beed879d866bda83db6d37ad2a10409475b5522424ddc99c4857acda5eb7",
+    "GREEN.json": "b3b2ab2f45fc5c910c41bce898c40a7f1f3ac18af366a6220847c49df6c7721a",
+    "SURFACE.json": "416beed6a8a4f2585dddf5164ad211b1c1bceae132551bf3929eca1eaa8c5662",
+    "CLEAN.json": "a5fdade5eb449e41f07fcfcc71d48f3904a78bdaea3a9b6eda48d709acb7a7c6"
+  },
+  "status": "PASS",
+  "validation": {
+    "acceptance_id_consistent": true,
+    "candidate_hashes_consistent": true,
+    "five_stages_complete": true,
+    "json_valid": true,
+    "no_raw_secret_or_private_path": true,
+    "publication_state": "NOT PUBLISHED"
+  },
+  "schema_version": 3
+}

@@ -1,0 +1,18 @@
+{
+  "commands": [
+    "go test -race -run 'TestApplyRemovePreservesEncodingsAndOuterBytes|TestPlanAndStatusAreReadOnlyAndNestedTargetsAreIndependent|TestRemoveDeletesTargetCreatedByApply|TestIntegrationPlanApplyIdempotentAndRemove' ./internal/integration/instructions ./internal/transport/cli",
+    "go run ./examples/adapter-roundtrip --omg /tmp/omg-adapter-example-bin"
+  ],
+  "exit_codes": [0, 0],
+  "go_test": {
+    "packages": 2,
+    "tests_passed": 10
+  },
+  "roundtrip": {
+    "ok": true,
+    "daemonless": true,
+    "integration_round_trip": true,
+    "mcp_responses": 3,
+    "runtime_wrapper": true
+  }
+}

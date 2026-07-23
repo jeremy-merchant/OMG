@@ -1,0 +1,24 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T13:55:03Z",
+  "result": "PASS",
+  "five_stage_completeness": true,
+  "stages": {
+    "PIN": "6c2c4ab1a9fd6316a18ac80a9d011f4d7606ddd22c76c149e90dbeba7d7c4215",
+    "RED": "ece6668e4fc03ee05899136b5d9f693e3494d86dd950769df378c78cd8c24c1f",
+    "GREEN": "916be70ddfec83f9acf492ae4b4de236ef4425a0023b93c87a500fa7afba743a",
+    "SURFACE": "cd4d67b8246fe828dd6affeaffc2721b25d1b66aef730d757cba1d1f25a5d3bb",
+    "CLEAN": "26928eac00f6997a5eb5ec4224ef25cb4ef1be343b438e823d80cdaa8bc381dd"
+  },
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "review_records": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "a36a6c6f7e114113d96adc1402d1b4f0f35bc630bb81f71b9de4c61fb60cea73",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "command_count": 0,
+  "fixture_removed": true,
+  "privacy_scan": "no raw token or private path found",
+  "freeze": "JSON, exact dispositions, distinct reviewers, source binding, stage completeness, and leak scan validated before chmod 0444/0555"
+}

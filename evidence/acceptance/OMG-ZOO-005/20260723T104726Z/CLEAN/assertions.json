@@ -1,0 +1,6 @@
+{
+  "assertion": "focused parent-loss/adoption integration test passed; adoption has no restricted authority",
+  "criterion": "Orphan Git work adoption without cleanup",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "status": "PASS"
+}

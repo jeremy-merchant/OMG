@@ -1,0 +1,53 @@
+{
+  "acceptance_id": "PRIV-T01",
+  "blocker": null,
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/safety/safety.go",
+    "internal/app/query/service.go",
+    "internal/view/render.go"
+  ],
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app/query -run ^(TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields"
+      ],
+      "output": "=== RUN   TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields\n--- PASS: TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields (0.03s)\nPASS\nok  \texample.invalid/coordledger/internal/app/query\t1.407s\n",
+      "private_path_redacted": false
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app -run ^(TestDispatchCoordinationQueryDoesNotLeakMessageBody)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestDispatchCoordinationQueryDoesNotLeakMessageBody"
+      ],
+      "output": "=== RUN   TestDispatchCoordinationQueryDoesNotLeakMessageBody\n--- PASS: TestDispatchCoordinationQueryDoesNotLeakMessageBody (0.05s)\nPASS\nok  \texample.invalid/coordledger/internal/app\t3.637s\n",
+      "private_path_redacted": false
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app/lineage -run ^(TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput"
+      ],
+      "output": "=== RUN   TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput\n--- PASS: TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput (0.04s)\nPASS\nok  \texample.invalid/coordledger/internal/app/lineage\t1.515s\n",
+      "private_path_redacted": false
+    }
+  ],
+  "phase": "GREEN",
+  "positive_assertion": "Mapped named tests establish the safe behavior on the current source candidate.",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

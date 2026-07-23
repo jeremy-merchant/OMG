@@ -1,0 +1,24 @@
+{
+  "assertion": "All three daemonless CLI invocations returned unavailable; no fixture state was created.",
+  "command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 {board all|init|migration plan} --project <disposable-fixture> --json",
+  "exits": {
+    "board_all_before_init": 4,
+    "init": 4,
+    "migration_plan": 4
+  },
+  "fixture_binding": "fresh disposable fixture created and removed in one process; path intentionally omitted from evidence",
+  "observed_envelope": {
+    "error": {
+      "code": "unavailable",
+      "exit_code": 4,
+      "message": "foundation service is unavailable",
+      "retryable": false
+    },
+    "meta": {
+      "command_version": 1,
+      "schema_version": 1
+    },
+    "ok": false,
+    "warnings": []
+  }
+}

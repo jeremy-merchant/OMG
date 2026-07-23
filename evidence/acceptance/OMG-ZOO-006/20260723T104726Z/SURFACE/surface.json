@@ -1,0 +1,7 @@
+{
+  "criterion": "Normalized generic-core comparison",
+  "observable": "local core behavior tests passed, but a current Pygmalion normalized export was not available at this execution instant",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

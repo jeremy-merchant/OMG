@@ -1,0 +1,3 @@
+ok
+
+OMG runtime=test executable=echo resolution=path status=succeeded exit_code=0

@@ -1,0 +1,23 @@
+--- FAIL: TestJSONEnvelopesHaveStableProtocolShape (0.04s)
+    --- FAIL: TestJSONEnvelopesHaveStableProtocolShape/unavailable (0.04s)
+        cli_test.go:237: error metadata = {Code:unavailable Message:foundation service is unavailable Retryable:false ExitCode:4}
+--- FAIL: TestInitPreservesExistingConfigAndNeverMigrates (0.07s)
+    cli_test.go:269: init exit = 4
+--- FAIL: TestFoundationMigrationFlowAndApprovalGuards (0.08s)
+    cli_test.go:304: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestApprovalTimestampAndJSONErrorsAreSafe (0.07s)
+    cli_test.go:397: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestReleaseStatusAndBoardPreconditions (0.04s)
+    cli_test.go:437: uninitialized board: 4 {"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestMigrationPlanOutputRejectsBroadParent (0.08s)
+    migration_output_security_posix_test.go:29: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestMigrationPlanOutputRejectsFIFOWithoutMutation (0.09s)
+    migration_output_security_posix_test.go:47: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestMigrationPlanOutputCreatesOnlyNewPrivateRegularFile (0.08s)
+    migration_output_security_test.go:39: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+--- FAIL: TestMigrationPlanOutputRejectsUnsafeDestinationsWithoutMutation (0.07s)
+    migration_output_security_test.go:57: init exit=4 output={"ok":false,"error":{"code":"unavailable","message":"foundation service is unavailable","retryable":false,"exit_code":4},"meta":{"schema_version":1,"command_version":1},"warnings":[]}
+FAIL
+FAIL	example.invalid/coordledger/internal/transport/cli	1.793s
+ok  	example.invalid/coordledger/internal/transport/mcp	(cached)
+FAIL

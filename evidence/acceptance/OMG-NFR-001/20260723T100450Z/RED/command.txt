@@ -1,0 +1,1 @@
+rtk go test ./cmd/omg -run ^$ -count=1

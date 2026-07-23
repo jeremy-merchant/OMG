@@ -1,0 +1,96 @@
+{
+  "blocker": "Required CI runner evidence is absent for cross-platform portion; focused Darwin observation is recorded.",
+  "candidate_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "five_stage_completeness": {
+    "CLEAN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "GREEN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "PIN": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "RED": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ],
+    "SURFACE": [
+      "command.txt",
+      "exit-code.txt",
+      "expected.txt",
+      "metadata.json",
+      "stderr.txt",
+      "stdout.txt"
+    ]
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T13:07:15.066825Z",
+  "root_utc": "20260723T130715Z",
+  "row_id": "OMG-NFR-011",
+  "schema_version": 1,
+  "source_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "stage_sha256": {
+    "CLEAN": {
+      "command.txt": "10fb199c9e3c8818f65f65b093873342e1e1ac2faee38d57cd1ff72f4a686580",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "568057f27137fc6c44727d2402c6b355873461917c63220238e6587872754a64",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "GREEN": {
+      "command.txt": "36ddf732862fe5f134f4c45333406f0bfe3c1bd5c892c00bde2a9333d1ed289c",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "7989b659b02d94d9db0ca5949ca96ced3ed1dadc14458e4cc70fe71bf48c7ae9",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "2fb46d1511cfe218ef7e88424e72619aec349b9746c15fd6621890256a0b6045"
+    },
+    "PIN": {
+      "command.txt": "3ff74325d4fed7141f0ae9cfbef9beede2e51528a5653d3bc545f48e56d62809",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "4ebbb3a3174827d302020fcaa2c0ee84cd3647d4c606bfa502ffa7a7da7041f2",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "0263e771ec4a4453b2c86a9adbb6d1312faa27615b2d0d3db65d0431fb03b289"
+    },
+    "RED": {
+      "command.txt": "4f920caf4da329e927283e360589afc3946bf6f5225158a853c46c88cfa9b3e2",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "87a14f9baa01e5aced9dc2d33937ddec3e3d73a757b8f89c81a62b96f9a6babd",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "1228fff0da9982dfde822bdae93fbf6806fbb7334505f9e200ba92e1fc1850ba"
+    },
+    "SURFACE": {
+      "command.txt": "c8d724da0e5a34eaea775271264f7d6f90e600f47eef9e49694604118dd55cf3",
+      "exit-code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "expected.txt": "321b1595cc985ae0ff61c9d991a8754daa02ef2e9e33c72831cb42eacd402c53",
+      "metadata.json": "2e9292013b2733e89882050b928a789c25ca825c681f598615360abb4d93fc47",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout.txt": "feece00908863e6c2920a183744a390259ebe020525127c6cfa10a3e26a242a4"
+    }
+  }
+}

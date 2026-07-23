@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a bounded OMG capability or contract change
+title: "proposal: "
+labels: [proposal, needs-triage]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: Describe the coordination or recovery outcome, not an implementation preference.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current limitation
+      description: What cannot be done safely with the existing contract?
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Safety and scope boundaries
+      description: Address authority, privacy, daemonless operation, schema compatibility, and non-goals.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: This does not silently add destructive Git, deploy, publication, credential, production, or migration authority.
+          required: true
+        - label: This does not require OMG to call/select an LLM, capture private reasoning, or become a cloud/tmux/IDE/issue-tracker replacement.
+          required: true
+        - label: Any Pygmalion/Zoomzi-specific behavior is proposed outside the general-purpose core.
+          required: true

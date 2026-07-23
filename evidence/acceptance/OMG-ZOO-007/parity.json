@@ -1,0 +1,51 @@
+{
+  "acceptance_status": "HUMAN_REVIEW_PENDING",
+  "adapter_differences": [
+    "product label",
+    "source repository HEAD"
+  ],
+  "commands": [
+    "init",
+    "migration plan",
+    "backup create",
+    "migration apply",
+    "import record",
+    "human create",
+    "session create",
+    "delegate issue/register",
+    "task create/claim/transition/run-create/run-transition",
+    "progress add",
+    "dependency add",
+    "message send/deliver/read/ack",
+    "reserve add",
+    "handoff create",
+    "git inventory/adopt/cleanup-plan",
+    "board all",
+    "export"
+  ],
+  "core_semantic_differences": [],
+  "darwin_arm64_binary_sha256": "070bb358748d980b9e9b32bc558fb3e2df1b1f71fa8351f370ea5e7a2694bd04",
+  "evidence_status": "EXECUTABLE_EVIDENCE_PASSED",
+  "pygmalion_counts": {
+    "dependencies": 1,
+    "handoffs": 1,
+    "inbox": 1,
+    "progress": 1,
+    "reservations": 2,
+    "runs": 2,
+    "sessions": 7,
+    "tasks": 6
+  },
+  "schema_version": 1,
+  "source_archive_sha256": "de4f8c055a652a26e6f20ed822a8fce51920cde1ccc4baf115ad50c3e0537e2a",
+  "zoomzi_counts": {
+    "dependencies": 1,
+    "handoffs": 1,
+    "inbox": 1,
+    "progress": 1,
+    "reservations": 2,
+    "runs": 2,
+    "sessions": 7,
+    "tasks": 6
+  }
+}

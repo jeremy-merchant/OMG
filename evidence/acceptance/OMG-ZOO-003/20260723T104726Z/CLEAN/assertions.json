@@ -1,0 +1,6 @@
+{
+  "assertion": "focused handoff integration tests passed: parent-loss handoff remains queryable and single-target adoption succeeds",
+  "criterion": "Second runtime discovery, duplicate-claim rejection, handoff continuation",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "status": "PASS"
+}

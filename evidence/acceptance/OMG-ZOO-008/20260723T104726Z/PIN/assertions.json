@@ -1,0 +1,6 @@
+{
+  "assertion": "the disposable clone was initialized and its original dirty baseline captured; human approval required for the rehearsal is absent",
+  "criterion": "Rollback and preservation rehearsal",
+  "missing_proof": null,
+  "status": "PASS"
+}

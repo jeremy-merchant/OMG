@@ -1,0 +1,1 @@
+rtk sh -c test ! -f approval.json

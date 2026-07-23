@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "review": "security-privacy",
+  "reviewer": "ReviewNewSecurityPrivacy",
+  "recorded_at": "2026-07-23T15:08:36Z",
+  "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+  "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+  "verdict": "CLEAR",
+  "basis": [
+    "Current source review found no defect in Unix/Darwin descriptor-relative path and ACL guards or Windows canonical-local, reparse, owner-only DACL, alternate-stream, and reserved-path handling.",
+    "Token rejection and redaction, canonical query projection, CLI/MCP selector validation, cancellation, transaction rollback, and private export creation remain fail-closed.",
+    "TTY, Markdown, HTML, and JSON renderers preserve escaping and CSP boundaries; strict export validation rejects unsupported option presence before query dispatch without widening scope."
+  ],
+  "remaining_blockers": [],
+  "native_evidence_gaps": [
+    "Windows native DACL, path, and process-descendant behavior requires a hosted Windows runner.",
+    "Other non-host target execution remains pending where the matrix requires native proof."
+  ]
+}

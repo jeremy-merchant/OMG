@@ -1,0 +1,6 @@
+{
+  "assertion": "init created only standard .omg/project.toml; isolated adapter config stayed under .omg/adapter/zoomzi.json",
+  "criterion": "Adapter-only configuration in a disposable clone",
+  "missing_proof": "Pre-migration human-create command returned unavailable/exit 4; project-specific core configuration was not added.",
+  "status": "PASS"
+}

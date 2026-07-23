@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app/query ./internal/app -run 'Test.*Redact.*' -count=1

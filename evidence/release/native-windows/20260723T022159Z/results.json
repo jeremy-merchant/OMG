@@ -1,0 +1,43 @@
+{
+  "result": "FAIL",
+  "validated_at_utc": "2026-07-23T02:21:59Z",
+  "machine": {
+    "host": "192.168.0.2",
+    "os": "Microsoft Windows NT 10.0.26200.0",
+    "architecture": "amd64",
+    "powershell": "5.1.26100.8875",
+    "git": "C:\\Program Files\\Git\\cmd\\git.exe",
+    "go": "C:\\Program Files\\Go\\bin\\go.exe"
+  },
+  "remote_fixture": {
+    "path": "C:\\Users\\kiunlee\\OMG-native-windows-20260723T022159Z",
+    "cleanup": {"result": "PASS", "exists_after_cleanup": false, "exit_code": 0}
+  },
+  "artifacts": {
+    "windows_binary": "omg-v0.1.0-rc.1-windows-amd64.exe",
+    "source_archive": "omg-v0.1.0-rc.1-source.tar.gz",
+    "sha256": {
+      "result": "PASS",
+      "expected": "43d1a0e10d51c4fa03a90f4e8c82e553fb9ed9f33efd1ae3f644d233e32a2952",
+      "actual": "43d1a0e10d51c4fa03a90f4e8c82e553fb9ed9f33efd1ae3f644d233e32a2952"
+    }
+  },
+  "checks": [
+    {"name": "version_json", "result": "PASS", "command": "omg-v0.1.0-rc.1-windows-amd64.exe version --json", "exit_code": 0, "output": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"}}"},
+    {"name": "fresh_init_json", "result": "FAIL", "command": "omg-v0.1.0-rc.1-windows-amd64.exe init --project <fixture>\\project --json", "exit_code": 4, "output": "foundation service is unavailable"},
+    {"name": "doctor_integrity_json", "result": "PASS", "command": "omg-v0.1.0-rc.1-windows-amd64.exe doctor --project <fixture>\\project --integrity --json", "exit_code": 0, "output": "initialized=false; pending_migrations=0"},
+    {"name": "secure_state_dacl", "result": "FAIL", "command": "go test ./internal/store/sqlite -run TestWindowsSecureStatePath -count=1", "exit_code": 1, "output": "TestWindowsSecureStatePathCreatesPrivateDACL: sqlite: state path DACL is not private"},
+    {"name": "migration_output_acl_and_reparse", "result": "FAIL", "command": "go test ./internal/transport/cli -run TestMigrationPlanOutput -count=1", "exit_code": 1, "output": "both migration-output scenarios blocked because init returned exit 4: foundation service is unavailable"},
+    {"name": "watch_lock_lease_acl_and_reparse", "result": "FAIL", "command": "go test ./internal/watch -run Windows|Lock|Lease|Reparse|ACL -count=1", "exit_code": 1, "output": "Windows watch ACL/reparse scenarios failed at setup: watch state path DACL is not private"}
+  ],
+  "native_behavior": {
+    "dacl_owner_only_enforcement": "FAIL: native secure-state setup rejected the created state path as not private; therefore broadened-ACL rejection could not be reached.",
+    "reparse_rejection": "BLOCKED: migration and watch reparse scenarios could not reach their reparse assertions because foundational init/DACL setup failed first.",
+    "lifecycle": "FAIL: native version executed; fresh init failed exit 4; doctor executed but reported initialized=false."
+  },
+  "remaining_blockers": [
+    "The RC native binary's foundation service is unavailable for fresh init (exit 4).",
+    "On the native Windows host, secure state and watch setup reject their own newly created paths because the DACL is not private.",
+    "Consequently migration-output and reparse/broadened-ACL behavior cannot be validated end-to-end."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T14:04:46Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "review_record_sha256": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "bc14108066ca94b1ff9d67afefa80886d7b5a956ffcd5799747ecec3c99e2952",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "qa_recorded_at": "2026-07-23T14:04:17Z",
+  "publication_state": "NOT PUBLISHED",
+  "result": "PASS",
+  "five_stage_completeness": true,
+  "stages": {
+    "PIN": "6c97f93ba6e08a7f9ec028da89c8ff1566a03bf458c3b43c0952edc7cfd35946",
+    "RED": "db57983b9692aafe0fa09cf402ed3ee3e615bf5e93c7bd040e413177103b2f1c",
+    "GREEN": "394010ec07bdb8891f08fce907e2f8d90e9cb1d5864b56bb1e3fc6479f62ae12",
+    "SURFACE": "910fef6df925835f845faada2f62fc0311c7ed52142750a6a1de7eae7dcf95c0",
+    "CLEAN": "0d757af6f2f2fca50c36560171f0bd535ece17a4a01fbe7159ce6c7e0cc9cf35"
+  },
+  "command_count": 0,
+  "fixture_removed": true,
+  "chronology_validated": true,
+  "privacy_scan": "no raw token or private path found",
+  "freeze": "JSON, dual bindings in every record, review hashes, exact dispositions, chronology, stage completeness, and leak scan validated before chmod 0444/0555"
+}

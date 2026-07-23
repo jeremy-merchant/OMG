@@ -1,0 +1,11 @@
+{
+  "acceptance_id": "OMG-BR-002",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "check": "preview validator rejects unsafe or publication-ambiguous output",
+  "controlled_invalid_cases": [
+    {"case": "missing visible status", "expected": "rejected", "observed": "rejected"},
+    {"case": "missing preview text", "expected": "rejected", "observed": "rejected"},
+    {"case": "script element", "expected": "rejected", "observed": "rejected"}
+  ],
+  "result": "PASS"
+}

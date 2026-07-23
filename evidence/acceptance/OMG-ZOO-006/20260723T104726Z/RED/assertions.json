@@ -1,0 +1,6 @@
+{
+  "assertion": "local core behavior tests passed, but a current Pygmalion normalized export was not available at this execution instant",
+  "criterion": "Normalized generic-core comparison",
+  "missing_proof": "No Zoomzi-specific core branch was found by the generic-core review procedure; parity remains pending current Pygmalion input.",
+  "status": "PASS"
+}

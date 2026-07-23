@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/transport/cli -run ^(TestBoardAndStaticExportUseCurrentCanonicalStore|TestWriteNewExportRejectsSymlinkAncestor)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:06:30.611343Z",
+      "package": "./internal/transport/cli",
+      "stderr": "",
+      "stdout": "Go test: 2 passed in 1 packages\n",
+      "tests": [
+        "TestBoardAndStaticExportUseCurrentCanonicalStore",
+        "TestWriteNewExportRejectsSymlinkAncestor"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-014",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

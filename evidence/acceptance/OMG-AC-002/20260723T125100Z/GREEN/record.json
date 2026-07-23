@@ -1,0 +1,36 @@
+{
+  "assertion": "Init and stdout migration plan succeeded; required row-positive domain operation is blocked pending a separately bound human migration approval. Mapped exact Go tests passed.",
+  "blocker": "A fresh private-HOME fixture initialized and produced a migration plan, but all domain commands requiring schema apply remain intentionally unperformed; migration plan --output also returned unavailable, preventing backup-plan-file continuation.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "e8fca1d2fc90a6febe034bd9e67bf146eec6ef5dce3a71940ba639deccdae444",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T12:51:00.177368Z",
+  "cli_probe": "captures/disposable-cli.json",
+  "fixture_binding": {
+    "approval_state": "absent; no approval-required apply performed",
+    "cleanup": "fixture and HOME removed; no external project changed",
+    "fixture_id": "omg-ac-002-20260723T105917Z",
+    "home": "disposable private HOME, removed"
+  },
+  "mapped_go_tests": {
+    "command": "rtk go test -v mapped focused packages -run exact named test regex",
+    "exit_code": 0,
+    "result": "PASS; 65 domain and 5 surface mapped tests passed in rerun",
+    "tests": [
+      "TestDispatchLineageHumanCreateAndGet",
+      "TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys",
+      "TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnapshot"
+    ]
+  },
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "row_id": "OMG-AC-002",
+  "stage": "GREEN",
+  "stage_status": "PENDING"
+}

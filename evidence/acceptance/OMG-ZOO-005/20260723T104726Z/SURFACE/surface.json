@@ -1,0 +1,7 @@
+{
+  "criterion": "Orphan Git work adoption without cleanup",
+  "observable": "focused parent-loss/adoption integration test passed; adoption has no restricted authority",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

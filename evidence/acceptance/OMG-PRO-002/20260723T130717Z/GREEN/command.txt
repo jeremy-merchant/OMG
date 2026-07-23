@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/domain/coordination ./internal/app/message -run 'Test.*Message.*' -count=1

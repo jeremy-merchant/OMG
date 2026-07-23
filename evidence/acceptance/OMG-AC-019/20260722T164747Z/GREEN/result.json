@@ -1,0 +1,29 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-22T16:47:47Z",
+  "bundle": "dist/v0.1.0-rc.1",
+  "checks": {
+    "five_target_binaries_present": true,
+    "source_archive_present": true,
+    "source_archive_members": 141,
+    "source_archive_private_session_members": 0,
+    "source_archive_evidence_members": 0,
+    "sha256_entries": 13,
+    "sha256_check_failures": 0,
+    "spdx_version": "SPDX-2.3",
+    "sbom_packages": 13,
+    "embedded_dependency_modules": 12,
+    "third_party_modules": 12,
+    "third_party_license_files": 16,
+    "provenance_predicate": "https://slsa.dev/provenance/v1",
+    "install_manifest_artifacts": 5,
+    "release_notes_present": true,
+    "changelog_present": true,
+    "rollback_present": true,
+    "identity_binding_errors": 0,
+    "bundle_validation_errors": 0,
+    "signature_files": 0
+  },
+  "release_manifest_sha256": "92267cdd5b8ec6f31c744b8344d5c117ac68281a8d15efabf16504153260e506",
+  "result": "PASS"
+}

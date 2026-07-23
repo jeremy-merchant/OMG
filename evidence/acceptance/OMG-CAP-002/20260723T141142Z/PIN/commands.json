@@ -1,0 +1,40 @@
+{
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+      "cwd": "<repo>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T14:11:43.652862Z",
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 init --project /tmp/omg-capability-fixtures-p10a4hsb/OMG-CAP-002/project --json",
+      "cwd": "<repo>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T14:11:43.859838Z",
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 migration plan --project /tmp/omg-capability-fixtures-p10a4hsb/OMG-CAP-002/project --json",
+      "cwd": "<repo>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T14:11:43.923485Z",
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"id\":\"08b064ea429a0c245737a1faf7672961\",\"project\":\"1fd2967f8fb53daaa495d9798c107ae7\",\"from_version\":0,\"to_version\":8,\"checksums\":[\"226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489\",\"d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa\",\"c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a\",\"561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168\",\"3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda\",\"db88d61fb30d5045ec5237ceaadde376052e59520b52385258647585d6f07224\",\"acaaf60e11d819f268b17c04e9c494fbef8ebf20c7ec55d78bc81ad5cdc264f9\",\"ed3c0a5330495e1cd5bf9d7f12f17ca02071d78d779d18f60b5a431bba82de2a\"]},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    }
+  ],
+  "record_schema_version": 1,
+  "row_id": "OMG-CAP-002",
+  "stage": "PIN"
+}

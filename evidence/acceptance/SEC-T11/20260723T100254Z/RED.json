@@ -1,0 +1,43 @@
+{
+  "acceptance_id": "SEC-T11",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/store/sqlite/path_security_unix.go",
+    "internal/store/sqlite/path_security_windows.go",
+    "internal/windowsacl/private_windows.go"
+  ],
+  "negative_assertion": "Named tests directly exercise this row\u2019s mapped hostile, invalid, or misuse input condition.",
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/store/sqlite -run ^(TestOpenSecuresManagedStateWithPrivatePOSIXModes)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestOpenSecuresManagedStateWithPrivatePOSIXModes"
+      ],
+      "output": "=== RUN   TestOpenSecuresManagedStateWithPrivatePOSIXModes\n--- PASS: TestOpenSecuresManagedStateWithPrivatePOSIXModes (0.00s)\nPASS\nok  \texample.invalid/coordledger/internal/store/sqlite\t3.318s\n",
+      "private_path_redacted": false
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/windowsacl -run ^(TestIsPrivateUsesACESemanticsNotSDDLFormatting)$",
+      "exit_code": 1,
+      "named_tests": [
+        "TestIsPrivateUsesACESemanticsNotSDDLFormatting"
+      ],
+      "output": "FAIL\texample.invalid/coordledger/internal/windowsacl [setup failed]\nFAIL\n# example.invalid/coordledger/internal/windowsacl\npackage example.invalid/coordledger/internal/windowsacl: build constraints exclude all Go files in [REDACTED_PRIVATE_PATH]\n",
+      "private_path_redacted": true
+    }
+  ],
+  "phase": "RED",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PENDING"
+}

@@ -1,0 +1,35 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-23T14:20:46Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "release_manifest_sha256": "3aa5b6490f3c5254dd3072b262213aa445beaad5415876202fe18d61d7bcb3b2",
+  "source_archive_members": 304,
+  "fixture": "fresh /private/tmp root with root/home/config/state/store/cache/project all 0700",
+  "publication_state": "NOT PUBLISHED",
+  "stage": "GREEN",
+  "result": "PENDING",
+  "assertions": [
+    "After init, exact README migration plan and backup create both succeeded in the private fixture."
+  ],
+  "commands": [
+    {
+      "command": "<darwin-arm64> init --project <fixture>/project --json",
+      "exit_code": 0,
+      "assertion": "initialized=true; pending_migrations=8"
+    },
+    {
+      "command": "<darwin-arm64> migration plan --project <fixture>/project --output <fixture>/project/.omg/migration-plan.json --json",
+      "exit_code": 0,
+      "assertion": "from_version=0; to_version=8; plan_id=1089666859bac3977121a53d9f13fe60"
+    },
+    {
+      "command": "<darwin-arm64> backup create --project <fixture>/project --plan-file <fixture>/project/.omg/migration-plan.json --json",
+      "exit_code": 0,
+      "assertion": "checksum=11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792"
+    }
+  ],
+  "blockers": [
+    "Exact next action: a human must separately review the fixture-specific plan/project/from-to/checksums/backup location and checksum, then issue an exact one-time unexpired approval before migration apply. No approval exists."
+  ]
+}

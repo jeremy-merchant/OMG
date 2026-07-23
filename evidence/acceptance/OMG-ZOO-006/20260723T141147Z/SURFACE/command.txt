@@ -1,0 +1,2 @@
+python3 -m json.tool evidence/acceptance/OMG-PYG-004/20260723T130610Z/manifest.json
+python3 -m json.tool evidence/acceptance/OMG-ZOO-006/20260723T130640Z/GREEN/record.json

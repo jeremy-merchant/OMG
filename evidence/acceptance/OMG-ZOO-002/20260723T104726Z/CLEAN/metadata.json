@@ -1,0 +1,18 @@
+{
+  "acceptance_id": "OMG-ZOO-002",
+  "assertion": "init created only standard .omg/project.toml; isolated adapter config stayed under .omg/adapter/zoomzi.json",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "fixture_revision": "bbb84a81e74b4253e588fab7922e031edcbf758e",
+    "platform": "Darwin 25.4.0 arm64",
+    "schema_version": 1,
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "command": "disposable init command",
+  "fixture": "disposable Zoomzi copy identified only by revision; filesystem location redacted",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "recorded_at": "2026-07-23T10:47:26Z",
+  "stage": "CLEAN",
+  "status": "PASS"
+}

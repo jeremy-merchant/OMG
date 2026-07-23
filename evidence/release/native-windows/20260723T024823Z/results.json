@@ -1,0 +1,23 @@
+{
+  "result": "BLOCKED",
+  "validated_at_utc": "2026-07-23T02:48:23Z",
+  "build": {"result": "PASS", "version": "v0.1.0-rc.1+native-fix2", "target": "windows/amd64"},
+  "focused_cli_tests": {
+    "result": "PASS",
+    "command": "go test ./internal/transport/cli -run TestMigrationPlanOutput|TestReadPrivatePayloadFileWindowsSecurityBoundary|TestDelegationRegistrationRequiresNonArgvPayloadTransport -count=1",
+    "exit_code": 0
+  },
+  "lifecycle": [
+    {"name": "init fresh project", "result": "PASS", "exit_code": 0, "output": "initialized=true; pending_migrations=5"},
+    {"name": "broad parent plan output", "result": "PASS", "exit_code": 4, "expected": "rejected", "output": "unable to write migration plan", "output_file_created": false},
+    {"name": "private parent plan output", "result": "PASS", "exit_code": 0, "parent_sddl_sanitized": "O:<CURRENT_USER_SID>G:<PRIMARY_GROUP_SID>D:PAI(A;;FA;;;<CURRENT_USER_SID>)", "output_file_created": true},
+    {"name": "backup create from private-output plan", "result": "PASS", "exit_code": 0},
+    {"name": "migration apply without approval file", "result": "BLOCKED", "exit_code": 2, "output": "migration apply requires plan and approval files"},
+    {"name": "doctor integrity after private-output plan and backup", "result": "PASS", "exit_code": 0, "output": "initialized=true; integrity=true; pending_migrations=5"}
+  ],
+  "apply_blocker": "No approved migration approval file was supplied. The native CLI correctly refused to apply without it; no schema migration was attempted.",
+  "remote_fixture": {
+    "path": "<redacted-disposable-windows-fixture>",
+    "cleanup": {"result": "PASS", "command": "cmd rmdir /s /q", "exists_after_cleanup": false}
+  }
+}

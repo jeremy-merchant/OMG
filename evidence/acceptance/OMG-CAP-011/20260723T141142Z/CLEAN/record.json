@@ -1,0 +1,25 @@
+{
+  "approval_state": "absent; no migration apply performed",
+  "assertion": "Restored the fixture archive only into a fresh disposable destination, verified inventory, then removed the original fixture.",
+  "blocker": "",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T14:11:47.214931Z",
+  "fixture_binding": {
+    "cleanup": "removed; archive restored only to fresh disposable destination",
+    "fixture": "<disposable>",
+    "home": "<disposable>/home"
+  },
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "row_id": "OMG-CAP-011",
+  "stage": "CLEAN",
+  "stage_status": "PASS"
+}

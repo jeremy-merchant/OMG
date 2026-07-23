@@ -1,0 +1,11 @@
+{
+  "clone_removed": true,
+  "initial_remove_blocked_by_immutable_clone_files": true,
+  "original_mutated": false,
+  "original_zoomzi_status_fingerprint_after": "8c40681768d39959544b774783b3a80729bf4184e9348793ac390a29e629f486",
+  "original_zoomzi_status_fingerprint_before": "8c40681768d39959544b774783b3a80729bf4184e9348793ac390a29e629f486",
+  "private_paths_redacted": true,
+  "remediation": "Cleared immutable flags and owner-write modes in the disposable copy only, then removed it.",
+  "remote_or_publication_action": false,
+  "status": "PASS"
+}

@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/store/sqlite -run 'Test.*(WAL|Migration|Backup|Foreign|Busy)' -count=1

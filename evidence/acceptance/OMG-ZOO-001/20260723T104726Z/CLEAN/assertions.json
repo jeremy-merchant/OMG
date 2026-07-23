@@ -1,0 +1,6 @@
+{
+  "assertion": "binary version output matched the pinned v0.1.0-rc.1 value; SHA-256 matched exactly",
+  "criterion": "Same verified RC pin as the current candidate",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "status": "PASS"
+}

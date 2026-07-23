@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app/foundation -run ^(TestInitCreatesStateAfterConfigInitialization|TestApplyRejectsInvalidApprovalWithoutCreatingState)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:07:46.663043Z",
+      "package": "./internal/app/foundation",
+      "stderr": "",
+      "stdout": "Go test: 10 passed in 1 packages\n",
+      "tests": [
+        "TestInitCreatesStateAfterConfigInitialization",
+        "TestApplyRejectsInvalidApprovalWithoutCreatingState"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-001",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

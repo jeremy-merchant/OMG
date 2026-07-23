@@ -1,0 +1,52 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "artifacts": {
+    "changelog": "CHANGELOG.md",
+    "checksums": "SHA256SUMS",
+    "five_platform_binaries": [
+      "omg-v0.1.0-rc.1-darwin-arm64",
+      "omg-v0.1.0-rc.1-darwin-amd64",
+      "omg-v0.1.0-rc.1-linux-arm64",
+      "omg-v0.1.0-rc.1-linux-amd64",
+      "omg-v0.1.0-rc.1-windows-amd64.exe"
+    ],
+    "install_manifest": "install-manifest.draft.json",
+    "license_notices": "THIRD_PARTY_NOTICES.txt",
+    "provenance": "provenance.intoto.json",
+    "release_notes": "RELEASE_NOTES.md",
+    "rollback": "ROLLBACK.md",
+    "sbom": "sbom.spdx.json",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "binding": {
+    "command_schema_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "fixture": "fresh disposable local state",
+    "network": "disabled for Linux container; no external network used",
+    "release_manifest_sha256": "473473eecf73140237c101d5091001ef565a060ceec5f2afdab3ecc523b53a65",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73"
+  },
+  "candidate_version": "v0.1.0-rc.1",
+  "captured_at": "2026-07-23T10:47:33Z",
+  "evidence_policy": "No raw token, private path, approval, publication command, original/external project mutation, or remote operation was performed.",
+  "mapped_behavior": "local RC evidence set is internally consistent",
+  "result": "PASS",
+  "stage": "GREEN",
+  "verification": [
+    {
+      "assertion": "all 13 listed release files match SHA256SUMS",
+      "command": "shasum -a 256 -c SHA256SUMS",
+      "exit_code": 0
+    },
+    {
+      "assertion": "archive extracted successfully with 292 members",
+      "command": "tar -tzf <source-archive>",
+      "exit_code": 0
+    },
+    {
+      "assertion": "all four JSON documents parse",
+      "command": "python JSON parse release-manifest, sbom.spdx, provenance.intoto, install-manifest.draft",
+      "exit_code": 0
+    }
+  ]
+}

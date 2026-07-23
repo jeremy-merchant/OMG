@@ -1,0 +1,50 @@
+{
+  "acceptance_id": "OMG-CAP-012",
+  "blocker": "No exact current fixture-specific human approval exists for migration apply. The observed init/plan/backup flow stopped before apply; no migration, import, or restore was performed.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "e20ada489c2e5511c2be60d44ade6e1e76695774abd9b10955b65934ca71a616",
+    "platform": "darwin/arm64",
+    "source_archive_members": 311,
+    "source_archive_sha256": "e4290417c5140c6828545cf8bba70c006e5cbacfa4dc072cc81eeb3c5625a433",
+    "source_file_members": 255
+  },
+  "captured_at_utc": "2026-07-23T14:42:03.572293Z",
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "dual_bound_every_record": true,
+    "hashes_valid": true,
+    "immutable_directories": "0555",
+    "immutable_files": "0444",
+    "json_valid": true,
+    "network_execution": "sandbox-exec deny network*",
+    "private_path_scan": "PASS",
+    "token_scan": "PASS"
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 2,
+  "result": "PENDING",
+  "root_timestamp_utc": "2026-07-23T14:42:03.572293Z",
+  "row_id": "OMG-CAP-012",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PENDING",
+    "SURFACE": "PENDING"
+  },
+  "stages": {
+    "CLEAN": "e520b0a97d513b2db1254b85fdce5e3a9153030763b6797926b36777ad3198b9",
+    "GREEN": "c98d77654edbb9ddc03875dbb1c8249e3571da86ea7142881ea71c56d6e0ee66",
+    "PIN": "376bfe65a3a9fd34cfc4847d61f5534d41574869fd617556d1c253452f210e86",
+    "RED": "6a739c217440f83c3874d1bf79b5ca567dba858a60e4855c75fdbf77639d57d8",
+    "SURFACE": "baace820935283a5d3efef2c62757648d320bff7baf32bc19934a2aab46513ff"
+  }
+}

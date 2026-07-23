@@ -1,0 +1,3 @@
+original_fixture=absent
+restore_destination=absent
+external_project_changed=false

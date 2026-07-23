@@ -1,0 +1,23 @@
+{
+  "assertion": "High-impact operations remain unperformed absent separate approval.",
+  "blocker": "Separate explicit human approval for any high-impact operation is absent; row intentionally remains unperformed.",
+  "candidate_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "candidate_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "command": "rtk sh -c test ! -f approval.json",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "fixture": "No persisted fixture; focused Go tests use disposable test fixtures.",
+  "hash_binding": {
+    "candidate_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "source_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T13:07:22.066825Z",
+  "root_utc": "20260723T130722Z",
+  "row_id": "OMG-PRO-007",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "stage": "RED",
+  "status": "PASS"
+}

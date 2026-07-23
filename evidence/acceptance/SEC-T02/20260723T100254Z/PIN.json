@@ -1,0 +1,25 @@
+{
+  "acceptance_id": "SEC-T02",
+  "assertion": "Current source archive and Darwin arm64 candidate SHA-256 values were observed before focused execution.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "command": "rtk shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "exit_code": 0,
+  "fixture_binding": "Go test temporary fixtures only; no fixture is retained in evidence.",
+  "mapped_sources": [
+    "internal/runtime/run.go",
+    "internal/view/render.go"
+  ],
+  "phase": "PIN",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,6 @@
+{
+  "assertion": "the disposable clone was initialized and its original dirty baseline captured; human approval required for the rehearsal is absent",
+  "criterion": "Rollback and preservation rehearsal",
+  "missing_proof": "Required human approval/current Pygmalion parity input is absent; no approval was invented and no mutation was attempted.",
+  "status": "PENDING"
+}

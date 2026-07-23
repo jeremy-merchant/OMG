@@ -1,0 +1,250 @@
+{
+  "commands": [
+    {
+      "command": "human create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "26269ac70fbb1ff27a5e517c1cac8042643f7f3b81a7f94bbe9e2345d775ea95",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "b11e11b1505a4269ee7d400caec18f8a02f318fb430e990ef4060ea42c640fab",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "c8ef5830bd6cea65a914151c8bda572c42eeb4c6e1cd0b669d366c0074adcdaf",
+      "result": "PASS"
+    },
+    {
+      "command": "task create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "483a6fa0f3c514ac65917b27fb4f20764cdf962e74e95906ff5646baa29d7baa",
+      "result": "PASS"
+    },
+    {
+      "command": "task create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "1c677a5cdf0b84f88edd30d5bd2e083f750c7bbd6c26e1c21baa657d90de8f4e",
+      "result": "PASS"
+    },
+    {
+      "command": "task claim",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "f6c9aa11a9705a4cde2f738f15a150b549b0c7b1559d7c6a15fcfdb990f6d165",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "83ad6732bbd337be8840408692473c6008ced9d2d0bf1c43c1dfcefce2b03b05",
+      "result": "PASS"
+    },
+    {
+      "command": "progress add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "0b9261cd89f5996a1a33d9ff8d09e0fde5fd7d234dad21473c03407751b9e085",
+      "result": "PASS"
+    },
+    {
+      "command": "dependency add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "a6d9ec3995309df7804489db4daaaba27eb54069da211523ad73529f8292f1ad",
+      "result": "PASS"
+    },
+    {
+      "command": "task transition",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "d114da1eb7c2855874ecdf8caf5f1f5817beb86cd3d3855b0bb08f5848c8f253",
+      "result": "PASS"
+    },
+    {
+      "command": "task transition",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "e7a58561a24ab2b16b9c4d0c6cb9dd4148f387f931711a5802a32b5903486e95",
+      "result": "PASS"
+    },
+    {
+      "command": "task get",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "9276d73f6ec80afa42de30ca620e580b4a202a7260e9af76bb627122772ba85a",
+      "result": "PASS"
+    },
+    {
+      "command": "message send",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "8665d4bac9587d5e554e2b603177d2e7c81427f582129608516a697b34c99a62",
+      "result": "PASS"
+    },
+    {
+      "command": "message inbox",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "f216886d08fefb20b3ead1a29b90ebd5f11e29a1bb5a58927fb51c13f451f7db",
+      "result": "PASS"
+    },
+    {
+      "command": "handoff create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "f4f3e0bfad4e2b007ce068682b2f6fc4ba54d79f3a5a6b60f45d658db12c78ed",
+      "result": "PASS"
+    },
+    {
+      "command": "task claim",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "13b4c338e69f5a40d10f8c642deec694880b4fbf6977dd9e634265d1c3258670",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "7c86423e36814c8def5e11f5cc034e66dbdda853259ecb9edecdee0611444a53",
+      "result": "PASS"
+    },
+    {
+      "command": "reserve add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "fe2fbb20c05d78b92acf0edbf3cd565a7f407d102b094753e424fcb68d944f5a",
+      "result": "PASS"
+    },
+    {
+      "command": "reserve add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "8b68aa9be46644e203dc19970817c9c66f7d92b1011d6d9f79074f7166f71698",
+      "result": "PASS"
+    },
+    {
+      "command": "git inventory",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "5d82e8a75190dd39c67e71f4b2ea555ab79f24cbc74fb2a145dab962943b97b5",
+      "result": "PASS"
+    },
+    {
+      "command": "board all",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "c18c9549af9a14061bb16b149ef43e0f5ac50b4fb81b983090addd7fadff6f5c",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "fc433dc29370e7d7db9cf2801bc2babb5b1f2ced90ed2d64b7f5c80553de8b2b",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "9a63016225dd7a578ecb99099407b5fa5e3136f69ad41c1eb5994594d09336b1",
+      "result": "PASS"
+    },
+    {
+      "command": "git adopt",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "eb8a01c57a8ed59921e62d01f38a479ef02c33debceebeae0aa9faf51f5984c9",
+      "result": "PASS"
+    }
+  ],
+  "fixture": {
+    "branch": "local-preview/zoomzi-20260722",
+    "fixture_status": "DISPOSABLE_CLONE",
+    "head": "824eb791e802a1387be9a5e38eece3f180716d56"
+  },
+  "generated_at_utc": "2026-07-23T04:34:15.075999Z",
+  "isolation": {
+    "fixture_removed_after_evidence": true,
+    "mode": "fresh local --no-local disposable clone",
+    "original_repository_mutated": false
+  },
+  "observable_contracts": {
+    "dependency_unblocked_to": "READY",
+    "exports": {
+      "html": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "449e59c35f87b3c7f3a705c75db5a7e272748acd7499505e2571bcb038acf03d"
+      },
+      "json": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "28c7f3ac83164cf6aff946655fbdaa5f31f0337dd2ab7abf2d86868f0bbf154e"
+      },
+      "markdown": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "d74da3f7007dd800f653b7151fb59d3a95508dd60179d9a4f3842cd18feb8392"
+      },
+      "tty": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "439f711f50a4738ddbee6b69fe9b93b9510407745b0e3d37b81e3f1e1b98784d"
+      }
+    },
+    "formats": {
+      "html": {
+        "exit_code": 0,
+        "sha256": "449e59c35f87b3c7f3a705c75db5a7e272748acd7499505e2571bcb038acf03d"
+      },
+      "json": {
+        "exit_code": 0,
+        "sha256": "28c7f3ac83164cf6aff946655fbdaa5f31f0337dd2ab7abf2d86868f0bbf154e"
+      },
+      "markdown": {
+        "exit_code": 0,
+        "sha256": "d74da3f7007dd800f653b7151fb59d3a95508dd60179d9a4f3842cd18feb8392"
+      },
+      "tty": {
+        "exit_code": 0,
+        "sha256": "439f711f50a4738ddbee6b69fe9b93b9510407745b0e3d37b81e3f1e1b98784d"
+      }
+    },
+    "git_adoption_owner": "session-zoo-adopter",
+    "git_inventory_asset_count": 1,
+    "handoff_status": "submitted",
+    "lineage_sessions": 3,
+    "mailbox_delivery_count": 1,
+    "privacy": {
+      "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+      "delegation_token_prefix_absent": true,
+      "html_remote_url_count": 0,
+      "owner_only_export_modes": true,
+      "private_fixture_path_absent": true
+    },
+    "progress_updates": 1,
+    "reservation_conflict_warning": "advisory reservation conflict: reservation-zoo-owner (certain)",
+    "runs": 3,
+    "tasks": 2
+  },
+  "omg_binary": {
+    "sha256": "fa395586664dfc2ce3aab3e6002e219ec357ec5ad72a6d2f77a2ffbd77eccc57",
+    "version": "v0.1.0-rc.1"
+  },
+  "project": "Zoomzi",
+  "schema_version": 1,
+  "source_archive_sha256": "ba0d5884e22e33f87c4ea310e920c5199e1791183ef3e9550cd852fdb1c86ee0",
+  "status": "PASS"
+}

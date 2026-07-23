@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/config -run 'TestLoadRejectsBroadLocalOverride' -count=1

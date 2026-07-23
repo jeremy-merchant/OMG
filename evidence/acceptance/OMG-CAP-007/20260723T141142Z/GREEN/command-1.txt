@@ -1,0 +1,1 @@
+dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 progress add --idempotency-key cap007-green --payload {"id":"p1","task_id":"missing","session_id":"missing","phase":"inspect","done":["done"],"doing":["doing"],"next":["next"]} --json

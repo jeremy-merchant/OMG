@@ -1,0 +1,46 @@
+{
+  "files": [
+    {
+      "path": "manifest.json",
+      "sha256": "e5fa5c5cc5675ac4bbf4e5e6fe2bda26ab7207ad2ba1c869f74965961ce5c5b7"
+    },
+    {
+      "path": "captures/disposable-cli.json",
+      "sha256": "24724281fc257f0d12752ce4690ba1cf3104bcced05015c979108d66aa8aba4a"
+    },
+    {
+      "path": "captures/mapped-go-tests.json",
+      "sha256": "bd107ddffc492b69433347fbff04f88199b1ba6c9e1593ec0de348082f4d20d6"
+    },
+    {
+      "path": "GREEN/record.json",
+      "sha256": "9caa29a7c270ef2a46f28d6a2d71e9a96f2753d0eee68992c4d042d2e4d5d6e7"
+    },
+    {
+      "path": "PIN/record.json",
+      "sha256": "3cb045cf8561cff0c736d8fb8f0f7300c99407f163eadefb7d72077771185521"
+    },
+    {
+      "path": "SURFACE/record.json",
+      "sha256": "18420f348d57672c4aea44e9179e55713301384896b3fe2444ea9325553d46a9"
+    },
+    {
+      "path": "RED/record.json",
+      "sha256": "ccff951b3d7f04b2b96769db47acb78787a208d46e4135bc1e2057e2291b778d"
+    },
+    {
+      "path": "CLEAN/record.json",
+      "sha256": "48f64fc94d32d732e2567fbdcab7c45f0f4ff489b4914c166a59d7f7f214b1d9"
+    }
+  ],
+  "root_timestamp_utc": "20260723T130616Z",
+  "row_id": "OMG-AC-013",
+  "validation": {
+    "candidate_hashes_match": true,
+    "cleanup_verified": true,
+    "five_stages_present": true,
+    "json_valid": true,
+    "no_raw_token_or_private_path_leak": true,
+    "row_ids_match": true
+  }
+}

@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app/lineage -run 'Test.*Delegation.*' -count=1

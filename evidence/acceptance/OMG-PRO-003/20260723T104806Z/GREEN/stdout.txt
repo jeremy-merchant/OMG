@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/app/git	(cached)
+ok  	example.invalid/coordledger/internal/domain/git	(cached)

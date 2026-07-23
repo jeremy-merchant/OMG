@@ -1,0 +1,20 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-22T23:36:49Z",
+  "common_success_outputs": {
+    "version": {"ok": true, "version": "v0.1.0-rc.1", "schema_version": 1, "command_version": 1},
+    "release_status": {"ok": true, "status": "NOT PUBLISHED"},
+    "init": {"ok": true, "pending_migrations": 4, "initialized": true},
+    "doctor_integrity": {"ok": true, "pending_migrations": 4, "integrity": true, "initialized": true}
+  },
+  "executed_platforms": ["darwin/arm64", "darwin/amd64", "linux/arm64", "linux/amd64"],
+  "windows_artifact": {
+    "format": "PE32+ console executable",
+    "machine": "x86-64",
+    "goos": "windows",
+    "goarch": "amd64",
+    "cgo_enabled": 0,
+    "embedded_version": "v0.1.0-rc.1"
+  },
+  "result": "PARTIAL — Windows native surface pending"
+}

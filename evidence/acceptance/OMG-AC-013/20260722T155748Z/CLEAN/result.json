@@ -1,0 +1,11 @@
+{
+  "cleanup": "C0 fixture cleanup",
+  "browser_closed": true,
+  "temporary_html_removed": true,
+  "network_listener_started": false,
+  "external_request_observed": false,
+  "retained_artifact": {
+    "path": "SURFACE/board-697px.png",
+    "sha256": "c7038ce538c4cf24317e6598e04a0477b092d165ef35fba0ac6945b79dbd5351"
+  }
+}

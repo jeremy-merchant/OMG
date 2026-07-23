@@ -1,0 +1,24 @@
+Final native Windows lifecycle, sanitized
+
+Build:
+GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=v0.1.0-rc.1+native-final" ./cmd/omg; exit 0
+
+Fresh init: exit 0
+{"ok":true,"data":{"pending_migrations":5,"initialized":true}}
+
+Plan in protected private output parent: exit 0
+{"ok":true,"data":{"id":"0e29849254b93367efb12620672ac392","project":"fd45efce4d5eba6244bbfab5fc3c694c","from_version":0,"to_version":5,"checksums":["226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489","d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa","c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a","561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168","3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda"]}}
+
+Backup: exit 0
+{"ok":true,"data":{"checksum":"11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792"}}
+
+Apply with bounded approval: exit 0
+{"ok":true,"data":{"applied":true}}
+
+Consumed approval replay: exit 2 (expected rejection)
+{"ok":false,"error":{"code":"invalid_argument","message":"migration approval is invalid","exit_code":2}}
+
+Doctor integrity after apply: exit 0
+{"ok":true,"data":{"pending_migrations":0,"integrity":true,"initialized":true}}
+
+Coordination read/write smoke: not run in this disposable fixture.

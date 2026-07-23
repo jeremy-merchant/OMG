@@ -1,0 +1,15 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-22T23:36:49Z",
+  "cleanup": {
+    "temporary_linux_arm64_image_deleted": true,
+    "temporary_linux_amd64_image_deleted": true,
+    "temporary_container_count": 0,
+    "temporary_rootfs_removed": true,
+    "temporary_smoke_projects_removed": true,
+    "temporary_repro_builds_removed": true,
+    "pinned_rc_bundle_preserved": true,
+    "publication_or_upload_performed": false
+  },
+  "result": "PASS"
+}

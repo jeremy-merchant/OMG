@@ -1,0 +1,1 @@
+No cleanup command required: no mutable fixture was created and no high-impact operation was executed.

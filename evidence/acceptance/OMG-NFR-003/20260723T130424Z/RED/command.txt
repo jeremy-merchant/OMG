@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/domain/git -run 'TestMalformedWorktreePorcelainReturnsStableError' -count=1

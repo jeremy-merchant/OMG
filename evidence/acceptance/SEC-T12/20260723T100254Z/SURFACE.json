@@ -1,0 +1,31 @@
+{
+  "acceptance_id": "SEC-T12",
+  "assertion": "Exact focused commands and named test output are recorded; private paths, if emitted by a test framework, are redacted before evidence storage.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/view/render.go"
+  ],
+  "phase": "SURFACE",
+  "platform_or_gate_blocker": null,
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS",
+  "test_exit_codes": [
+    {
+      "exit_code": 0,
+      "named_tests": [
+        "TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ],
+      "private_path_redacted": false
+    }
+  ]
+}

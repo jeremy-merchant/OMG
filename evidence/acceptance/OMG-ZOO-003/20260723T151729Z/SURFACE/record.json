@@ -1,0 +1,69 @@
+{
+  "blocker": "Current Pygmalion parity/human migration approval is required; no approval or apply was performed.",
+  "candidate_binding": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "git clone --no-local --no-hardlinks $ORIGINAL_ZOOMZI $DISPOSABLE_CLONE",
+      "exit_code": 0,
+      "stderr": "Cloning into '$DISPOSABLE_ROOT/zoomzi'...",
+      "stdout": ""
+    },
+    {
+      "command": "$OMG_BINARY version --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}"
+    },
+    {
+      "command": "$OMG_BINARY init --project $DISPOSABLE_CLONE --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}"
+    },
+    {
+      "command": "$OMG_BINARY migration plan --project $DISPOSABLE_CLONE --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"id\":\"7bc70ab5273a7fc47c88aa0f6e6ec8ac\",\"project\":\"b81081ec43bb15e3e65a25772914ff32\",\"from_version\":0,\"to_version\":8,\"checksums\":[\"226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489\",\"d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa\",\"c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a\",\"561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168\",\"3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda\",\"db88d61fb30d5045ec5237ceaadde376052e59520b52385258647585d6f07224\",\"acaaf60e11d819f268b17c04e9c494fbef8ebf20c7ec55d78bc81ad5cdc264f9\",\"ed3c0a5330495e1cd5bf9d7f12f17ca02071d78d779d18f60b5a431bba82de2a\"]},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}"
+    },
+    {
+      "command": "$OMG_BINARY board all --project $DISPOSABLE_CLONE --json",
+      "exit_code": 4,
+      "stderr": "",
+      "stdout": "{\"ok\":false,\"error\":{\"code\":\"unavailable\",\"message\":\"schema migration is required\",\"retryable\":false,\"exit_code\":4},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}"
+    }
+  ],
+  "fixture": {
+    "clone": "$DISPOSABLE_CLONE",
+    "home": "$ISOLATED_HOME",
+    "original": "$ORIGINAL_ZOOMZI"
+  },
+  "observed": {
+    "binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "cross_project_exact_equality": false,
+    "source_archive_members": 311,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "prohibitions": {
+    "deployment": false,
+    "installation": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "rollback_rehearsal": false,
+    "schema_apply": false
+  },
+  "pygmalion_source_proof": "evidence/project-proofs/pygmalion.json",
+  "result": "PENDING",
+  "row_id": "OMG-ZOO-003",
+  "stage": "SURFACE",
+  "status": "PENDING",
+  "timestamp_utc": "20260723T151729Z"
+}

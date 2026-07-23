@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "assertions": [
+    "Uninitialized canonical-state query fails closed before init."
+  ],
+  "blocker": "Expected stable uninitialized exit 2 was not observed: Required native Linux and Windows target executions and CI runner attestations are unavailable locally; Darwin arm64 evidence alone cannot satisfy the all-target criterion.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "e20ada489c2e5511c2be60d44ade6e1e76695774abd9b10955b65934ca71a616",
+    "network_enforcement": "sandbox-exec deny network*",
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_members": 311,
+    "source_archive_sha256": "e4290417c5140c6828545cf8bba70c006e5cbacfa4dc072cc81eeb3c5625a433",
+    "source_file_members": 255,
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T14:41:49.368403Z",
+  "commands": [
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 board all --project <fixture>/project --json",
+      "exit_code": 4,
+      "expected_exit_code": 2,
+      "stderr": "",
+      "stdout": "{\"ok\":false,\"error\":{\"code\":\"uninitialized\",\"message\":\"project is not initialized\",\"retryable\":false,\"exit_code\":4},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    }
+  ],
+  "fixture_contract": "fresh isolated 0700 root/home/project/source/tmp; disposable fixture removed after capture",
+  "record_schema_version": 2,
+  "row_id": "OMG-AC-017",
+  "stage": "RED",
+  "stage_status": "PENDING"
+}

@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/transport/cli -run 'Test.*Network' -count=1

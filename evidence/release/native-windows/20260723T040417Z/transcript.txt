@@ -1,0 +1,12 @@
+Exact final Windows artifact validation (sanitized)
+SHA-256: a2ded8fae493e71c3afe7bb8bc76c8ad569187deae9d1848ade924ea80b667ef
+version: v0.1.0-rc.1; exit 0
+release status: NOT PUBLISHED; exit 0
+init: PASS exit 0
+private-output migration plan: PASS exit 0
+backup create: PASS exit 0
+bounded approval apply: BLOCKED exit 2; migration approval is invalid
+approval replay: BLOCKED exit 2; migration approval is invalid
+doctor integrity: PASS exit 0; pending_migrations=5, integrity=true
+focused tests/coordination/export/config special-file coverage: BLOCKED; not run after lifecycle apply failed
+cleanup: PASS; fixture absent

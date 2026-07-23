@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "observed_at_utc": "2026-07-23T10:59:17.493177Z",
+  "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+  "tests": [
+    "TestReservationLifecycleAndConflict",
+    "TestLifecycleUsesInjectedClock"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "acceptance_id": "OMG-PYG-005",
+  "aggregate_status": "PENDING",
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "disposable_clone_removed": true,
+  "fixture": {
+    "checkpoint_sha256": "8e1c8582541ba8decafa13264454cadbd27219752441b37f8a99c53a8b269394",
+    "clone_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "clone_status_fingerprint_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "isolated_home_mode": "0700",
+    "kind": "fresh-0700-isolated-HOME-safe-store disposable clone; network-offline local clone",
+    "network_offline": true,
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "original_status_fingerprint_sha256_after": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805",
+    "original_status_fingerprint_sha256_before": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805",
+    "path_redacted": "$DISPOSABLE_CLONE",
+    "worktree_count": 0
+  },
+  "generated_at_utc": "2026-07-23T15:13:54Z",
+  "missing_proof": [
+    "Separate exact current human approval for disposable migration/import apply is absent; import was not applied."
+  ],
+  "network_offline": true,
+  "next_action": "Do not apply migration or import until exact current operation-specific human approval exists.",
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "import_apply": false,
+    "installation": false,
+    "migration_apply": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "safe_store_removed": true,
+  "stage_completeness": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

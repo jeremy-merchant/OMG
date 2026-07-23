@@ -1,0 +1,1 @@
+OMG / ERROR · unavailable · schema migration is required · exit=4 · retryable=false

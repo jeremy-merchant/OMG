@@ -1,0 +1,36 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-23T14:18:00Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "release_manifest_sha256": "3aa5b6490f3c5254dd3072b262213aa445beaad5415876202fe18d61d7bcb3b2",
+  "source_archive_members": 304,
+  "fixture": "fresh disposable isolated HOME/config/state/store/project",
+  "publication_state": "NOT PUBLISHED",
+  "stage": "GREEN",
+  "result": "PENDING",
+  "assertions": [
+    "Fresh init and doctor succeeded: initialized=true, integrity=true, pending_migrations=8."
+  ],
+  "commands": [
+    {
+      "command": "<darwin-arm64> init --project <fixture> --json",
+      "exit_code": 0
+    },
+    {
+      "command": "<darwin-arm64> migration plan --project <fixture> --output <fixture>/.omg/migration-plan.json --json",
+      "exit_code": 4
+    },
+    {
+      "command": "<darwin-arm64> backup create --project <fixture> --plan-file <fixture>/.omg/migration-plan.json --json",
+      "exit_code": 2
+    },
+    {
+      "command": "<darwin-arm64> doctor --project <fixture> --integrity --json",
+      "exit_code": 0
+    }
+  ],
+  "blockers": [
+    "Repair the migration-plan write failure, then rerun fresh init/plan/backup. Only after an exact separately reviewed approval bound to the resulting plan and backup may migration apply execute."
+  ]
+}

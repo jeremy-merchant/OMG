@@ -1,0 +1,35 @@
+{
+  "acceptance_id": "SEC-T18",
+  "blocker": null,
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/watch/watch.go"
+  ],
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/watch -run ^(TestStatusDoesNotTreatReusedPIDAsActive|TestStatusMarksExpiredLeaseStale|TestStatusFailsClosedForCorruptOrOversizeLease)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestStatusDoesNotTreatReusedPIDAsActive",
+        "TestStatusMarksExpiredLeaseStale",
+        "TestStatusFailsClosedForCorruptOrOversizeLease"
+      ],
+      "output": "=== RUN   TestStatusDoesNotTreatReusedPIDAsActive\n--- PASS: TestStatusDoesNotTreatReusedPIDAsActive (0.01s)\n=== RUN   TestStatusFailsClosedForCorruptOrOversizeLease\n=== RUN   TestStatusFailsClosedForCorruptOrOversizeLease/invalid\n=== RUN   TestStatusFailsClosedForCorruptOrOversizeLease/invalid#01\n--- PASS: TestStatusFailsClosedForCorruptOrOversizeLease (0.00s)\n    --- PASS: TestStatusFailsClosedForCorruptOrOversizeLease/invalid (0.00s)\n    --- PASS: TestStatusFailsClosedForCorruptOrOversizeLease/invalid#01 (0.00s)\n=== RUN   TestStatusMarksExpiredLeaseStale\n--- PASS: TestStatusMarksExpiredLeaseStale (0.01s)\nPASS\nok  \texample.invalid/coordledger/internal/watch\t3.433s\n",
+      "private_path_redacted": false
+    }
+  ],
+  "phase": "GREEN",
+  "positive_assertion": "Mapped named tests establish the safe behavior on the current source candidate.",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,1 @@
+rtk sh -c D=$(mktemp -d /tmp/omg-evidence-clean.XXXXXX); test -d "$D"; rmdir "$D"

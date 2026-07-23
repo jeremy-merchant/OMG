@@ -1,0 +1,34 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-23T00:18:07.387789+00:00",
+  "candidate": "v0.1.0-rc.1",
+  "artifact": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-windows-amd64.exe",
+  "artifact_sha256": "d97395ae6c3e37f38a7063a9d76f9337744c82c76d51049b4a66941e91e7e094",
+  "runtime": "Wine Stable 11.0 x86_64 under Rosetta 2 on darwin/arm64",
+  "commands": [
+    "omg-v0.1.0-rc.1-windows-amd64.exe version --json",
+    "omg-v0.1.0-rc.1-windows-amd64.exe init --project Z:\\Users\\kiunlee\\.cache\\omg-wine-project --store Z:\\Users\\kiunlee\\.cache\\omg-wine-project\\state.db --json",
+    "omg-v0.1.0-rc.1-windows-amd64.exe doctor --project Z:\\Users\\kiunlee\\.cache\\omg-wine-project --store Z:\\Users\\kiunlee\\.cache\\omg-wine-project\\state.db --integrity --json"
+  ],
+  "observed": {
+    "version": {
+      "ok": true,
+      "version": "v0.1.0-rc.1",
+      "schema_version": 1,
+      "command_version": 1
+    },
+    "init": {
+      "ok": true,
+      "pending_migrations": 4,
+      "initialized": true
+    },
+    "doctor": {
+      "ok": true,
+      "pending_migrations": 4,
+      "integrity": true,
+      "initialized": true
+    }
+  },
+  "result": "PASS",
+  "note": "The Windows PE artifact executed successfully through a real Windows-API compatibility runtime; prior local PE-inspection gap is closed for the pinned candidate."
+}

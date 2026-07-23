@@ -1,0 +1,1 @@
+rtk sh -c GOOS=linux GOARCH=amd64 go build -o /tmp/omg-pro-006-invalid ./cmd/omg && test ! -x /tmp/omg-pro-006-invalid-not-a-candidate

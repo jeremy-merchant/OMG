@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app/handoff -run ^(TestParentLossRetainsHandoffForQueryAndSingleTargetAdoption)$",
+      "cwd": "<source-archive>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:13:04.220257Z",
+      "package": "./internal/app/handoff",
+      "stderr": "",
+      "stdout": "Go test: 1 passed in 1 packages\n",
+      "tests": [
+        "TestParentLossRetainsHandoffForQueryAndSingleTargetAdoption"
+      ]
+    },
+    {
+      "command": "rtk go test -count=1 ./internal/app/lineage -run ^(TestResumeAndAdoptReplayIgnoreHostileAncestry)$",
+      "cwd": "<source-archive>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:13:05.031996Z",
+      "package": "./internal/app/lineage",
+      "stderr": "",
+      "stdout": "Go test: 1 passed in 1 packages\n",
+      "tests": [
+        "TestResumeAndAdoptReplayIgnoreHostileAncestry"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-011",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

@@ -1,0 +1,57 @@
+{
+  "acceptance_id": "OMG-PYG-001",
+  "aggregate_status": "PASS",
+  "approval": {
+    "human_acceptance": "PENDING",
+    "migration_apply": "PENDING: no separate human approval file bound to this disposable clone, plan, backup, and UTC window",
+    "proof_authorization": "release manifest records pygmalion_proof_authorized=true"
+  },
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "disposable_clone_removed": true,
+  "fixture": {
+    "initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "kind": "fresh_local_no_local_disposable_clone",
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "path_redacted": "$DISPOSABLE_CLONE"
+  },
+  "generated_at_utc": "2026-07-23T10:47:52.590486Z",
+  "migration_plan": {
+    "backup_checksum": "11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792",
+    "checksums": [
+      "226722199212b88308e0e32d9e5506b12b40b705dd951c416c9658efd9e27489",
+      "d87e1e474d7c605efc871ff7129e2e1e2bc3237140b2038cfbd438fcbbac81fa",
+      "c996a00b7cae89e921e172b961c739cc5016b23bbbee59ad3f0f3b3bb7c6799a",
+      "561f5352a3109213d27f8be0f453fc7c532151bb667cfcab4b9a53ecb20fd168",
+      "3a95c743bcab0aa4fae3522c9b20dcbf408cd5c2796c8cbcf8a96ab2d7657cda",
+      "db88d61fb30d5045ec5237ceaadde376052e59520b52385258647585d6f07224",
+      "acaaf60e11d819f268b17c04e9c494fbef8ebf20c7ec55d78bc81ad5cdc264f9",
+      "ed3c0a5330495e1cd5bf9d7f12f17ca02071d78d779d18f60b5a431bba82de2a"
+    ],
+    "from_version": 0,
+    "id": "aee3caf116c79ab88d1bac8290e49c21",
+    "to_version": 8
+  },
+  "original_final_head_after_cleanup": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+  "privacy": {
+    "network_or_remote_action": false,
+    "private_paths_recorded": false,
+    "publication_action": false,
+    "raw_tokens_recorded": false
+  },
+  "stage_completeness": {
+    "CLEAN": "PASS",
+    "GREEN": "PASS",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PASS"
+  }
+}

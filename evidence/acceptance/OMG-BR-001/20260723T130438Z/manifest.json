@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-BR-001",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: independent brand reviewer must record former-concept replacement disposition.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "808c79b3b5e45b3150f544980c0f6addd23f8c81f1f3eee32b31f24aa5c9bdde",
+    "GREEN/record.json": "885b4ad1477b8900622c0be6ed90a37110115b90d23eb12f10cc4c70eed83579",
+    "PIN/record.json": "b93bbc95a2bd236c4498d2c924d267168c86590ba51b28f52e37d6ae7db713e4",
+    "RED/record.json": "3c3e00ad1f7089668d3ca1ef39b6a635b2c6481f531cc752fad833582a6d76f4",
+    "SURFACE/record.json": "3028281c58b3f9f73b791f8c27752dc4e5ca6fc54813d8a7139f91bbce935414"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

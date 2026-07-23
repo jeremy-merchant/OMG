@@ -1,0 +1,10 @@
+[
+  {
+    "command": "fixture-property-check",
+    "cwd": "<REPO>",
+    "exit_code": 0,
+    "observed_at_utc": "2026-07-23T14:12:10.692450Z",
+    "stderr": "",
+    "stdout": "{\"root_crlf_preserved\": true, \"nested_preserved\": true, \"non_utf8_preserved\": true, \"malformed_symlink_unchanged\": true}\n"
+  }
+]

@@ -1,0 +1,93 @@
+{
+  "acceptance_id": "OMG-PYG-001",
+  "assertions": [
+    "isolated HOME/safe store removed; original fingerprint unchanged"
+  ],
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "schema_version": 1,
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "$OMG_BINARY version --json",
+      "exit_code": 0
+    },
+    {
+      "command": "shasum -a 256 $OMG_BINARY",
+      "exit_code": 0
+    },
+    {
+      "command": "shasum -a 256 $OMG_SOURCE_ARCHIVE",
+      "exit_code": 0
+    },
+    {
+      "command": "git clone --no-local --no-hardlinks $ORIGINAL_PYGMALION $DISPOSABLE_CLONE",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION rev-parse HEAD",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION status --porcelain=v1",
+      "exit_code": 0
+    },
+    {
+      "command": "tar -cf $SAFE_CHECKPOINT -C $DISPOSABLE_CLONE .",
+      "exit_code": 0
+    },
+    {
+      "command": "rm -rf $SAFE_ROOT",
+      "exit_code": 0
+    }
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "fixture": {
+    "checkpoint_sha256": "8d183575afc1b882313efdfa180ea5cceb339a4aad8d21b1a92d6eb5c07f17d9",
+    "clone_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "clone_status_fingerprint_sha256": "4a4bceacdef5cc64ffd19095f037abb7e3154185ad507aaed1f4dc139e8a8fc3",
+    "historical_file_hashes": {
+      "TASK_DONE.md": "05044ef775248e6e5bbca247405be9f4834153676022d4bbcd79b0092821c123",
+      "WORKLOG.md": "7778a071abf835b8b8cdccc1a61359731655ccc9136ccbddec11caa6a83ef9f7"
+    },
+    "kind": "private-isolated-HOME-safe-store disposable clone",
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "original_status_fingerprint_sha256_after": "c98e203d90e4be35b368039e4f59468f93bf9d7f1806f0458892290c22dd0ad2",
+    "original_status_fingerprint_sha256_before": "c98e203d90e4be35b368039e4f59468f93bf9d7f1806f0458892290c22dd0ad2",
+    "path_redacted": "$DISPOSABLE_CLONE",
+    "worktree_count": 0
+  },
+  "generated_at_utc": "2026-07-23T13:06:07.152158Z",
+  "missing_proof": [],
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "import_apply": false,
+    "installation": false,
+    "migration_apply": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "result": "PASS",
+  "stage": "CLEAN"
+}

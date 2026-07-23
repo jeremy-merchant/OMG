@@ -1,0 +1,1 @@
+Expected exit code: 0. Focused candidate observation must execute and pass; no empty test selection.

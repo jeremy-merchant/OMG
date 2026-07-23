@@ -1,0 +1,7 @@
+{
+  "criterion": "Adapter-only initialization",
+  "detail": "Disposable init created standard OMG project configuration under isolated HOME; adapter configuration remained disposable and project-local.",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

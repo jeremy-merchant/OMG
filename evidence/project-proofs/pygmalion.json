@@ -1,0 +1,86 @@
+{
+  "aggregate_status": "PENDING_HUMAN_MIGRATION_APPROVAL",
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "generated_at_utc": "2026-07-23T15:13:58Z",
+  "human_acceptance": "PENDING",
+  "integrity_validated": true,
+  "migration_gate": {
+    "missing_proof": "Exact current operation-specific human approval is required before any migration/import/restore apply; none was supplied.",
+    "result": "PENDING"
+  },
+  "not_published": true,
+  "original_observations": {
+    "final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "mutated_by_proof": false,
+    "path_redacted": "$ORIGINAL_PYGMALION",
+    "status_fingerprint_sha256_after": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805",
+    "status_fingerprint_sha256_before": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805"
+  },
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "import_apply": false,
+    "installation": false,
+    "migration_apply": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "proof": "pygmalion",
+  "row_evidence": {
+    "OMG-PYG-001": "evidence/acceptance/OMG-PYG-001/20260723T151350Z",
+    "OMG-PYG-002": "evidence/acceptance/OMG-PYG-002/20260723T151351Z",
+    "OMG-PYG-003": "evidence/acceptance/OMG-PYG-003/20260723T151352Z",
+    "OMG-PYG-004": "evidence/acceptance/OMG-PYG-004/20260723T151353Z",
+    "OMG-PYG-005": "evidence/acceptance/OMG-PYG-005/20260723T151354Z",
+    "OMG-PYG-006": "evidence/acceptance/OMG-PYG-006/20260723T151355Z",
+    "OMG-PYG-007": "evidence/acceptance/OMG-PYG-007/20260723T151356Z",
+    "OMG-PYG-008": "evidence/acceptance/OMG-PYG-008/20260723T151357Z"
+  },
+  "row_manifests_sha256": {
+    "OMG-PYG-001": "7269b08121d1a1d1af63e954dc6a9d3cb2f4726874e36ca06c045b1179644616",
+    "OMG-PYG-002": "478b09af51acd50325dcefaffb89e3eba3ab9628009e03b89fbb13dfcabf1f9b",
+    "OMG-PYG-003": "27dfbce5ac4e5b91522bb784a420b2d577ae145ba24c7f034d600624393acbb2",
+    "OMG-PYG-004": "c0edac0c76950319f69332f41bad339d6b069ed28ad96c6b8c84b757bf665e59",
+    "OMG-PYG-005": "154594b9fb2df1f72c581ad453cd8c70be77434ae556b39f91cc9e5658266b24",
+    "OMG-PYG-006": "565d9a35b5f4ccdcd6100984e0ae912d11df7aef5c37b7b36eae35c9333eec99",
+    "OMG-PYG-007": "17e0eec2d0fa3403fc71e1499c75ceb5710db4b55c4079c3f30b3e573ee22093",
+    "OMG-PYG-008": "9e9dc77f6bc3ac211415371b3ec58ab377a97a3d61a081fbe32735dea61d7c0d"
+  },
+  "row_results": {
+    "OMG-PYG-001": "PASS",
+    "OMG-PYG-002": "PENDING",
+    "OMG-PYG-003": "PENDING",
+    "OMG-PYG-004": "PENDING",
+    "OMG-PYG-005": "PENDING",
+    "OMG-PYG-006": "PENDING",
+    "OMG-PYG-007": "PENDING",
+    "OMG-PYG-008": "PENDING"
+  },
+  "safe_observations": {
+    "disposable_clone_removed": true,
+    "executed": true,
+    "isolated_home_mode": "0700",
+    "network_offline": true,
+    "safe_store_removed": true
+  },
+  "schema_version": 1,
+  "stages": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

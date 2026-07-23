@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/app ./internal/transport/cli ./internal/transport/mcp -run 'Test.*(Dispatch|Receipt|Envelope)' -count=1

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "review": "code-goal",
+  "reviewer": "ReviewNewCodeGoal",
+  "recorded_at": "2026-07-23T15:08:36Z",
+  "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+  "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+  "verdict": "APPROVE",
+  "basis": [
+    "The implementation was reviewed against PRODUCT_SPEC.md and docs/ACCEPTANCE_MATRIX.md across canonical board/query projections, task inbox scope, generation clocks, safe suggested actions, and labeled preflight output.",
+    "TTY, Markdown, and self-contained CSP HTML redesigns preserve canonical values and enforce safe escaping.",
+    "Board, preflight, export, and integration option grammars reject nonempty and explicitly empty unsupported shapes before dispatch; direct tables cover 55 zero-dispatch cases.",
+    "Checkpoint durability, instruction encoding and rollback, native cancellation, reservation redaction, migration-plan cleanup, and Windows path/DACL/locality contracts are closed.",
+    "Definitive evidence records 883 normal and 883 race test passes with zero failures and clean go vet."
+  ],
+  "remaining_blockers": [],
+  "release_evidence_note": "Human, legal, CI, native-platform, and publication gates are not source-correctness blockers."
+}

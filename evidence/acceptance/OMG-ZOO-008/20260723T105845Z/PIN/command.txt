@@ -1,0 +1,1 @@
+omg version --json; shasum -a 256 "$OMG_BINARY"; immutable source binding recorded

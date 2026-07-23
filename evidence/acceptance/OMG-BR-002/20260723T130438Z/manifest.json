@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-BR-002",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: independent brand reviewer must validate package, provenance, and font-license record.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "ded04a0c453df7cdfc657cc301396cb5a6c7718a97ba2bbd4e3c0c1734c9fd21",
+    "GREEN/record.json": "596984c0c02f3aa44f2f37aa737df3b2be5a03ac80c366cf0d66cc8f72d712fd",
+    "PIN/record.json": "d4f1585e980a5ef55266c04878bdae845f4485c6bdfa715fd76bfd60352a7009",
+    "RED/record.json": "2c102d6e476e27bff7231f99c8f7cde40bb3dccd417f3ae8e20c87ad95ac6eaa",
+    "SURFACE/record.json": "0375e5c5087a6984eb30f41792fb0b63abd6a2fa1548f69918cab99a603814f0"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

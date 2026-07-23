@@ -1,0 +1,17 @@
+home
+home/Library
+home/Library/Application Support
+home/Library/Application Support/omg
+home/Library/Application Support/omg/projects
+home/Library/Application Support/omg/projects/ab71ad3c8e9086e15562879522a3861a
+home/Library/Application Support/omg/projects/ab71ad3c8e9086e15562879522a3861a/state.db
+home/Library/Application Support/omg/projects/ab71ad3c8e9086e15562879522a3861a/state.db-shm
+home/Library/Application Support/omg/projects/ab71ad3c8e9086e15562879522a3861a/state.db-wal
+home/Library/Application Support/rtk
+home/Library/Application Support/rtk/.device_salt
+home/Library/Application Support/rtk/.telemetry_last_ping
+home/Library/Application Support/rtk/history.db
+project
+project/.omg
+project/.omg/private
+project/.omg/project.toml

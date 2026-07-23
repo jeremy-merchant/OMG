@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app/lineage -run ^(TestDelegationTokenSecurity|TestDelegationTokenConcurrentRedemptionHasOneWinner)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:08:09.669926Z",
+      "package": "./internal/app/lineage",
+      "stderr": "",
+      "stdout": "Go test: 2 passed in 1 packages\n",
+      "tests": [
+        "TestDelegationTokenSecurity",
+        "TestDelegationTokenConcurrentRedemptionHasOneWinner"
+      ]
+    }
+  ],
+  "row_id": "OMG-CAP-004",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

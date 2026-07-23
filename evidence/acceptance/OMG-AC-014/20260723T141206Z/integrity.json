@@ -1,0 +1,36 @@
+{
+  "candidate_hashes": {
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "fixture_cleanup_verified": true,
+  "json_parse_validated": true,
+  "parsed_json_files": [
+    "CLEAN/commands.json",
+    "CLEAN/record.json",
+    "GREEN/commands.json",
+    "GREEN/record.json",
+    "PIN/commands.json",
+    "PIN/record.json",
+    "RED/commands.json",
+    "RED/record.json",
+    "SURFACE/commands.json",
+    "SURFACE/record.json",
+    "manifest.json"
+  ],
+  "record_schema_version": 1,
+  "row_id": "OMG-AC-014",
+  "sha256": {
+    "CLEAN/commands.json": "ecabbdc3ac8a345429ae774a5c31df0969c5c8cade1676e0991d042a3ce9d95f",
+    "CLEAN/record.json": "8f8cc02e691c68481fe09331b64f2b823ebb5b627112b211f3ee0b69f208ce8e",
+    "GREEN/commands.json": "55e5028520ea200d30a9a34db596d5a300d3dbcf21811f28e594fa93534edefe",
+    "GREEN/record.json": "399cc5780127e7e569400c40976c5493a2bd75de79ee01ba7da17178be9a4bce",
+    "PIN/commands.json": "5f9d1019aa318cf9cce344987be9b11854f4f5b0bc58948b1deb5596dff66e97",
+    "PIN/record.json": "f72552ca6fe717cc6d2fe36dfca381ed0af934a88486f06a40d734abddeee4f4",
+    "RED/commands.json": "9eff6d0dfa4d50a66ebe1db3c88f3f236c08550bdb0d88c15c8cdb12465df4f4",
+    "RED/record.json": "42cbbe571609cafc6443ae29aea982a1bcc34207c02de33ee073989f119a884d",
+    "SURFACE/commands.json": "1589ce6b7203f531d67739ae11de003e7d171cf45f57f573d536f6aae6ad62f3",
+    "SURFACE/record.json": "03ae43431c2d575ee5b7bb4ad08c51a5cc470bd752d9d92fbd87fbacf3c6cf1b",
+    "manifest.json": "97361b1a43a6ffd21cf66b49ed57b602e278e69999727b06a58069f457f9ed8e"
+  }
+}

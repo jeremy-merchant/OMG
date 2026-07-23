@@ -1,0 +1,292 @@
+{
+  "commands": [
+    {
+      "command": "human create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "38b637987a0e31c5c1f0eb19979453fe5abd0d69118d43c33704e7b230aa7b81",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "cae474320b86c287b6aa3885c71e06e331ef9addcb063e53201e2b0a1c7492c1",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "ee21ace7982d23a64f378461909c2ec91bd87f04eba7929b329db140d2a15acc",
+      "result": "PASS"
+    },
+    {
+      "command": "task create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "e56fa3ea851f6f3404c4cd6013b8fa5b4f9512b043aba2d7c264694a17d0a069",
+      "result": "PASS"
+    },
+    {
+      "command": "task create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "7c24d7f026f82b43b59236136fbf451500e6c8dea89549f85fe38d67a69faeb1",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "1ba5b119aa91edbee577de165f29a2aa122b051b651e4f52cb332e20426a50fb",
+      "result": "PASS"
+    },
+    {
+      "command": "progress add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "6efe022678eca4ce6b2ecc02cadafb023ac9ea7375dab4184bbe780faed652a3",
+      "result": "PASS"
+    },
+    {
+      "command": "dependency add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "bd6d4013df7e2de26946d568b94ad67885e1b022039705c17bf73e2bec85ad56",
+      "result": "PASS"
+    },
+    {
+      "command": "message send",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "f5ee672592215d06e46e46f3be3e5730bff2c2818e4d5a9563e2f5cbf7c02eac",
+      "result": "PASS"
+    },
+    {
+      "command": "message inbox",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "110b137a171d0f2a01266e0d230115d30aebdb0e17043a27351ac7b041c6970f",
+      "result": "PASS"
+    },
+    {
+      "command": "handoff create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "311715880351717365565b375a816bc55c1939932c1eaf27d4fb5d36e0f64921",
+      "result": "PASS"
+    },
+    {
+      "command": "task get",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "51aa2b9913141e5b5753a43388d61ae5a20cb8f581b25bc7e40fb5e61cce6de6",
+      "result": "PASS"
+    },
+    {
+      "command": "task get",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "b9ed2ca00f5ece18c18da1cc89a8dee66c80ef49bdebb568af603febb4567aa9",
+      "result": "PASS"
+    },
+    {
+      "command": "task claim",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "4101dae09645bfca31533796eaeb35a0fc2c549c73aed1f5f612eb3386536ef6",
+      "result": "PASS"
+    },
+    {
+      "command": "task transition",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "b5aa295e374cb3c312a83993e7ec62a57cfca26aaf9559b61decea449ca60826",
+      "result": "PASS"
+    },
+    {
+      "command": "task transition",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "ed06d2e8cddf3b3c910f41da9ce7e9fbbe57338831679dead73fea6b6c87c72f",
+      "result": "PASS"
+    },
+    {
+      "command": "task get",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "b9ed2ca00f5ece18c18da1cc89a8dee66c80ef49bdebb568af603febb4567aa9",
+      "result": "PASS"
+    },
+    {
+      "command": "dependency list",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "488d3be9f818f44826c4090aa989cb741bebf9d71990343593469da45a281954",
+      "result": "PASS"
+    },
+    {
+      "command": "task claim",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "c0dbc2e2e6a7ba42ab4dd331288d0717e531df11e14f40bbd8a286ffd294975e",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "5241449297e5c068aa50015e0655cf5c8ac4857d1f838f1071d50d22da78843f",
+      "result": "PASS"
+    },
+    {
+      "command": "reserve add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "0bee1b79fec81f21fe7c9d692cb7bf086e11678e5f14e310c746300c340080d3",
+      "result": "PASS"
+    },
+    {
+      "command": "reserve add",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "2bbeadea6141f06cfb4d14385b03777a3482b1fe47cab428ea74d4e8a741753b",
+      "result": "PASS"
+    },
+    {
+      "command": "git inventory",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "ee9ec74ffd9e326e472cbe08839331462d59f002a515b4adc68b22c7430fffed",
+      "result": "PASS"
+    },
+    {
+      "command": "git current",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "791d9bc3decc6ceae7df5eb4ef8f70d01418410c55852f075e60a1555610930f",
+      "result": "PASS"
+    },
+    {
+      "command": "board all",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "9fbba908dc010ed362899d27cfd1ebbac9a2ae5868c7e004d63886f8de2c48fa",
+      "result": "PASS"
+    },
+    {
+      "command": "git history",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "af470b130d6b76f806cb5c53e5d570a9b7f2c2480443970ebcd5f8427c75c09c",
+      "result": "PASS"
+    },
+    {
+      "command": "session create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "e90576159df21bf4ac1cf503bdd5cc83400bf871fba57531abe53da20ac07fd5",
+      "result": "PASS"
+    },
+    {
+      "command": "task run-create",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "6f8d599150cd91b1b37a594a596af56b066034c60478f350fc40dddf00232dd8",
+      "result": "PASS"
+    },
+    {
+      "command": "git adopt",
+      "exit_code": 0,
+      "expected": "success",
+      "output_sha256": "79d25318b784501e3aa4b1d45ccdd0be56ef9013dee2456d03186e41e37da1ec",
+      "result": "PASS"
+    },
+    {
+      "command": "git adopt",
+      "exit_code": 3,
+      "expected": "reject",
+      "output_sha256": "2a02234d8a1b259e54ba68120d11f2fae40b0590d6891f7672181dc82a4fffd5",
+      "result": "PASS"
+    }
+  ],
+  "fixture": {
+    "branch": "release/todo-completion-20260722",
+    "fixture_status": "DISPOSABLE_CLONE",
+    "head": "c933ef2c040fdf389f52040b8bcb13a4da549898"
+  },
+  "generated_at_utc": "2026-07-23T04:34:14.995279Z",
+  "isolation": {
+    "fixture_removed_after_evidence": true,
+    "mode": "fresh local --no-local disposable clone",
+    "original_repository_mutated": false
+  },
+  "observable_contracts": {
+    "dependency_unblocked_to": "READY",
+    "exports": {
+      "html": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "d54c277a089891f97100d4633e7f0eb8d15136f91e92aa7ae34a3cd53310f493"
+      },
+      "json": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "44d30f0a493a31aba0c481bb08a08fd2b5d2b8d2a16d0fe76fd5b12fe9069e8c"
+      },
+      "markdown": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "c78444cd335b34191c97ea38cd09a02075754bf555819afa13161b54b10c6bf8"
+      },
+      "tty": {
+        "exit_code": 0,
+        "mode": "0o600",
+        "sha256": "2127cecd48dec040b5966c5aa68f488e6d03e56d34b56854f619e47f8df95db9"
+      }
+    },
+    "formats": {
+      "html": {
+        "exit_code": 0,
+        "sha256": "d54c277a089891f97100d4633e7f0eb8d15136f91e92aa7ae34a3cd53310f493"
+      },
+      "json": {
+        "exit_code": 0,
+        "sha256": "44d30f0a493a31aba0c481bb08a08fd2b5d2b8d2a16d0fe76fd5b12fe9069e8c"
+      },
+      "markdown": {
+        "exit_code": 0,
+        "sha256": "c78444cd335b34191c97ea38cd09a02075754bf555819afa13161b54b10c6bf8"
+      },
+      "tty": {
+        "exit_code": 0,
+        "sha256": "2127cecd48dec040b5966c5aa68f488e6d03e56d34b56854f619e47f8df95db9"
+      }
+    },
+    "git_adoption_owner": "session-pyg-adopter",
+    "git_inventory_asset_count": 1,
+    "handoff_status": "submitted",
+    "lineage_sessions": 3,
+    "mailbox_delivery_count": 1,
+    "privacy": {
+      "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+      "delegation_token_prefix_absent": true,
+      "html_remote_url_count": 0,
+      "owner_only_export_modes": true,
+      "private_fixture_path_absent": true
+    },
+    "progress_updates": 1,
+    "reservation_conflict_warning": "advisory reservation conflict: reservation-pyg-owner (certain)",
+    "runs": 3,
+    "tasks": 2
+  },
+  "omg_binary": {
+    "sha256": "fa395586664dfc2ce3aab3e6002e219ec357ec5ad72a6d2f77a2ffbd77eccc57",
+    "version": "v0.1.0-rc.1"
+  },
+  "project": "Pygmalion",
+  "schema_version": 1,
+  "source_archive_sha256": "ba0d5884e22e33f87c4ea310e920c5199e1791183ef3e9550cd852fdb1c86ee0",
+  "status": "PASS"
+}

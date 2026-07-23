@@ -1,0 +1,45 @@
+{
+  "blocker": "Current Pygmalion parity/human migration approval is required; no approval or apply was performed.",
+  "candidate_binding": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "fixture": {
+    "clone": "$DISPOSABLE_CLONE",
+    "home": "$ISOLATED_HOME",
+    "original": "$ORIGINAL_ZOOMZI"
+  },
+  "fixture_removed": true,
+  "observed": {
+    "binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "cross_project_exact_equality": false,
+    "source_archive_members": 311,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "original_fingerprint_after": {
+    "head": "9ff83611e475b95d893fadbc34624d6e5bd75b79",
+    "status_sha256": "1cde2f3912a4aa9d183ec8a760c9b2652b26cba0576e3a2189be0d9de3fd4282"
+  },
+  "original_fingerprint_before": {
+    "head": "9ff83611e475b95d893fadbc34624d6e5bd75b79",
+    "status_sha256": "1cde2f3912a4aa9d183ec8a760c9b2652b26cba0576e3a2189be0d9de3fd4282"
+  },
+  "prohibitions": {
+    "deployment": false,
+    "installation": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "rollback_rehearsal": false,
+    "schema_apply": false
+  },
+  "pygmalion_source_proof": "evidence/project-proofs/pygmalion.json",
+  "row_id": "OMG-ZOO-007",
+  "stage": "CLEAN",
+  "status": "PASS",
+  "timestamp_utc": "20260723T151745Z"
+}

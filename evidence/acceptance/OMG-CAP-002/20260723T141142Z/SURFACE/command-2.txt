@@ -1,0 +1,1 @@
+dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 board all --project /tmp/omg-capability-fixtures-p10a4hsb/OMG-CAP-002/project

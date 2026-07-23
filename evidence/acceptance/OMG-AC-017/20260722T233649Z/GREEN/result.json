@@ -1,0 +1,26 @@
+{
+  "acceptance_id": "OMG-AC-017",
+  "captured_at": "2026-07-22T23:36:49Z",
+  "builds": {
+    "targets_built": 5,
+    "reproducible_checksum_matches": 5,
+    "checksum_mismatches": 0,
+    "cgo_enabled": false,
+    "trimpath": true
+  },
+  "runtime_smoke": {
+    "darwin_arm64": {"version": true, "release_status": true, "init": true, "doctor_integrity": true},
+    "darwin_amd64": {"version": true, "release_status": true, "init": true, "doctor_integrity": true},
+    "linux_arm64": {"version": true, "release_status": true, "init": true, "doctor_integrity": true},
+    "linux_amd64": {"version": true, "release_status": true, "init": true, "doctor_integrity": true},
+    "windows_amd64": {"pe32_plus": true, "machine_amd64": true, "embedded_version": true, "go_build_metadata": true, "native_execution": false}
+  },
+  "ci_contract": {
+    "native_runner_matrix": ["ubuntu-latest", "macos-latest", "windows-latest"],
+    "windows_native_smoke_configured": true,
+    "five_cross_build_targets_configured": true,
+    "ci_run_observed": false
+  },
+  "result": "PARTIAL",
+  "remaining_gate": "OMG-AC-017 is CI All; a Windows hosted/native runner result is still required and cannot be replaced by local PE inspection."
+}

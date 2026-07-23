@@ -1,0 +1,21 @@
+{
+  "record_schema_version": 1,
+  "acceptance_id": "OMG-AC-013",
+  "stage": "PIN",
+  "captured_at_utc": "2026-07-23T10:02:28Z",
+  "overall_status": "PENDING",
+  "candidate_binding": {
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa",
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565"
+  },
+  "fixture": {
+    "kind": "non-mutating deterministic hostile HTML export",
+    "generator": "go run ./examples/board-preview --output <private-tmp-file>",
+    "approval_artifact_used": false,
+    "reason": "No approval-gated initialized/migrated fixture was created; the focused export generator is non-mutating."
+  },
+  "fixture_html_sha256": "a097cc6b4db8c6b9a30d86489b40bf37f84dcff90a082d04ae9c989782c0939b",
+  "blocker": "Keyboard-only Tab traversal was not successfully observed through the available browser adapter, and no screen-reader audit was performed."
+}

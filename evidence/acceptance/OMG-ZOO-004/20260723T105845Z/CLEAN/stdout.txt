@@ -1,0 +1,1 @@
+PASS: Focused reservation lifecycle test passed, but live overlap creation requires the separately required migration approval.

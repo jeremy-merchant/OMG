@@ -1,0 +1,1 @@
+rtk go test ./internal/store/sqlite ./internal/app/foundation -run Test.*(WAL|Migration|Busy|Foreign|Backup|Approval) -count=1

@@ -1,0 +1,32 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "captured_at": "2026-07-23T13:04:55Z",
+  "result": "PENDING",
+  "five_stage_completeness": true,
+  "stages": {
+    "PIN": "f7385c8bddae055a1a8fabaf413b5587745c3f48555dae6a11aaa2f81f9ac46e",
+    "RED": "b7bb73d369672b3678225a3ff4eae3fbca28706f601e4a661bba02ce954aa8b7",
+    "GREEN": "7233f874dc30bf3ad1ae7d92fa0f6ccbaceb18f87f6e6a7cafcfb5a4a9c0566a",
+    "SURFACE": "0674c30e5a4cc7f012100885b257f4993f723f92479bb2ef8b2d70ae3102bb27",
+    "CLEAN": "8503a9401498077bbb2286d96f10f8b423fc4ad9e415b0d98bed97f975abfdd4"
+  },
+  "binding": {
+    "candidate_version": "v0.1.0-rc.1",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "source_archive_members": 304,
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "binaries": {
+      "darwin/arm64": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+      "darwin/amd64": "212f279bdaf97d2dbe0706d03881c1a7d16215d0f366ec64180b7417e60c849f",
+      "linux/arm64": "052f150b4358f48e1de3a4b0fb2925714d34d26bae87c0e1f39ddbdd74c6bacc",
+      "linux/amd64": "2112e6f8f1bf6e3d2470e9a03cf5342ce163b758fd86a34392419ce793dbe6b1",
+      "windows/amd64": "dd34a42632adf6645a68bff0be5eae072bae467181f2ae260c93ae549a018e1d"
+    },
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "publication_state": "NOT PUBLISHED",
+    "network": "offline; Linux lifecycle executed with Docker --network none"
+  },
+  "fixture_removed": true,
+  "command_count": 4,
+  "freeze": "JSON and five-stage completeness validated before files 0444 and directories 0555"
+}

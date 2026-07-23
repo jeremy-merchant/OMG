@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/foundation -run ^(TestInitCreatesStateAfterConfigInitialization|TestApplyRejectsInvalidApprovalWithoutCreatingState)$",
+      "exit_code": 1,
+      "observed_at_utc": "2026-07-23T13:06:16.400929Z",
+      "package": "./internal/foundation",
+      "stderr": "",
+      "stdout": "Go test: 0 passed, 1 failed in 1 packages\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nfoundation [build failed]\n  stat /private/tmp/omg-final-core-src.hYUctq/internal/foundation: directory not found\n[full output: ~/Library/Application Support/rtk/tee/1784811976_go_test.log]\n",
+      "tests": [
+        "TestInitCreatesStateAfterConfigInitialization",
+        "TestApplyRejectsInvalidApprovalWithoutCreatingState"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-001",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

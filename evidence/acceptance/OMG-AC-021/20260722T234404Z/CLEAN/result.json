@@ -1,0 +1,10 @@
+{
+  "acceptance_id": "OMG-AC-021",
+  "captured_at": "2026-07-22T23:44:04Z",
+  "publication_or_upload_performed": false,
+  "remote_or_registry_created": false,
+  "domain_transaction_performed": false,
+  "candidate_bundle_preserved": true,
+  "release_status_after": "NOT PUBLISHED",
+  "result": "PASS"
+}

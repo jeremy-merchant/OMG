@@ -1,0 +1,1 @@
+rtk sandbox-exec -p (version 1) (deny network*) (allow default) /private/tmp/omg-boundary-evidence/omg version --json

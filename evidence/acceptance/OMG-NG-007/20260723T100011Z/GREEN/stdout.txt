@@ -1,0 +1,1 @@
+ok  	example.invalid/coordledger/internal/platform	(cached) [no tests to run]

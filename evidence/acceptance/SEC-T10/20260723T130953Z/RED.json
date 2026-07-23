@@ -1,0 +1,27 @@
+{
+  "acceptance_id": "SEC-T10",
+  "assertion": "Focused mapped hostile/negative-case assertions passed with no broad package test substituted.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T130953Z",
+  "commands": [
+    {
+      "assertion": "Focused mapped test executed and passed; no package-wide summary substituted.",
+      "command": "rtk go test -race -count=1 -v ./internal/store/sqlite -run '^(TestOpenSecuresManagedStateAndRejectsUnsafeFinalPath|TestUnixSecureStatePathRejectsSpecialAncestor)$'",
+      "exit_code": 0
+    },
+    {
+      "assertion": "Focused mapped test executed and passed; no package-wide summary substituted.",
+      "command": "rtk go test -race -count=1 -v ./internal/transport/cli -run '^(TestMigrationPlanOutputRejectsFIFOWithoutMutation)$'",
+      "exit_code": 0
+    }
+  ],
+  "next_action": "Run the row-mapped Windows security tests natively on windows/amd64 and publish a Windows evidence root; Darwin cross-compilation remains insufficient.",
+  "phase": "RED",
+  "schema_version": 2,
+  "status": "PENDING"
+}

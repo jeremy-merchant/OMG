@@ -1,0 +1,1 @@
+No disposable fixture exists. Original/external projects were not opened or mutated.

@@ -1,0 +1,23 @@
+{
+  "blocker": "Current Pygmalion parity/human migration approval is required; no approval or apply was performed.",
+  "candidate_binding": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "cleanup_verified": true,
+  "command_count": 5,
+  "overall_status": "PENDING",
+  "pygmalion_source_proof": "evidence/project-proofs/pygmalion.json",
+  "root_timestamp_utc": "20260723T151737Z",
+  "row_id": "OMG-ZOO-005",
+  "stages": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

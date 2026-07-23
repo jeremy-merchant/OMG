@@ -1,0 +1,1 @@
+ok  	example.invalid/coordledger/internal/app/query	0.361s

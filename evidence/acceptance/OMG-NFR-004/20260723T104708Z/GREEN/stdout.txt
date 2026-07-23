@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/config	0.443s
+ok  	example.invalid/coordledger/internal/store/sqlite	0.984s

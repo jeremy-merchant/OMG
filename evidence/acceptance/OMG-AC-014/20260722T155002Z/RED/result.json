@@ -1,0 +1,12 @@
+{
+  "command": "go test -race -run 'TestApplyPreflightsEveryTargetBeforeMutation|TestRejectsSymlinkAndPreservesModeAndOriginalOnPreRenameFailure|TestRejectsMalformedAndUnsafeInputsWithoutMutation' ./internal/integration/instructions",
+  "exit_code": 0,
+  "packages": 1,
+  "tests_passed": 3,
+  "assertions": [
+    "a malformed later target prevents every mutation",
+    "symlink targets are rejected",
+    "rename failure preserves original bytes and mode",
+    "malformed and unsafe inputs remain unchanged"
+  ]
+}

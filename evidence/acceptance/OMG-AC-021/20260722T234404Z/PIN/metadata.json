@@ -1,0 +1,12 @@
+{
+  "acceptance_id": "OMG-AC-021",
+  "captured_at": "2026-07-22T23:44:04Z",
+  "candidate": "v0.1.0-rc.1",
+  "release_manifest": {
+    "path": "dist/v0.1.0-rc.1/release-manifest.json",
+    "sha256": "92267cdd5b8ec6f31c744b8344d5c117ac68281a8d15efabf16504153260e506"
+  },
+  "publication_approval_present": false,
+  "public_distribution_authorized": false,
+  "expected_status": "NOT PUBLISHED"
+}

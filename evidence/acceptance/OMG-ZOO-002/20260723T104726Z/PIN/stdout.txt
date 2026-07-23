@@ -1,0 +1,1 @@
+init created only standard .omg/project.toml; isolated adapter config stayed under .omg/adapter/zoomzi.json

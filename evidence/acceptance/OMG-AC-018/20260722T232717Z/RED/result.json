@@ -1,0 +1,18 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-22T23:27:17Z",
+  "case": "migration plan executed before the documented init prerequisite",
+  "command": "omg migration plan --project <fresh-uninitialized-project> --output <fresh-uninitialized-project>/.omg/migration-plan.json --json",
+  "exit_code": 4,
+  "output": {
+    "ok": false,
+    "error": {
+      "code": "unavailable",
+      "message": "unable to write migration plan",
+      "retryable": false,
+      "exit_code": 4
+    }
+  },
+  "mutation_observed": false,
+  "result": "PASS"
+}

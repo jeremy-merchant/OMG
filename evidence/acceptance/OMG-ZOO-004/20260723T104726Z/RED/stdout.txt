@@ -1,0 +1,1 @@
+focused reservation lifecycle test passed; conflict is advisory and deterministic

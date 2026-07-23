@@ -1,0 +1,20 @@
+{
+  "acceptance_id": "OMG-BR-001",
+  "captured_at": "2026-07-22T16:34:05Z",
+  "surfaces_reviewed": [
+    "brand/assets/png/logo-16.png",
+    "brand/assets/png/logo-32.png",
+    "brand/assets/png/logo-128.png",
+    "brand/assets/png/logo-512.png",
+    "brand/assets/logo-grid.svg",
+    "brand/assets/lockup-horizontal.svg",
+    "brand/assets/lockup-stacked.svg"
+  ],
+  "observations": [
+    "16 px and 32 px transparent PNG marks retain the circular handoff silhouette and source geometry",
+    "primary and mono assets are differentiated without gradients or filters",
+    "human diamond and circular agent nodes remain shape-distinct in source and large-size renderings",
+    "core assets contain no visible publication-status watermark; NOT PUBLISHED is preserved as metadata"
+  ],
+  "result": "PASS"
+}

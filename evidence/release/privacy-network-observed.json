@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-23T03:58:31.074447Z",
+  "acceptance_ids": [
+    "PRIV-T02",
+    "SEC-T12",
+    "SEC-T19"
+  ],
+  "status": "PASS",
+  "macos_observation": {
+    "platform": "darwin/arm64",
+    "observer": "/usr/bin/sandbox-exec",
+    "policy": "(version 1) (allow default) (deny network*)",
+    "red_controls": [
+      {
+        "target": "https://example.com",
+        "exit_code": 6,
+        "result": "DNS request denied / host unresolved under sandbox"
+      },
+      {
+        "target": "http://1.1.1.1",
+        "exit_code": 7,
+        "result": "direct IP connection denied in 1 ms under sandbox"
+      }
+    ],
+    "binary_sha256": "8b661087dddc360b0dd67b352ed06c035ec8dbda1917c11317d02568a0acfe30",
+    "green_workflow": [
+      {
+        "command": "init --json",
+        "exit_code": 0
+      },
+      {
+        "command": "preflight --json",
+        "exit_code": 0
+      },
+      {
+        "command": "migration plan --json",
+        "exit_code": 0
+      },
+      {
+        "command": "backup create --json",
+        "exit_code": 0
+      },
+      {
+        "command": "migration apply --json with exact fixture approval",
+        "exit_code": 0
+      },
+      {
+        "command": "doctor --integrity --json",
+        "exit_code": 0
+      },
+      {
+        "command": "mcp serve --stdio tools/list",
+        "exit_code": 0
+      },
+      {
+        "command": "board all --json",
+        "exit_code": 0
+      },
+      {
+        "command": "export html",
+        "exit_code": 0
+      }
+    ],
+    "html": {
+      "sha256": "875f2b54b68320f3a0c11de796717488642f132446eedf4e2ac8e73226a84a83",
+      "bytes": 3324,
+      "csp": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+      "remote_http_url_count": 0,
+      "external_script_src_count": 0
+    }
+  },
+  "linux_observation": {
+    "platform": "linux/arm64",
+    "exit_code": 0,
+    "network_mode": "none",
+    "workflow": [
+      "version",
+      "init",
+      "migration plan",
+      "doctor --integrity"
+    ],
+    "stdout_lines": 4,
+    "stderr": ""
+  },
+  "windows_evidence": {
+    "native_smoke": "evidence/release/native-windows/20260723T024823Z/results.json",
+    "native_lifecycle": "evidence/release/native-windows/20260723T025251Z/results.json",
+    "static_source_scan": "Production cmd/ and internal/ source contains no network import/call match; only path_security_unix_test.go uses a local Unix socket fixture."
+  },
+  "privacy": {
+    "raw_paths_in_evidence": false,
+    "raw_tokens_in_evidence": false,
+    "telemetry_artifacts_observed": false
+  },
+  "cleanup": "Ephemeral macOS and Linux project fixtures removed after evidence capture."
+}

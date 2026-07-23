@@ -1,0 +1,1 @@
+rtk sh -c go build -o /tmp/omg-nfr-001 ./cmd/omg && /tmp/omg-nfr-001 version --json

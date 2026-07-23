@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/platform -run 'Test.*Reject.*Project' -count=1

@@ -1,0 +1,27 @@
+{
+  "acceptance_id": "PRIV-T01",
+  "assertion": "Current source archive and Darwin arm64 candidate SHA-256 values were verified before focused execution; disposable fixtures only, retained evidence contains no fixture payload.",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T104856Z",
+  "command": "rtk shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "exit_code": 0,
+  "fixture_binding": "Disposable Go test fixtures and current local candidate only.",
+  "mapped_sources": [
+    "internal/safety/safety.go",
+    "internal/app/query/service.go",
+    "internal/view/render.go"
+  ],
+  "phase": "PIN",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

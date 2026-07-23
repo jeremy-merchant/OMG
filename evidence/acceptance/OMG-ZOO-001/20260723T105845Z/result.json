@@ -1,0 +1,20 @@
+{
+  "acceptance_id": "OMG-ZOO-001",
+  "acceptance_status": "HUMAN_REVIEW_PENDING",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "schema_version": 1,
+    "source_archive_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+    "version": "v0.1.0-rc.1"
+  },
+  "detail": "Final binary SHA-256 and version JSON exactly matched the required binding.",
+  "stages": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "status": "PASS",
+  "summary": "Candidate pin parity"
+}

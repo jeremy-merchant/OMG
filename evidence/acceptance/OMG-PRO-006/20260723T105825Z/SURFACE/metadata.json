@@ -1,0 +1,18 @@
+{
+  "assertion": "Observed public command surface is available from the pinned Darwin binary.",
+  "blocker": "Native required-runner evidence is absent: macOS amd64, Linux amd64/arm64, and Windows amd64 release-smoke observations must be independently produced; local cross-builds are not native runner evidence.",
+  "candidate_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "candidate_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+  "command": " ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 --help",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T10:58:25.032750Z",
+  "root_utc": "20260723T105825Z",
+  "row_id": "OMG-PRO-006",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_sha256": "339a88167e070f849c6138c4930eddebfe207e68d6a621b0ae9ec59b3ec13198",
+  "stage": "SURFACE",
+  "status": "PENDING"
+}

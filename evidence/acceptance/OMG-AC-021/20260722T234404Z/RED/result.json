@@ -1,0 +1,9 @@
+{
+  "acceptance_id": "OMG-AC-021",
+  "captured_at": "2026-07-22T23:44:04Z",
+  "condition": "No explicit publication approval exists",
+  "publication_command_invoked": false,
+  "publication_surface_found_in_cli": false,
+  "observed_cli_search": "Only the read-only release status path contains publication wording under internal/transport/cli; no publish, registry-upload, or release-create command is implemented.",
+  "result": "PASS"
+}

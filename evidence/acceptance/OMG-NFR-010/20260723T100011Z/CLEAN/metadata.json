@@ -1,0 +1,17 @@
+{
+  "architecture": "arm64",
+  "assertion": "Focused current-source contract check and current candidate smoke are scoped to observed Darwin arm64 behavior.",
+  "candidate_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+  "candidate_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+  "cleanup": "C0/C1/C4 no-op because no mutable fixture was created",
+  "fixture_binding": "No mutable fixture was created; current release source archive, current Darwin candidate, and named focused in-repo contract tests are bound.",
+  "os": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "platform_observed": "darwin/arm64",
+  "recorded_at": "2026-07-23T10:00:11Z",
+  "row_id": "OMG-NFR-010",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa",
+  "stage": "CLEAN",
+  "status": "PASS"
+}

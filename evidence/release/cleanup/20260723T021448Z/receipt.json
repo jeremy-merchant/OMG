@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-07-23T02:14:48Z",
+  "candidate": "v0.1.0-rc.1",
+  "cleanup": {
+    "removed_cache_paths": [
+      "/Users/kiunlee/.cache/omg-wine-prefix",
+      "/Users/kiunlee/.cache/omg-wine-project-acl-final",
+      "/Users/kiunlee/.cache/omg-rc-smoke",
+      "/Users/kiunlee/.cache/omg-readme-replay-1_qr4j62",
+      "/Users/kiunlee/.cache/omg-source-smoke",
+      "/Users/kiunlee/.cache/omg-wine-project-acl",
+      "/Users/kiunlee/.cache/omg-wine-project"
+    ],
+    "removed_temp_paths": [
+      "/tmp/omg-blockers-*",
+      "/tmp/omg-win-*",
+      "/tmp/omg-watch-*",
+      "/tmp/omg-cli-*",
+      "/tmp/omg-sqlite-*",
+      "/tmp/omg-instructions-*",
+      "/tmp/omg-final-*",
+      "/tmp/omg-current*",
+      "/tmp/omg-windows*",
+      "/tmp/omg-readme-replay-2e0cqlsg"
+    ],
+    "project_proof_clones_removed": true,
+    "cache_glob_after": [],
+    "temp_glob_after": [],
+    "omg_docker_containers_after": [],
+    "omg_smoke_images_after": [],
+    "rc_bundle_preserved": "dist/v0.1.0-rc.1"
+  },
+  "checks": {
+    "cache_glob": "glob /Users/kiunlee/.cache/omg-* -> no files",
+    "temp_glob": "glob /tmp/omg-* -> no files",
+    "container_check": "docker ps -a --filter name=omg -> header only",
+    "image_check": "docker images --filter reference=omg-smoke:* -> no images",
+    "source_repositories": "Pygmalion and Zoomzi status snapshots retained their pre-existing user work; OMG proof clones were removed"
+  },
+  "prohibited_actions": {
+    "publication": false,
+    "registry_upload": false,
+    "remote_creation": false,
+    "push": false,
+    "deploy": false,
+    "commit": false,
+    "user_project_deletion": false
+  },
+  "result": "PASS"
+}

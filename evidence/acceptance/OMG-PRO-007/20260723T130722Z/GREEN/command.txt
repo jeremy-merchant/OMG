@@ -1,0 +1,1 @@
+rtk sh -c printf '%s\n' 'NOT PUBLISHED; no explicit human approval observed; no high-impact action executed.'

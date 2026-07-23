@@ -1,0 +1,1 @@
+rtk sh -c go test ./internal/watch -run 'TestStatusStoppedWithoutLease' -count=1

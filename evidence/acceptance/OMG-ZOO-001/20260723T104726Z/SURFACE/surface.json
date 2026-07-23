@@ -1,0 +1,7 @@
+{
+  "criterion": "Same verified RC pin as the current candidate",
+  "observable": "binary version output matched the pinned v0.1.0-rc.1 value; SHA-256 matched exactly",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

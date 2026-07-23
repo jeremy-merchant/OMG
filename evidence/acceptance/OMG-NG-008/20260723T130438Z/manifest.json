@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "OMG-NG-008",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: independent architecture reviewer must record the non-claim of OS-level write sandboxing.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "d5432a18cc8f53a60708b3dcd22a5c8d0817e7a1feb371923d52a16ebd5eaf41",
+    "GREEN/record.json": "30dc3be19d4d3e40daf4f4f63c65f88c003771b9b5c0e6c9deb98799e1400027",
+    "PIN/record.json": "227284768384bab1f2e22b1581f3ffaa149ad1a4052f623c90c81e8871b47eb9",
+    "RED/record.json": "e0abc94e756b80323fc11fecacd2471f4219be36a0da62a2b011bcf30eccad1a",
+    "SURFACE/record.json": "e18c47eb4cdce23b5835653c64e16a345b9febcaa0617d64c959896bf926643d"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

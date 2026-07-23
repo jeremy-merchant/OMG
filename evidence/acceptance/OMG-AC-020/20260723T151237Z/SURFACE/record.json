@@ -1,0 +1,59 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "assertions": [
+    "Independent candidate-bound review dispositions qualify: code/goal APPROVE; architecture CLEAR; QA PASSED; security/privacy CLEAR."
+  ],
+  "blocker": "",
+  "candidate_binding": {
+    "darwin_arm64_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "network_enforcement": "sandbox-exec deny network*",
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "captured_at_utc": "2026-07-23T15:12:37.573417Z",
+  "commands": [
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"version\":\"v0.1.0-rc.1\"},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    },
+    {
+      "command": "<repository>/dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 doctor --project <fixture>/project --json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "{\"ok\":true,\"data\":{\"pending_migrations\":8,\"initialized\":true},\"meta\":{\"schema_version\":1,\"command_version\":1},\"warnings\":[]}\n"
+    }
+  ],
+  "fixture_contract": "fresh isolated 0700 root/home/project/source/tmp; network denied; disposable fixture removed",
+  "record_schema_version": 2,
+  "review_records": [
+    {
+      "path": "evidence/reviews/final/code-goal.json",
+      "sha256": "076f33bf48f2725e85e6606935ad375dcbf138d5e82ec267e0b5d6727a919c0c",
+      "verdict": "APPROVE"
+    },
+    {
+      "path": "evidence/reviews/final/architecture.json",
+      "sha256": "4ac212cb93cfd028123d52607262f2da9229ea2826470d5d08239d04b4cac061",
+      "verdict": "CLEAR"
+    },
+    {
+      "path": "evidence/reviews/final/qa.json",
+      "sha256": "71682c703a3c12eb1c7d3b19a0a14718ff3fea202dd7724eb428c05bd4985496",
+      "verdict": "PASSED"
+    },
+    {
+      "path": "evidence/reviews/final/security-privacy.json",
+      "sha256": "81146c10dc9a63c0c1001f3a342ea9b29ecc27ec4dd930200fb045fb5a45998a",
+      "verdict": "CLEAR"
+    }
+  ],
+  "row_id": "OMG-AC-020",
+  "stage": "SURFACE",
+  "stage_status": "PASS"
+}

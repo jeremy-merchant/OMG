@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/domain/coordination	0.408s
+ok  	example.invalid/coordledger/internal/app/message	0.653s

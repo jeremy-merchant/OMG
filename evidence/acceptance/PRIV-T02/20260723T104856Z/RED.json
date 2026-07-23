@@ -1,0 +1,40 @@
+{
+  "acceptance_id": "PRIV-T02",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "20260723T104856Z",
+  "mapped_sources": [
+    "internal/view/render.go",
+    "internal/transport/mcp/server.go",
+    "internal/transport/cli/cli.go"
+  ],
+  "negative_assertion": "Mapped named tests exercise the row-specific hostile, malformed, misuse, or boundary condition without retaining hostile payload values.",
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/view -run '^(TestRenderHTMLEscapesAndHasAccessibleStaticDocument)$'",
+      "exit_code": 0,
+      "named_tests": [
+        "TestRenderHTMLEscapesAndHasAccessibleStaticDocument"
+      ]
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/transport/cli -run '^(TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState)$'",
+      "exit_code": 0,
+      "named_tests": [
+        "TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState"
+      ]
+    }
+  ],
+  "phase": "RED",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PENDING"
+}

@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app -run ^(TestDispatchLineageHumanCreateAndGet)$",
+      "cwd": "<source-archive>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:13:12.345171Z",
+      "package": "./internal/app",
+      "stderr": "",
+      "stdout": "Go test: 1 passed in 1 packages\n",
+      "tests": [
+        "TestDispatchLineageHumanCreateAndGet"
+      ]
+    }
+  ],
+  "row_id": "OMG-CAP-001",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

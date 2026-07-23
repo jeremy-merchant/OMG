@@ -1,0 +1,16 @@
+{
+  "clone_head": "c933ef2c040fdf389f52040b8bcb13a4da549898",
+  "git_status_clean": true,
+  "original_head": "c933ef2c040fdf389f52040b8bcb13a4da549898",
+  "result": "PASS",
+  "rollback": {
+    "backup_hash_preserved": true,
+    "backup_preserved": true,
+    "binary_removed": true,
+    "config_preserved": true,
+    "installed_hash": "070bb358748d980b9e9b32bc558fb3e2df1b1f71fa8351f370ea5e7a2694bd04",
+    "state_preserved": true,
+    "tracked_clean": true
+  },
+  "tracked_diff_empty": true
+}

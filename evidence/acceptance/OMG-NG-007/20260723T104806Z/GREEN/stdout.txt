@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/config	(cached)
+ok  	example.invalid/coordledger/internal/bootstrap	(cached)

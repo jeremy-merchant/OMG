@@ -1,0 +1,39 @@
+{
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "python3 -m json.tool evidence/acceptance/OMG-PYG-004/20260723T130610Z/manifest.json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "JSON parsed; candidate hashes bind Pygmalion evidence to the definitive source archive and Darwin arm64 binary, but no normalized export is listed."
+    },
+    {
+      "command": "python3 -m json.tool evidence/acceptance/OMG-ZOO-006/20260723T130640Z/GREEN/record.json",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "JSON parsed; the current Zoomzi-side fixture is pre-apply and is not a completed normalized canonical-domain export."
+    }
+  ],
+  "comparison_status": "PENDING",
+  "next_action": "Obtain the separate exact human migration/import apply approval for a fresh disposable Pygmalion clone, apply the approved import twice, capture and candidate-bind a normalized canonical-domain export, then replay the same core commands in a fresh disposable Zoomzi clone and compare the normalized exports.",
+  "observed": {
+    "comparison_rendered": "PENDING \u2014 no domain export pair exists to compare.",
+    "pygmalion_normalized_export_present": false,
+    "pygmalion_pin_bound": true,
+    "zoomzi_normalized_export_present": false
+  },
+  "reason": "No current Pygmalion normalized canonical-domain export bound to the definitive candidate exists in the immutable Pygmalion evidence; PYG-004 is PENDING pending exact human migration/import apply approval and has no export artifact.",
+  "recorded_at": "2026-07-23T14:11:47.900505Z",
+  "row_id": "OMG-ZOO-006",
+  "stage": "SURFACE",
+  "status": "PENDING",
+  "timestamp_utc": "20260723T141147Z"
+}

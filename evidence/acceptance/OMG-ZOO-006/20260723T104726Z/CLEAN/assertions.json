@@ -1,0 +1,6 @@
+{
+  "assertion": "local core behavior tests passed, but a current Pygmalion normalized export was not available at this execution instant",
+  "criterion": "Normalized generic-core comparison",
+  "missing_proof": "Disposable clone is removed only after evidence capture; original Zoomzi status is retained as an unchanged observation.",
+  "status": "PASS"
+}

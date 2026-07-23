@@ -1,0 +1,20 @@
+{
+  "acceptance_id": "OMG-AC-020",
+  "captured_at": "2026-07-23T14:04:46Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "review_record_sha256": {
+    "code-goal.json": "a56a668acdda9e833f441cba98bd413102a2dc7b4310f1a952110051edd65144",
+    "architecture.json": "b03f6012b9894b99f25ed40d7d636bd2dadbad21bec2ade070c28bcecc5b7960",
+    "qa.json": "bc14108066ca94b1ff9d67afefa80886d7b5a956ffcd5799747ecec3c99e2952",
+    "security-privacy.json": "6b86f2441699ddee5d3c5d066829d3200a8c1ee7a3368ec33c4d5ad244b680bc"
+  },
+  "qa_recorded_at": "2026-07-23T14:04:17Z",
+  "publication_state": "NOT PUBLISHED",
+  "stage": "SURFACE",
+  "result": "PASS",
+  "assertions": [
+    "Exact dispositions, review hashes, and QA chronology captured."
+  ],
+  "blockers": []
+}

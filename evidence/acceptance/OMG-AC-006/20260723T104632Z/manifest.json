@@ -1,0 +1,30 @@
+{
+  "blocker": "Current rebuilt candidate returned unavailable/foundation service is unavailable (exit 4) for the disposable daemonless init and follow-on scenario, preventing the required positive CLI observation.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "7d926b84a6b9b04adcb159735156eaa9bcc33c22a5f662867e5566b535b2d2d3",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "c3a0c3b3c1caba969b66404606b6fbf050d45620a23c77cde029368bc7894f73",
+    "version": "v0.1.0-rc.1",
+    "version_command": "rtk ./dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 version --json",
+    "version_exit_code": 0
+  },
+  "files": [
+    "captures/candidate-version.json",
+    "captures/disposable-cli-probe.json",
+    "captures/mapped-go-tests.json"
+  ],
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "root_timestamp_utc": "20260723T104632Z",
+  "row_id": "OMG-AC-006",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ]
+}

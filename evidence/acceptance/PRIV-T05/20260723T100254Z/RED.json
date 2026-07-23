@@ -1,0 +1,44 @@
+{
+  "acceptance_id": "PRIV-T05",
+  "candidate": {
+    "darwin_arm64_binary_sha256": "c325fb3fc512e6d5016e3475f97f5551739936b09e8b0e03e34aa2a324192565",
+    "platform": "darwin/arm64",
+    "source_archive_sha256": "cc6e82ac51c1458c3d6897fed932da306fb13295f544fbf5ff4994e1b5e889aa"
+  },
+  "captured_at_utc": "20260723T100254Z",
+  "mapped_sources": [
+    "internal/app/foundation/restore.go",
+    "internal/store/sqlite/store.go",
+    "internal/store/sqlite/backup_inspection.go"
+  ],
+  "negative_assertion": "Named tests directly exercise this row\u2019s mapped hostile, invalid, or misuse input condition.",
+  "observed_tests": [
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/app/foundation -run ^(TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation"
+      ],
+      "output": "=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/relative_backup\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/relative_destination\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/same_source_and_destination\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/existing_destination\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/checksum_inspection_failure\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/integrity_false\n=== RUN   TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/compatibility_false\n--- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/relative_backup (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/relative_destination (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/same_source_and_destination (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/existing_destination (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/checksum_inspection_failure (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/integrity_false (0.00s)\n    --- PASS: TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation/compatibility_false (0.00s)\nPASS\nok  \texample.invalid/coordledger/internal/app/foundation\t1.382s\n",
+      "private_path_redacted": false
+    },
+    {
+      "command": "rtk proxy go test -count=1 -v ./internal/store/sqlite -run ^(TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup|TestInspectBackupValidatesChecksumIntegrityAndSchema)$",
+      "exit_code": 0,
+      "named_tests": [
+        "TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup",
+        "TestInspectBackupValidatesChecksumIntegrityAndSchema"
+      ],
+      "output": "=== RUN   TestInspectBackupValidatesChecksumIntegrityAndSchema\n--- PASS: TestInspectBackupValidatesChecksumIntegrityAndSchema (0.04s)\n=== RUN   TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup\n--- PASS: TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup (0.01s)\nPASS\nok  \texample.invalid/coordledger/internal/store/sqlite\t1.484s\n",
+      "private_path_redacted": false
+    }
+  ],
+  "phase": "RED",
+  "schema_version": 1,
+  "source_test_map": {
+    "path": "evidence/release/sec-priv-source-test-map.json",
+    "schema_version": 1,
+    "sha256": "f811f295b61605c8e0ed896ae37e4ea4575345f9fa71e2c7bca0bc210e3f0a4f"
+  },
+  "status": "PASS"
+}

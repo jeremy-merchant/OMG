@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "review": "architecture",
+  "reviewer": "ReviewNewArchitecture",
+  "recorded_at": "2026-07-23T15:08:36Z",
+  "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+  "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+  "verdict": "CLEAR",
+  "basis": [
+    "The final 311-member, 255-file archive is byte-identical to the reviewed workspace with zero missing or mismatched selected files, including all seven operator-design source and test files.",
+    "Direct boundary review confirmed the UTF-16 diff, transactional integration removal, explicit integration scope, native cancellation, durable checkpoint outcome, strict selector presence, board projection/redaction/preflight, and Windows locality/ACL/path fixes.",
+    "Liveness-first active-session accounting and rune-safe identifier abbreviation close both presentation findings with direct RED/GREEN coverage in TTY and HTML.",
+    "Every supported renderer dispatches from the canonical authorized ViewModel; no adjacent architecture regression remained."
+  ],
+  "remaining_blockers": [],
+  "release_evidence_note": "Human, legal, CI, and native-platform evidence gates remain separately tracked and are outside this source-architecture verdict."
+}

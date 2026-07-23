@@ -1,0 +1,1 @@
+PENDING: Both current project aggregates are migration-gated; a semantic parity report cannot be truthfully generated before the approved live proofs.

@@ -1,0 +1,1 @@
+focused parent-loss/adoption integration test passed; adoption has no restricted authority

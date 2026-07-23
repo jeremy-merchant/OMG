@@ -1,0 +1,37 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-23T14:20:46Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "release_manifest_sha256": "3aa5b6490f3c5254dd3072b262213aa445beaad5415876202fe18d61d7bcb3b2",
+  "source_archive_members": 304,
+  "fixture": "fresh /private/tmp root with root/home/config/state/store/cache/project all 0700",
+  "publication_state": "NOT PUBLISHED",
+  "stage": "RED",
+  "result": "PASS",
+  "assertions": [
+    "Exact README invalid prerequisite before init failed visibly and did not initialize project."
+  ],
+  "commands": [
+    {
+      "command": "<darwin-arm64> migration plan --project <fixture>/project --output <fixture>/project/.omg/migration-plan.json --json",
+      "exit_code": 4,
+      "stdout_json": {
+        "ok": false,
+        "error": {
+          "code": "uninitialized",
+          "message": "project is not initialized",
+          "retryable": false,
+          "exit_code": 4
+        },
+        "meta": {
+          "schema_version": 1,
+          "command_version": 1
+        },
+        "warnings": []
+      },
+      "stderr": ""
+    }
+  ],
+  "blockers": []
+}

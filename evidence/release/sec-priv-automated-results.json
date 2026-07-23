@@ -1,0 +1,713 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-23T03:51:31.841720Z",
+  "source_state": "current-workspace-post-fix",
+  "command": "rtk proxy go test -race -json ./... -count=1",
+  "exit_code": 0,
+  "summary": {
+    "tests_passed": 478,
+    "tests_failed": 0,
+    "tested_packages_passed": 27,
+    "mapped_acceptance_ids": 26
+  },
+  "source_map": "evidence/release/sec-priv-source-test-map.json",
+  "platform_artifacts": [
+    "evidence/release/native-windows/20260723T024823Z/results.json",
+    "evidence/release/native-windows/20260723T025251Z/results.json"
+  ],
+  "limitations": [
+    "Secret redaction is heuristic for novel unrecognized patterns; exact OMG delegation tokens and configured known markers are rejected/redacted.",
+    "PRIV-T02 network-denied runtime evidence is recorded separately."
+  ],
+  "entries": [
+    {
+      "id": "SEC-T01",
+      "status": "PASS",
+      "sources": [
+        "internal/domain/coordination/coordination.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/domain/coordination",
+          "test": "TestRestrictedActionsAreUnconditionallyDeniedForUntrustedOrigins",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/domain/coordination",
+          "test": "TestEveryMessageTypeAndRecipientACKLifecycle",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T02",
+      "status": "PASS",
+      "sources": [
+        "internal/runtime/run.go",
+        "internal/view/render.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/runtime",
+          "test": "TestRunPreservesExactArgvWithoutShellExpansion",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/view",
+          "test": "TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T03",
+      "status": "PASS",
+      "sources": [
+        "internal/platform/git_scanner.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/platform",
+          "test": "TestGitScannerFakeRunnerUsesOnlyFixedReadOnlyArgv",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/platform",
+          "test": "TestGitScannerEnvironmentAndOutputCapAreSafe",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T04",
+      "status": "PASS",
+      "sources": [
+        "internal/safety/safety.go",
+        "internal/app/query/service.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardQueryRedactsSeededLegacyDelegationToken",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestSafeCoordinationProgressRedactsPrivateText",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardIdentityUsesLatestRunAndSafeWorktreeFingerprint",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T05",
+      "status": "PASS",
+      "sources": [
+        "internal/safety/safety.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/safety",
+          "test": "TestRejectDelegationTokenDetectsFixedLengthCredentialSubstrings",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/safety",
+          "test": "TestRejectDelegationTokenPermitsInvalidLookalikes",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/safety",
+          "test": "TestRedactDelegationTokenReplacesEachFixedLengthCredentialSubstring",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T06",
+      "status": "PASS",
+      "sources": [
+        "internal/app/lineage/service.go",
+        "internal/store/sqlite/coordination.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/lineage",
+          "test": "TestDelegationTokenSecurity",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T07",
+      "status": "PASS",
+      "sources": [
+        "internal/app/lineage/service.go",
+        "internal/store/sqlite/coordination.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/lineage",
+          "test": "TestDelegationTokenSecurity",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/lineage",
+          "test": "TestDelegationTokenConcurrentRedemptionHasOneWinner",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T08",
+      "status": "PASS",
+      "sources": [
+        "internal/transport/cli/payload_transport.go",
+        "internal/transport/cli/payload_transport_unix.go",
+        "internal/transport/cli/payload_transport_windows.go",
+        "internal/windowsacl/private_windows.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestDelegationRegistrationRequiresNonArgvPayloadTransport",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestReadPrivatePayloadFileUnixSecurityBoundary",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestReadPrivatePayloadFileWindowsSecurityBoundary",
+          "status": "NOT_RUN_OR_MISSING"
+        }
+      ],
+      "platform_evidence": {
+        "status": "PASS",
+        "artifact": "evidence/release/native-windows/20260723T024823Z/results.json",
+        "scope": "Windows-only mapped tests; native lifecycle proof also at evidence/release/native-windows/20260723T025251Z/results.json"
+      }
+    },
+    {
+      "id": "SEC-T09",
+      "status": "PASS",
+      "sources": [
+        "internal/integration/instructions/surface.go",
+        "internal/platform/resolver.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/integration/instructions",
+          "test": "TestRejectsMalformedAndUnsafeInputsWithoutMutation",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/platform",
+          "test": "TestResolveCanonicalizesSymlinkedProjectRoots",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/platform",
+          "test": "TestResolveNonGitIDIsStable",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T10",
+      "status": "PASS",
+      "sources": [
+        "internal/store/sqlite/path_security_unix.go",
+        "internal/store/sqlite/path_security_windows.go",
+        "internal/transport/cli/plan_output.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestOpenSecuresManagedStateAndRejectsUnsafeFinalPath",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestUnixSecureStatePathRejectsSpecialAncestor",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestWindowsSecureStatePathRejectsReparseAncestorForExistingManagedDirectory",
+          "status": "NOT_RUN_OR_MISSING"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestMigrationPlanOutputRejectsFIFOWithoutMutation",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/config",
+          "test": "TestLoadRejectsUnsafeConfigurationFiles",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestInitRejectsDanglingProjectConfigSymlink",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestWriteNewExportRejectsSymlinkAncestor",
+          "status": "PASS"
+        }
+      ],
+      "platform_evidence": {
+        "status": "PASS",
+        "artifact": "evidence/release/native-windows/20260723T024823Z/results.json",
+        "scope": "Windows-only mapped tests; native lifecycle proof also at evidence/release/native-windows/20260723T025251Z/results.json"
+      }
+    },
+    {
+      "id": "SEC-T11",
+      "status": "PASS",
+      "sources": [
+        "internal/store/sqlite/path_security_unix.go",
+        "internal/store/sqlite/path_security_windows.go",
+        "internal/windowsacl/private_windows.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestOpenSecuresManagedStateWithPrivatePOSIXModes",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestWindowsSecureStatePathCreatesPrivateDACL",
+          "status": "NOT_RUN_OR_MISSING"
+        },
+        {
+          "package": "./internal/windowsacl",
+          "test": "TestIsPrivateUsesACESemanticsNotSDDLFormatting",
+          "status": "NOT_RUN_OR_MISSING"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestBoardAndStaticExportUseCurrentCanonicalStore",
+          "status": "PASS"
+        }
+      ],
+      "platform_evidence": {
+        "status": "PASS",
+        "artifact": "evidence/release/native-windows/20260723T024823Z/results.json",
+        "scope": "Windows-only mapped tests; native lifecycle proof also at evidence/release/native-windows/20260723T025251Z/results.json"
+      }
+    },
+    {
+      "id": "SEC-T12",
+      "status": "PASS",
+      "sources": [
+        "internal/view/render.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/view",
+          "test": "TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T13",
+      "status": "PASS",
+      "sources": [
+        "internal/app/importrecord/service.go",
+        "internal/app/dispatch_import.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app",
+          "test": "TestDispatchImportRejectsUnknownPayloadFields",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestDispatchImportValidatesSourceState",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/importrecord",
+          "test": "TestApplyAmbiguousIsImportedUnverified",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/importrecord",
+          "test": "TestApplyCreatesCanonicalRecordsAndReplaysIdempotently",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T14",
+      "status": "PASS",
+      "sources": [
+        "internal/store/sqlite/store.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestApprovedMigrationAndFailurePreserveBackup",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T15",
+      "status": "PASS",
+      "sources": [
+        "internal/app/foundation/restore.go",
+        "internal/store/sqlite/backup_inspection.go",
+        "internal/store/sqlite/store.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/foundation",
+          "test": "TestPlanRestoreValidatesBackupAndLeavesFreshDestinationUntouched",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/foundation",
+          "test": "TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestInspectBackupValidatesChecksumIntegrityAndSchema",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestSQLiteRejectsNewerAndChecksumDivergentSchemaState",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T16",
+      "status": "PASS",
+      "sources": [
+        "internal/store/sqlite/coordination.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestCoordinationClaimRaceHasOneWinner",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T17",
+      "status": "PASS",
+      "sources": [
+        "internal/store/sqlite/store.go",
+        "internal/store/sqlite/backup_inspection.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestSQLiteConfiguresForeignKeysBusyTimeoutAndJournalPolicy",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestSQLiteRetryPolicyIsDeterministicBoundedAndCancelable",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestConcurrentShortWritesRemainConsistent",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestInspectBackupValidatesChecksumIntegrityAndSchema",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestSQLiteRetriesTransientCallbackErrors",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestSQLiteRejectsNewerAndChecksumDivergentSchemaState",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T18",
+      "status": "PASS",
+      "sources": [
+        "internal/watch/watch.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/watch",
+          "test": "TestStatusDoesNotTreatReusedPIDAsActive",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/watch",
+          "test": "TestStatusMarksExpiredLeaseStale",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/watch",
+          "test": "TestStatusFailsClosedForCorruptOrOversizeLease",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T19",
+      "status": "PASS",
+      "sources": [
+        "internal/transport/mcp/server.go",
+        "internal/transport/cli/payload_transport.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/transport/mcp",
+          "test": "TestServeBoundsFramesAndStructuredOutput",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/mcp",
+          "test": "TestServeSerializesApplicationErrorsWithoutCLIOutput",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestDelegationRegistrationRequiresNonArgvPayloadTransport",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T20",
+      "status": "PASS",
+      "sources": [
+        "internal/transport/cli/cli.go",
+        "internal/transport/mcp/server.go",
+        "internal/app/dispatch.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestScopedCoordinationRejectsCrossProjectTaskAndRunAccess",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "SEC-T21",
+      "status": "PASS",
+      "sources": [
+        "internal/domain/coordination/coordination.go",
+        "internal/app/git/service.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/domain/coordination",
+          "test": "TestRestrictedActionsAreUnconditionallyDeniedForUntrustedOrigins",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestDispatchRecoveryGitCleanupPlanIsAdvisoryAndDoesNotScan",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/git",
+          "test": "TestCleanupPlanIsCandidateOnlyAndBlocksUncertainAssets",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "PRIV-T01",
+      "status": "PASS",
+      "sources": [
+        "internal/safety/safety.go",
+        "internal/app/query/service.go",
+        "internal/view/render.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestDispatchCoordinationQueryDoesNotLeakMessageBody",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/lineage",
+          "test": "TestCreateHumanReplayReturnsCanonicalAndRedactsPrivateInput",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestSafeCoordinationProgressRedactsPrivateText",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardIdentityUsesLatestRunAndSafeWorktreeFingerprint",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "PRIV-T02",
+      "status": "PASS",
+      "sources": [
+        "internal/view/render.go",
+        "internal/transport/mcp/server.go",
+        "internal/transport/cli/cli.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/view",
+          "test": "TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestCLIAndMCPFreshRequestsHaveEquivalentCanonicalState",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "PRIV-T03",
+      "status": "PASS",
+      "sources": [
+        "internal/view/render.go",
+        "internal/safety/safety.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/view",
+          "test": "TestRenderHTMLEscapesAndHasAccessibleStaticDocument",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/view",
+          "test": "TestAllRenderersExposeADR0003MetadataAndGitAdvisory",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardQueryRedactsArbitraryTextAndPrivateSessionFields",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app/query",
+          "test": "TestBoardIdentityUsesLatestRunAndSafeWorktreeFingerprint",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "PRIV-T04",
+      "status": "PASS",
+      "sources": [
+        "internal/transport/cli/payload_transport.go",
+        "internal/transport/cli/payload_transport_unix.go",
+        "internal/transport/cli/payload_transport_windows.go",
+        "internal/app/lineage/service.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestDelegationRegistrationRequiresNonArgvPayloadTransport",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestReadPrivatePayloadFileUnixSecurityBoundary",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/transport/cli",
+          "test": "TestReadPrivatePayloadFileWindowsSecurityBoundary",
+          "status": "NOT_RUN_OR_MISSING"
+        },
+        {
+          "package": "./internal/app/lineage",
+          "test": "TestDelegationTokenSecurity",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/app",
+          "test": "TestDispatchCoordinationQueryDoesNotLeakTokenVerifier",
+          "status": "NOT_RUN_OR_MISSING"
+        }
+      ],
+      "platform_evidence": {
+        "status": "PASS",
+        "artifact": "evidence/release/native-windows/20260723T024823Z/results.json",
+        "scope": "Windows-only mapped tests; native lifecycle proof also at evidence/release/native-windows/20260723T025251Z/results.json"
+      }
+    },
+    {
+      "id": "PRIV-T05",
+      "status": "PASS",
+      "sources": [
+        "internal/app/foundation/restore.go",
+        "internal/store/sqlite/store.go",
+        "internal/store/sqlite/backup_inspection.go"
+      ],
+      "checks": [
+        {
+          "package": "./internal/app/foundation",
+          "test": "TestPlanRestoreRejectsUnsafeOrUnverifiedInputsWithoutMutation",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestMigrationApprovalAcceptanceFailedApplyRetainsOriginalStateAndBackup",
+          "status": "PASS"
+        },
+        {
+          "package": "./internal/store/sqlite",
+          "test": "TestInspectBackupValidatesChecksumIntegrityAndSchema",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "acceptance_id": "OMG-AC-013",
+  "blocker": "",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "directories": "0555",
+    "dual_bound_every_record": true,
+    "files": "0444",
+    "json_valid": true,
+    "leak_scan": "PASS",
+    "network_offline": true,
+    "stage_hashes_valid": true
+  },
+  "not_published": true,
+  "overall_status": "PASS",
+  "record_schema_version": 2,
+  "result": "PASS",
+  "root_timestamp_utc": "2026-07-23T15:12:30.196544Z",
+  "row_id": "OMG-AC-013",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PASS",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PASS"
+  },
+  "stages": {
+    "CLEAN": "f3578eb0e67c1f517849283ca9736d788672c5ae8ea2fba02f8dcb9c033b9f07",
+    "GREEN": "a39e0f98a298058064e056db2ed790827a1bb8ff25602c430860aa2efa8efd0c",
+    "PIN": "798f536b415d8eb4818076d38c277b5ee4a3c1d6fe3714b74a7368463e9cd30a",
+    "RED": "68e4169f2ce477281d1a603214c10dd26f96995891a61b380535ea83be6192dd",
+    "SURFACE": "897d2c27acc980561fff5f5adce100ef7ac1e2b2a22c35ad28f20ff5ec393d0a"
+  }
+}

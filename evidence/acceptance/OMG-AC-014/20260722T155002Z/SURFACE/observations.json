@@ -1,0 +1,19 @@
+{
+  "interfaces_exercised": [
+    "integration plan --json",
+    "integration apply --json",
+    "integration status --json",
+    "integration remove --json",
+    "mcp serve --stdio",
+    "shell-init bash",
+    "completion powershell",
+    "run --runtime roundtrip"
+  ],
+  "observable_contracts": {
+    "plan_is_read_only": true,
+    "second_apply_is_noop": true,
+    "mcp_stdout_is_ndjson_only": true,
+    "runtime_wrapper_uses_explicit_argv": true,
+    "watch_process_required": false
+  }
+}

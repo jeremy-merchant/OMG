@@ -1,0 +1,50 @@
+{
+  "acceptance_id": "OMG-AC-019",
+  "blocker": "Required CI/native target attestations remain unavailable; local release-candidate integrity is not a substitute for all-target completion.",
+  "candidate_binding": {
+    "darwin_arm64_binary_sha256": "e20ada489c2e5511c2be60d44ade6e1e76695774abd9b10955b65934ca71a616",
+    "platform": "darwin/arm64",
+    "source_archive_members": 311,
+    "source_archive_sha256": "e4290417c5140c6828545cf8bba70c006e5cbacfa4dc072cc81eeb3c5625a433",
+    "source_file_members": 255
+  },
+  "captured_at_utc": "2026-07-23T14:41:50.943000Z",
+  "cleanup_verified": true,
+  "integrity_validation": {
+    "dual_bound_every_record": true,
+    "hashes_valid": true,
+    "immutable_directories": "0555",
+    "immutable_files": "0444",
+    "json_valid": true,
+    "network_execution": "sandbox-exec deny network*",
+    "private_path_scan": "PASS",
+    "token_scan": "PASS"
+  },
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 2,
+  "result": "PENDING",
+  "root_timestamp_utc": "2026-07-23T14:41:50.943000Z",
+  "row_id": "OMG-AC-019",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PENDING",
+    "SURFACE": "PENDING"
+  },
+  "stages": {
+    "CLEAN": "88e06c0983849c2d966baada3559af03e03a54667f954bcd63a16b70493a24b6",
+    "GREEN": "1bcf0b1b798db417e77343e07db64030ca33bfc9a785b65b29b7f22602118f63",
+    "PIN": "45dbbb1c8bd2b34d38eaa0488eb5b153cc966ca2b83fe352966a2562ae685da1",
+    "RED": "3faba0ffca5e77b9fa87e00c60c5ce3c9817fa153971346a79ac1eae854e4944",
+    "SURFACE": "0ac61d2552835e1146cd857f8c646ced094ac114e3f6fea428903ed2a534458e"
+  }
+}

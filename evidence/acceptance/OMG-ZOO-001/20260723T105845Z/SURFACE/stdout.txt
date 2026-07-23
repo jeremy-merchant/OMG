@@ -1,0 +1,1 @@
+PASS: Final binary SHA-256 and version JSON exactly matched the required binding.

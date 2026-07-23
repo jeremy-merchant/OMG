@@ -1,0 +1,33 @@
+{
+  "acceptance_id": "PRIV-E01",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent privacy reviewer must record the required PRIV-E01 privacy evidence disposition for this exact candidate hash.",
+  "candidate_hashes": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "files": {
+    "CLEAN/record.json": "70a608d27323b4ee855fea455bf80f89dab5c10f62576b6a56461c2d52b68d2b",
+    "GREEN/record.json": "903a942e9475ce6e21fc5a34df9a83a2fa2ca072c69e966148a9dcbec08bbe94",
+    "PIN/record.json": "76d4aff51626976d41fb7aea76d78208bfc1984a1f11fa544810e431968aaa40",
+    "RED/record.json": "44e1e88f0523a86d25c639aed7d48dbcaeb45a9d0bb66ef45fc3a8e3498c7031",
+    "SURFACE/record.json": "5a4341f7593744db7c22219945afb6c50d19c19b09168d39e2aa75339df192ac"
+  },
+  "five_stage_completeness": {
+    "complete": true,
+    "id_consistent": true,
+    "json_valid": true,
+    "raw_token_or_private_path_leak": false,
+    "required_stages": [
+      "PIN",
+      "RED",
+      "GREEN",
+      "SURFACE",
+      "CLEAN"
+    ]
+  },
+  "freeze": "0444 files, 0555 directories after validation",
+  "overall_status": "PENDING",
+  "schema_version": 1
+}

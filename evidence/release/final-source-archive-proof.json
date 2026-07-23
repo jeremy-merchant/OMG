@@ -1,0 +1,66 @@
+{
+  "candidate_version": "v0.1.0-rc.1",
+  "cleanup": {
+    "fixture_removed": true
+  },
+  "current_test_evidence": {
+    "normal_fail_events": 0,
+    "normal_jsonl": "evidence/release/final-go-test.jsonl",
+    "normal_pass_events": 883,
+    "normal_sha256": "3cbff0f04c4d4faa6477d1bce1952bbe17b5840d2ba70c4364ffa4d1792939df",
+    "race_fail_events": 0,
+    "race_jsonl": "evidence/release/final-go-race.jsonl",
+    "race_pass_events": 883,
+    "race_sha256": "7857a24df4b057ab1a5e54768c5661bf5664a953c9a91e6df66406bbd358181b",
+    "vet": "evidence/release/final-go-vet.txt",
+    "vet_exit_code": 0,
+    "vet_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+  "extracted_build": {
+    "command": "CGO_ENABLED=0 go build -trimpath -ldflags '-s -X main.version=v0.1.0-rc.1' -o <private-temp>/omg-source-proof ./cmd/omg",
+    "exit_code": 0,
+    "result": "PASS"
+  },
+  "extracted_tests": {
+    "command": "go test -count=1 ./...",
+    "exit_code": 0,
+    "result": "PASS"
+  },
+  "extracted_version": {
+    "command": "<private-temp>/omg-source-proof version --json",
+    "exit_code": 0,
+    "result": "PASS",
+    "stdout": {
+      "data": {
+        "version": "v0.1.0-rc.1"
+      },
+      "meta": {
+        "command_version": 1,
+        "schema_version": 1
+      },
+      "ok": true,
+      "warnings": []
+    }
+  },
+  "extraction": {
+    "example_board_preview_members": [
+      "examples/board-preview/",
+      "examples/board-preview/main.go"
+    ],
+    "fixture": "fresh disposable private temporary directory",
+    "generated_root_board_preview_member": false,
+    "mismatches": [],
+    "path_traversal_check": "PASS",
+    "selected_files_compared": 255,
+    "todo_member": false,
+    "workspace_archive_byte_equality": "PASS"
+  },
+  "generated_at_utc": "2026-07-23T15:02:49Z",
+  "publication_status": "NOT PUBLISHED",
+  "schema_version": 1,
+  "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+  "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+  "source_files": 255,
+  "source_members": 311
+}

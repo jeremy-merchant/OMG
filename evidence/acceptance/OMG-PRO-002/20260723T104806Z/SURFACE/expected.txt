@@ -1,0 +1,4 @@
+{
+  "assertion": "Observed public command surface is available from the pinned Darwin binary.",
+  "expected_exit_code": 0
+}

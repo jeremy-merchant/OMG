@@ -1,0 +1,38 @@
+{
+  "acceptance_id": "OMG-AC-013",
+  "assertions": [
+    "Current source and Darwin binary SHA-256 pinned.",
+    "Archive inventory: 311 members, 255 regular files."
+  ],
+  "blocker": "",
+  "candidate_binding": {
+    "darwin_arm64_binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "network_enforcement": "sandbox-exec deny network*",
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "source_files": 255,
+    "source_members": 311
+  },
+  "captured_at_utc": "2026-07-23T15:12:30.196544Z",
+  "commands": [
+    {
+      "command": "shasum -a 256 <source-archive> <darwin-arm64-binary>",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d  <source-archive>\n47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f  <darwin-arm64-binary>\n"
+    },
+    {
+      "command": "tar -tzf <source-archive> inventory",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "members=311 regular_files=255\n"
+    }
+  ],
+  "fixture_contract": "fresh isolated 0700 root/home/project/source/tmp; network denied; disposable fixture removed",
+  "record_schema_version": 2,
+  "row_id": "OMG-AC-013",
+  "stage": "PIN",
+  "stage_status": "PASS"
+}

@@ -1,0 +1,24 @@
+{
+  "result": "PASS",
+  "validated_at_utc": "2026-07-23T03:08:53Z",
+  "artifact": {
+    "path": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-windows-amd64.exe",
+    "sha256": "e433e33a673b4a37fbce1f5e81aa390abfeeccc84ca8251ef6030d3c04207d15",
+    "version": "v0.1.0-rc.1",
+    "release_status": "NOT PUBLISHED"
+  },
+  "native_lifecycle": [
+    {"name": "fresh init", "result": "PASS", "exit_code": 0},
+    {"name": "private-output migration plan", "result": "PASS", "exit_code": 0},
+    {"name": "backup create", "result": "PASS", "exit_code": 0},
+    {"name": "bounded approval apply", "result": "PASS", "exit_code": 0, "output": "applied=true"},
+    {"name": "consumed approval replay", "result": "PASS", "exit_code": 2, "expected": "rejected", "output": "migration approval is invalid"},
+    {"name": "doctor integrity", "result": "PASS", "exit_code": 0, "output": "initialized=true; integrity=true; pending_migrations=0"}
+  ],
+  "focused_windows_tests": [
+    {"name": "internal/windowsacl TestIsPrivate", "result": "PASS", "exit_code": 0},
+    {"name": "sqlite TestWindowsSecureStatePath", "result": "PASS", "exit_code": 0},
+    {"name": "CLI migration plan and payload security", "result": "PASS", "exit_code": 0}
+  ],
+  "remote_fixture": {"cleanup": "PASS", "exists_after_cleanup": false}
+}

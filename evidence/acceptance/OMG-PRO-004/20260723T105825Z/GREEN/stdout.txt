@@ -1,0 +1,2 @@
+ok  	example.invalid/coordledger/internal/transport/cli	0.775s
+ok  	example.invalid/coordledger/internal/transport/mcp	(cached)

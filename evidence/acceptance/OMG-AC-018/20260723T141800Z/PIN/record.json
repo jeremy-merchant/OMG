@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-23T14:18:00Z",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+  "darwin_arm64_binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+  "release_manifest_sha256": "3aa5b6490f3c5254dd3072b262213aa445beaad5415876202fe18d61d7bcb3b2",
+  "source_archive_members": 304,
+  "fixture": "fresh disposable isolated HOME/config/state/store/project",
+  "publication_state": "NOT PUBLISHED",
+  "stage": "PIN",
+  "result": "PASS",
+  "assertions": [
+    "Fresh isolated fixture created; definitive source, native binary, and manifest hashes bound."
+  ],
+  "commands": [],
+  "blockers": []
+}

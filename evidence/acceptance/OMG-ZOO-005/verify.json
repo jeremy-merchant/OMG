@@ -1,0 +1,78 @@
+{
+  "board_counts": {
+    "dependencies": 1,
+    "handoffs": 1,
+    "inbox": 1,
+    "progress": 1,
+    "reservations": 2,
+    "runs": 2,
+    "sessions": 7,
+    "tasks": 6
+  },
+  "criterion": "OMG-ZOO-005",
+  "exports": {
+    "html": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": 0,
+      "mode": "0o600"
+    },
+    "json": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null,
+      "mode": "0o600"
+    },
+    "markdown": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null,
+      "mode": "0o600"
+    },
+    "tty": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null,
+      "mode": "0o600"
+    }
+  },
+  "formats": {
+    "html": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": 0
+    },
+    "json": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null
+    },
+    "markdown": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null
+    },
+    "tty": {
+      "contains_private_root": false,
+      "contains_token_prefix": false,
+      "exit_code": 0,
+      "html_remote_url_count": null
+    }
+  },
+  "git_after_classification": [
+    "active_owned"
+  ],
+  "git_before_classification": [
+    "dirty_unowned"
+  ],
+  "human_root_present": true,
+  "result": "PASS",
+  "summary": "Interrupted ownership became unowned and explicit adoption restored an active owner without cleanup"
+}

@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/app -run ^(TestDispatchBoardQueryReturnsCanonicalViewModel|TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys)$",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T13:06:31.841560Z",
+      "package": "./internal/app",
+      "stderr": "",
+      "stdout": "Go test: 2 passed in 1 packages\n",
+      "tests": [
+        "TestDispatchBoardQueryReturnsCanonicalViewModel",
+        "TestDispatchRecoveryEnforcesReservationQueryAndMutationKeys"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-015",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

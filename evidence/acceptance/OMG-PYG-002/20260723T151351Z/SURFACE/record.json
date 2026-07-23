@@ -1,0 +1,114 @@
+{
+  "acceptance_id": "OMG-PYG-002",
+  "action": "Do not execute the named scenario until exact current human approval exists.",
+  "assertions": [
+    "Required approved operation intentionally not performed; safe current observation remains recorded."
+  ],
+  "candidate": {
+    "command_version": 1,
+    "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+    "schema_version": 1,
+    "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "$OMG_BINARY version --json",
+      "exit_code": 0
+    },
+    {
+      "command": "shasum -a 256 $OMG_BINARY",
+      "exit_code": 0
+    },
+    {
+      "command": "shasum -a 256 $OMG_SOURCE_ARCHIVE",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION rev-parse HEAD",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION status --porcelain=v1",
+      "exit_code": 0
+    },
+    {
+      "command": "git clone --no-local --no-hardlinks $ORIGINAL_PYGMALION $DISPOSABLE_CLONE",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $DISPOSABLE_CLONE rev-parse HEAD",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $DISPOSABLE_CLONE status --porcelain=v1",
+      "exit_code": 0
+    },
+    {
+      "command": "tar -cf $SAFE_CHECKPOINT -C $DISPOSABLE_CLONE .",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION rev-parse HEAD",
+      "exit_code": 0
+    },
+    {
+      "command": "git -C $ORIGINAL_PYGMALION status --porcelain=v1",
+      "exit_code": 0
+    },
+    {
+      "command": "rm -rf $SAFE_ROOT",
+      "exit_code": 0
+    }
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "fixture": {
+    "checkpoint_sha256": "8e1c8582541ba8decafa13264454cadbd27219752441b37f8a99c53a8b269394",
+    "clone_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "clone_status_fingerprint_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "isolated_home_mode": "0700",
+    "kind": "fresh-0700-isolated-HOME-safe-store disposable clone; network-offline local clone",
+    "network_offline": true,
+    "original_final_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_head_changed_externally": false,
+    "original_initial_head": "6a41aea8aad9f8bb76e692df93ad64e249f60c1e",
+    "original_path_redacted": "$ORIGINAL_PYGMALION",
+    "original_status_fingerprint_sha256_after": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805",
+    "original_status_fingerprint_sha256_before": "a870b342aded1548455f2f725e89c8bec912eebb600675d245dd2fa79dc7b805",
+    "path_redacted": "$DISPOSABLE_CLONE",
+    "worktree_count": 0
+  },
+  "generated_at_utc": "2026-07-23T15:13:51Z",
+  "missing_proof": [
+    "Exact current human approval for the named read-only inventory/scenario is absent; no approved scenario was executed."
+  ],
+  "privacy": {
+    "private_paths_recorded": false,
+    "tokens_recorded": false
+  },
+  "prohibitions": {
+    "deployment": false,
+    "import_apply": false,
+    "installation": false,
+    "migration_apply": false,
+    "original_mutation": false,
+    "publication": false,
+    "push": false,
+    "remote_action": false
+  },
+  "result": "PENDING",
+  "stage": "SURFACE"
+}

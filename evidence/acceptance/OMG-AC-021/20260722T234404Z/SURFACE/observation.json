@@ -1,0 +1,17 @@
+{
+  "acceptance_id": "OMG-AC-021",
+  "captured_at": "2026-07-22T23:44:04Z",
+  "manifest_candidate": {
+    "local_only": true,
+    "status": "NOT PUBLISHED",
+    "publication_authorized": false,
+    "public_distribution_authorized": false,
+    "go_module": "example.invalid/coordledger"
+  },
+  "standalone_boundary": {
+    "searched_paths": ["cmd", "internal", "migrations", "examples"],
+    "pygmalion_or_zoomzi_matches": 0,
+    "fresh_non_git_quickstart_evidence": "evidence/acceptance/OMG-AC-018/20260722T232717Z"
+  },
+  "result": "PASS"
+}

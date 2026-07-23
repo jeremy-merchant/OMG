@@ -1,0 +1,7 @@
+{
+  "criterion": "Adapter-only configuration in a disposable clone",
+  "observable": "init created only standard .omg/project.toml; isolated adapter config stayed under .omg/adapter/zoomzi.json",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

@@ -451,7 +451,30 @@ func validBoardRequest(request Request) bool {
 	}.Validate() == nil
 }
 
+func validExportRequest(request Request) bool {
+	if request.Integrity || request.Status || request.Stdio || request.runtimeProvided || request.Runtime != "" ||
+		len(request.Command) != 0 || request.formatProvided || request.Format != "" ||
+		request.sessionProvided || request.SessionID != "" || request.taskProvided || request.TaskID != "" ||
+		request.planFileProvided || request.PlanFile != "" || request.approvalFileProvided ||
+		request.ApprovalFile != "" || request.idempotencyKeyProvided || request.IdempotencyKey != "" ||
+		request.PayloadProvided || request.Payload != "" || request.PayloadFileProvided ||
+		request.PayloadFile != "" || request.PayloadStdin {
+		return false
+	}
+	if request.Subcommand == "" {
+		return request.JSON && !request.outputProvided && request.Output == ""
+	}
+	if request.JSON || !request.outputProvided || request.Output == "" {
+		return false
+	}
+	_, ok := boardFormat(request.Subcommand)
+	return ok
+}
+
 func runExport(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
+	if !validExportRequest(request) {
+		return writeError(output, request.JSON, invalid("export request is invalid"))
+	}
 	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
 	if err.Code != "" {
 		return writeError(output, request.JSON, err)

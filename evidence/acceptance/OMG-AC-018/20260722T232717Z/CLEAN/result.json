@@ -1,0 +1,15 @@
+{
+  "acceptance_id": "OMG-AC-018",
+  "captured_at": "2026-07-22T23:27:17Z",
+  "cleanup": {
+    "disposable_fixture_removed": true,
+    "disposable_source_extract_removed": true,
+    "red_fixture_removed": true,
+    "retained_surface_artifact": "SURFACE/board.png",
+    "verified_migration_backup_retained": true,
+    "verified_migration_backup_checksum": "11df8f565708dbb4455e4be4154b05b5c35db924ce0e7cd640c8233e437be792",
+    "production_or_user_project_mutated": false,
+    "publication_or_network_action_performed": false
+  },
+  "result": "PASS"
+}

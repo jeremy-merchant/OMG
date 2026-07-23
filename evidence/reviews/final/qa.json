@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "review": "qa",
+  "reviewer": "ReviewNewQA",
+  "recorded_at": "2026-07-23T15:08:36Z",
+  "source_archive_sha256": "d8e3ef8a400ac1b8280a98953bf47dd2c6a829acebebb397e023ad2996acd46d",
+  "darwin_arm64_binary_sha256": "47ec5d0b69d71adba8dbe92331bb931f396762c8e6e7d97b02a86274455b0a9f",
+  "verdict": "PASSED",
+  "evidence": {
+    "source_proof": {
+      "path": "evidence/release/final-source-archive-proof.json",
+      "sha256": "cfb697fd97392ca0452003c13966298047138bebd92c02321230188ca459a71e"
+    },
+    "normal_tests": {
+      "path": "evidence/release/final-go-test.jsonl",
+      "sha256": "3cbff0f04c4d4faa6477d1bce1952bbe17b5840d2ba70c4364ffa4d1792939df",
+      "pass_events": 883,
+      "fail_events": 0
+    },
+    "race_tests": {
+      "path": "evidence/release/final-go-race.jsonl",
+      "sha256": "7857a24df4b057ab1a5e54768c5661bf5664a953c9a91e6df66406bbd358181b",
+      "pass_events": 883,
+      "fail_events": 0
+    },
+    "vet_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "release_notes_sha256": "f36e08ed3cfc729be8a6f3e003118bb1b95da731070e091172f460ce3b4ace93",
+    "release_manifest_sha256": "eb2c4036e61d94b5cea0f368c321d964d51f8e60b9b1d16c61fbe39e85538ce6",
+    "sha256sums_sha256": "04aa14b4f5e822fae3b1326a9024e6edab5189931442d21e647629c0f2663341"
+  },
+  "basis": [
+    "The 311-member, 255-file archive passed path traversal checks, exact workspace byte equality, extracted-source tests, extracted build, and extracted version smoke.",
+    "Definitive normal and race suites each recorded 883 test passes and zero failures; go vet was clean.",
+    "SHA256SUMS validates all 13 bundle entries; release notes and immutable manifest use current hashes, test counts, -buildvcs=false provenance, and NOT PUBLISHED status.",
+    "This review contains no mutable acceptance-index, final-gate, or final-report hash, preserving one-way aggregate binding."
+  ],
+  "remaining_blockers": [],
+  "release_evidence_note": "Human, legal, CI, and native-platform gaps remain release blockers but are not QA integrity defects."
+}

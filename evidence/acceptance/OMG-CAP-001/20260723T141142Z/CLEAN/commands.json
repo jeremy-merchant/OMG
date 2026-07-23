@@ -1,0 +1,24 @@
+{
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "commands": [
+    {
+      "command": "C1 fresh-destination archive restore and disposable fixture removal",
+      "cwd": "<repo>",
+      "exit_code": 0,
+      "observed_at_utc": "2026-07-23T14:11:43.610230Z",
+      "stderr": "",
+      "stdout": "{\"archive_sha256\": \"c88fcd0ac58c0bf4f736b8bf32ee975d8f4d67ca909c55bc109813d70642e0f5\", \"external_project_changed\": false, \"fixture_removed\": true, \"inventory_matches\": true, \"procedure\": \"C1\", \"restore_path\": \"<disposable>/restore/fixture\", \"restore_removed_before_evidence\": false}\n"
+    }
+  ],
+  "record_schema_version": 1,
+  "row_id": "OMG-CAP-001",
+  "stage": "CLEAN"
+}

@@ -1,0 +1,32 @@
+{
+  "blocker": "No exact human approval exists for this fixture\u2019s required schema migration apply; the required migrated-state domain flow was not executed. Next action: obtain a fixture-specific approval binding the plan, backup, versions, checksums, destination, command, and UTC timestamp, then rerun this row from a new fixture.",
+  "candidate_binding": {
+    "binary": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+    "binary_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "envelope_schema_version": 1,
+    "platform": "darwin/arm64",
+    "source_archive": "dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz",
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "cleanup_verified": true,
+  "not_published": true,
+  "overall_status": "PENDING",
+  "record_schema_version": 1,
+  "root_timestamp_utc": "20260723T141206Z",
+  "row_id": "OMG-AC-010",
+  "stage_order": [
+    "PIN",
+    "RED",
+    "GREEN",
+    "SURFACE",
+    "CLEAN"
+  ],
+  "stage_statuses": {
+    "CLEAN": "PASS",
+    "GREEN": "PENDING",
+    "PIN": "PASS",
+    "RED": "PASS",
+    "SURFACE": "PENDING"
+  }
+}

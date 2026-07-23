@@ -1,0 +1,1 @@
+go test ./internal/app -run Test.*(Handoff|Git|Reserve|Dependency) -count=1

@@ -1,0 +1,54 @@
+{
+  "acceptance_id": "PRIV-E02",
+  "assertion": "Candidate is hash-pinned; pin grants no approval or publication authority.",
+  "authorized_next_action": "HUMAN_REVIEW_PENDING: named independent privacy reviewer must record the required PRIV-E02 privacy evidence disposition for this exact candidate hash.",
+  "candidate": {
+    "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+    "publication_status": "NOT PUBLISHED",
+    "source_archive_members": 304,
+    "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79",
+    "version": "v0.1.0-rc.1"
+  },
+  "captured_at_utc": "2026-07-23T13:04:38Z",
+  "commands_executed": [
+    {
+      "assertion": "Observed definitive source archive and Darwin arm64 binary hashes.",
+      "command": "rtk proxy shasum -a 256 dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64",
+      "exit_code": 0,
+      "observed": {
+        "darwin_arm64_sha256": "eabcb34e8eed92ff68068e435cb1f3e9885b6d95ac67bdcd7894c402f9db4650",
+        "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+      }
+    },
+    {
+      "assertion": "Observed exactly 304 archive members.",
+      "command": "rtk proxy tar -tzf dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-source.tar.gz | rtk proxy wc -l",
+      "exit_code": 0,
+      "observed": {
+        "archive_members": 304
+      }
+    },
+    {
+      "assertion": "Observed local release status NOT PUBLISHED.",
+      "command": "rtk dist/v0.1.0-rc.1/omg-v0.1.0-rc.1-darwin-arm64 release status --json",
+      "exit_code": 0,
+      "observed": {
+        "status": "NOT PUBLISHED"
+      }
+    },
+    {
+      "assertion": "Static scan ran, but lexical hits in source/docs/tests are inconclusive and never substitute for criterion-specific independent review.",
+      "command": "functions.eval: Scanning source archive",
+      "exit_code": 0,
+      "observed": {
+        "disposition": "INCONCLUSIVE_MANUAL_REVIEW_REQUIRED",
+        "member_count": 304,
+        "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+      }
+    }
+  ],
+  "overall_status": "PENDING",
+  "release_manifest_sha256": "aff1afd2a945efc634636869b816898eed0c88927d16c2363d0cd7adb2eb7bf0",
+  "result": "PASS",
+  "stage": "PIN"
+}

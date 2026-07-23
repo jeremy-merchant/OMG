@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "command": "rtk go test -count=1 ./internal/dependency -run ^(TestHardDependencyBlocksReadyClaimAndReleasesAfterCriterion)$",
+      "exit_code": 1,
+      "observed_at_utc": "2026-07-23T13:06:22.308686Z",
+      "package": "./internal/dependency",
+      "stderr": "",
+      "stdout": "Go test: 0 passed, 1 failed in 1 packages\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\ndependency [build failed]\n  stat /private/tmp/omg-final-core-src.hYUctq/internal/dependency: directory not found\n[full output: ~/Library/Application Support/rtk/tee/1784811982_go_test.log]\n",
+      "tests": [
+        "TestHardDependencyBlocksReadyClaimAndReleasesAfterCriterion"
+      ]
+    }
+  ],
+  "row_id": "OMG-AC-005",
+  "source_archive_sha256": "eee3e785b7de7bade716022eea842f831521a67b5bac6b05ff1b5f8a46883f79"
+}

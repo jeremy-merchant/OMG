@@ -1,0 +1,1 @@
+Independently hash source/candidate, then inspect final-offline-target-matrix.json only as supporting Unix evidence.

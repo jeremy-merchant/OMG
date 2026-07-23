@@ -1,0 +1,7 @@
+{
+  "criterion": "Second-runtime discovery/claim/handoff continuation",
+  "detail": "Focused handoff tests passed, but the live clone cannot create entities until the separately required migration approval exists.",
+  "private_paths_redacted": true,
+  "raw_tokens_present": false,
+  "status": "PASS"
+}

@@ -1,0 +1,1 @@
+go: unsupported GOOS/GOARCH pair plan9/arm64

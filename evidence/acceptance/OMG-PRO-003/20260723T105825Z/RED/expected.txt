@@ -1,0 +1,4 @@
+{
+  "assertion": "Invalid board selector is rejected with stable JSON error and exit code 2.",
+  "expected_exit_code": 2
+}
