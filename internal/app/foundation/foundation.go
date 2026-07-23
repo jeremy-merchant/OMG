@@ -325,7 +325,7 @@ func (s *Service) resolveExistingOpen(ctx context.Context, selection Selection, 
 		ReadOnly: readOnly, ExistingOnly: true,
 	})
 	if openErr != nil {
-		return ports.ResolvedStore{}, nil, ports.OpenStatus{}, false, unavailable()
+		return ports.ResolvedStore{}, nil, ports.OpenStatus{}, false, unavailableFrom(openErr)
 	}
 	if !status.Exists {
 		return resolved, nil, status, false, domain.DomainError{}
@@ -346,12 +346,36 @@ func (s *Service) resolveOpen(ctx context.Context, selection Selection) (ports.R
 	}
 	store, status, openErr := s.open(ctx, resolved.Path, ports.OpenOptions{})
 	if openErr != nil {
-		return ports.ResolvedStore{}, nil, ports.OpenStatus{}, unavailable()
+		return ports.ResolvedStore{}, nil, ports.OpenStatus{}, unavailableFrom(openErr)
 	}
 	return resolved, store, status, domain.DomainError{}
 }
 func unavailable() domain.DomainError {
 	return domain.NewError(domain.CodeUnavailable, "foundation service is unavailable", false)
+}
+
+func unavailableFrom(err error) domain.DomainError {
+	if err == nil {
+		return unavailable()
+	}
+	message := err.Error()
+	switch {
+	case strings.Contains(message, "state ancestor extended ACL is not private"),
+		strings.Contains(message, "state path DACL is not private"):
+		return domain.NewError(domain.CodeUnavailable, "state path is not owner-only because an ancestor grants another account write access", false)
+	case strings.Contains(message, "unsafe writable state ancestor"):
+		return domain.NewError(domain.CodeUnavailable, "state path is not owner-only because an ancestor is writable by another account", false)
+	case strings.Contains(message, "state directory owner is not the current user"),
+		strings.Contains(message, "state path owner is not the current user"):
+		return domain.NewError(domain.CodeUnavailable, "state path is not owned by the current user", false)
+	case strings.Contains(message, "reparse points are not permitted in state paths"),
+		strings.Contains(message, "unsafe state parent"),
+		strings.Contains(message, "unsafe state path"),
+		strings.Contains(message, "unsafe state artifact"):
+		return domain.NewError(domain.CodeUnavailable, "state path contains an unsafe filesystem component", false)
+	default:
+		return unavailable()
+	}
 }
 func conflict() domain.DomainError {
 	return domain.NewError(domain.CodeConflict, "migration plan no longer matches current state", false)

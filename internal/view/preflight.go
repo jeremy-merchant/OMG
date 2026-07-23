@@ -12,7 +12,13 @@ import (
 // It only formats facts supplied by the application and reuses the board's
 // terminal-safe row renderers.
 func RenderPreflightTTY(preflight app.PreflightView) string {
-	theme := terminalTheme{}
+	return RenderPreflightTTYWithOptions(preflight, defaultTTYWidth, false)
+}
+
+// RenderPreflightTTYWithOptions renders the preflight projection with the same
+// width and color semantics as the interactive board.
+func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color bool) string {
+	theme := terminalTheme{enabled: color, width: normalizeTTYWidth(width)}
 	var out strings.Builder
 	state := presentStatus("verified")
 	headline := "Ready to coordinate"
@@ -23,12 +29,9 @@ func RenderPreflightTTY(preflight app.PreflightView) string {
 		state = presentStatus("warning")
 		headline = "Schema migration required"
 	}
-	out.WriteString(theme.bold("OMG"))
-	out.WriteString(theme.accent("  OPERATOR LEDGER"))
-	out.WriteString(theme.dim(" / PREFLIGHT"))
-	out.WriteByte('\n')
-	out.WriteString(theme.status(state) + "  " + headline + theme.dim(" · startup readiness snapshot") + "\n")
-	out.WriteString(theme.dim(strings.Repeat("━", 78)) + "\n")
+	out.WriteString(theme.bold("OMG") + theme.accent("  OPERATOR LEDGER") + theme.dim(" / PREFLIGHT") + "\n")
+	writeTTYStatusLine(&out, theme, "", "", state, headline, "startup readiness snapshot")
+	out.WriteString(theme.dim(strings.Repeat("━", theme.terminalWidth())) + "\n")
 
 	writeTTYHeading(&out, theme, "State", "startup gates")
 	writeTTYStatusLine(&out, theme, "  ", "", presentStatus(map[bool]string{true: "verified", false: "error"}[preflight.Initialized]), "Initialized: "+fmt.Sprint(preflight.Initialized), "schema_state="+preflightSchemaState(preflight))

@@ -86,3 +86,70 @@ The first full race run exposed a nondeterministic integration-test failure: a f
 **Remaining limitations**
 
 - This change removes the instrumentation-sensitive 100 ms assumption; it does not introduce a startup performance guarantee.
+
+## 2026-07-24 — P0-CLI-3: Add width-aware command discovery and actionable recovery
+
+**Status:** complete
+
+**Completed problem and fix**
+
+The CLI still assumed a wide terminal even after the first visual redesign. Baseline global help exceeded a 40-column terminal on 27 lines, a 60-column terminal on 21 lines, and an 80-column terminal on 14 lines; `omg task --help` repeated the global palette; typo recovery recommended unrelated commands; success values fell back to Go-style dumps; and the board/preflight renderers retained fixed-width operational rows.
+
+- Added one typed command-help catalog covering command groups, summaries, usages, subcommands, read/write semantics, applicable options, examples, PowerShell shell surfaces, and receipt queries.
+- Added focused `omg <command> --help`, `omg <command> <subcommand> --help`, and `omg help <command> <subcommand>` navigation without changing stable JSON envelope schemas.
+- Added closest-command and closest-subcommand recovery, required-subcommand guidance, and validation errors that point only to valid help targets.
+- Replaced raw Go-value success output and one-line runtime summaries with deterministic labeled facts, stable map ordering, compact collection rendering, and width-aware CJK/long-token wrapping.
+- Added actual Unix/Windows terminal-width detection plus `COLUMNS`, `NO_COLOR`, `TERM=dumb`, and non-TTY fallbacks.
+- Applied the same width, glyph, color, connector, and wrapping system to board and preflight TTY output, including long canonical metadata, progress lanes, actions, and snapshot facts.
+- Preserved security fail-closed behavior for unsafe store paths while surfacing safe, path-free causes and exact owner-only recovery guidance instead of the generic `foundation service is unavailable` message.
+- Added a production-composition regression proving fresh initialization succeeds under an owner-only temporary project/store root; the host's real home path remains correctly rejected because another local account has ACL write/delete authority over an ancestor.
+
+**Changed files**
+
+- `docs/COMMAND_REFERENCE.md`
+- `internal/app/foundation/foundation.go`
+- `internal/app/foundation/foundation_test.go`
+- `internal/bootstrap/production_foundation_test.go`
+- `internal/transport/cli/cli.go`
+- `internal/transport/cli/command_help.go`
+- `internal/transport/cli/command_help_test.go`
+- `internal/transport/cli/presentation.go`
+- `internal/transport/cli/presentation_redesign_test.go`
+- `internal/transport/cli/public_preflight.go`
+- `internal/transport/cli/public_restore.go`
+- `internal/transport/cli/terminal_layout.go`
+- `internal/transport/cli/terminal_width_unix.go`
+- `internal/transport/cli/terminal_width_windows.go`
+- `internal/view/preflight.go`
+- `internal/view/render.go`
+- `internal/view/terminal.go`
+- `internal/view/terminal_layout.go`
+- `internal/view/terminal_width_test.go`
+- `internal/view/terminal_width_unix.go`
+- `internal/view/terminal_width_windows.go`
+- `todo.md`
+- `todo_done.md`
+
+**Verification commands and results**
+
+- Focused `go test ./internal/view ./internal/transport/cli -count=1` — passed after each help, presentation, and TTY-width batch.
+- `go test ./internal/app/foundation ./internal/bootstrap ./internal/transport/cli -count=1` — passed with safe state-path error mapping and production fresh-init coverage.
+- `go test ./... -count=1` — all 35 packages passed.
+- `go test -json ./... -count=1` — 895 named tests/subtests passed.
+- `go vet ./...` — passed with no diagnostics.
+- `go build -trimpath -o .tmp/cli-polish/omg-final ./cmd/omg` — production binary built successfully.
+- `GOOS=windows GOARCH=amd64 go test -c ./internal/transport/cli` and `./internal/view` — Windows test binaries cross-compiled successfully.
+- `go test -race ./... -count=1` — all packages passed.
+- Real PTY help smoke — ANSI styling detected at 40 columns (`66` sequences) and 60 columns (`58`); `NO_COLOR` produced zero ANSI sequences.
+- Real production flow — owner-only OS temporary root completed `init` with eight explicit pending migrations, then rendered a 40-column ANSI preflight with migration warning, compact empty states, and no cell-width overflow.
+- Unsafe host path smoke — retained exit 4 and fail-closed rejection, but now reports that an ancestor grants another account write access, explains the owner-only requirement, and points to `omg init --help`.
+
+**Commit**
+
+- `PENDING_CLI_POLISH_COMMIT` — width-aware discovery, operational TTY consistency, structured results, and actionable secure-path recovery.
+
+**Remaining limitations**
+
+- The current host home directory intentionally cannot be used for OMG state because its ACL grants another local account child creation/deletion rights. OMG does not weaken that security boundary; operators must choose an owner-only store location or remove the granting ACL through an authorized system-administration change.
+- Native Windows execution and hosted CI remain pending even though the new Windows width code and affected packages cross-compile successfully.
+- Publication, remote push, and the repository-wide tracked-source baseline remain outside this task and stay in `todo.md`.

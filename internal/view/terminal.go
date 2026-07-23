@@ -9,6 +9,14 @@ import (
 
 type terminalTheme struct {
 	enabled bool
+	width   int
+}
+
+func (theme terminalTheme) terminalWidth() int {
+	if theme.width == 0 {
+		return defaultTTYWidth
+	}
+	return normalizeTTYWidth(theme.width)
 }
 
 const (
@@ -51,24 +59,19 @@ func (theme terminalTheme) status(status statusPresentation) string {
 }
 
 func renderTTY(board query.BoardSnapshot, color bool) string {
-	theme := terminalTheme{enabled: color}
+	return renderTTYWidth(board, color, defaultTTYWidth)
+}
+
+func renderTTYWidth(board query.BoardSnapshot, color bool, width int) string {
+	theme := terminalTheme{enabled: color, width: normalizeTTYWidth(width)}
 	health := boardHealth(board)
 	var out strings.Builder
 
-	out.WriteString(theme.bold("OMG"))
-	out.WriteString(theme.accent("  OPERATOR LEDGER"))
-	out.WriteString(theme.dim(" / BOARD"))
-	out.WriteByte('\n')
-	out.WriteString(theme.dim(boardContext(board)))
-	out.WriteByte('\n')
-	out.WriteString(theme.status(health.Status))
-	out.WriteString("  " + health.Headline)
-	if health.Detail != "" {
-		out.WriteString(theme.dim(" · " + health.Detail))
-	}
-	out.WriteByte('\n')
-	out.WriteString(theme.dim(strings.Repeat("━", 78)))
-	out.WriteString("\n")
+	product := theme.bold("OMG") + theme.accent("  OPERATOR LEDGER") + theme.dim(" / BOARD")
+	out.WriteString(product + "\n")
+	writeTTYWrapped(&out, theme, "", "", boardContext(board), theme.dim)
+	writeTTYStatusLine(&out, theme, "", "", health.Status, health.Headline, health.Detail)
+	out.WriteString(theme.dim(strings.Repeat("━", theme.terminalWidth())) + "\n")
 
 	writeTTYNow(&out, theme, board)
 	writeTTYSessions(&out, theme, board)
@@ -85,28 +88,105 @@ func renderTTY(board query.BoardSnapshot, color bool) string {
 
 func writeTTYHeading(out *strings.Builder, theme terminalTheme, title, detail string) {
 	out.WriteString("\n")
-	out.WriteString(theme.accent(strings.ToUpper(title)))
+	title = strings.ToUpper(title)
+	combined := title
 	if detail != "" {
-		out.WriteString(theme.dim("  " + detail))
+		combined += "  " + detail
 	}
-	out.WriteString("\n")
+	if ttyDisplayWidth(combined) <= theme.terminalWidth() {
+		out.WriteString(theme.accent(title))
+		if detail != "" {
+			out.WriteString(theme.dim("  " + detail))
+		}
+		out.WriteByte('\n')
+		return
+	}
+	out.WriteString(theme.accent(title) + "\n")
+	if detail != "" {
+		writeTTYWrapped(out, theme, "  ", "  ", detail, theme.dim)
+	}
 }
 
 func writeTTYEmpty(out *strings.Builder, theme terminalTheme, message string) {
-	out.WriteString(theme.dim("  · " + message + "\n"))
+	writeTTYWrapped(out, theme, "  · ", "    ", message, theme.dim)
 }
 
 func writeTTYStatusLine(out *strings.Builder, theme terminalTheme, indent, connector string, status statusPresentation, primary, meta string) {
-	out.WriteString(indent)
-	out.WriteString(theme.dim(connector))
-	out.WriteString(theme.status(status))
-	if primary != "" {
-		out.WriteString("  " + primary)
-	}
+	prefix := indent + connector
+	styledPrefix := indent + theme.dim(connector) + theme.status(status)
+	prefixWidth := ttyDisplayWidth(prefix) + ttyDisplayWidth(theme.status(status))
+	content := primary
 	if meta != "" {
-		out.WriteString(theme.dim(" · " + meta))
+		if content != "" {
+			content += " · "
+		}
+		content += meta
 	}
-	out.WriteByte('\n')
+	if content == "" {
+		out.WriteString(styledPrefix + "\n")
+		return
+	}
+	if ttyDisplayWidth(styledPrefix)+2+ttyDisplayWidth(content) <= theme.terminalWidth() {
+		out.WriteString(styledPrefix + "  " + primary)
+		if meta != "" {
+			out.WriteString(theme.dim(" · " + meta))
+		}
+		out.WriteByte('\n')
+		return
+	}
+	available := theme.terminalWidth() - prefixWidth - 2
+	if available < 8 {
+		out.WriteString(styledPrefix + "\n")
+		continuation := strings.Repeat(" ", minTTYIndent(prefixWidth+2, theme.terminalWidth()))
+		writeTTYWrapped(out, theme, continuation, continuation, content, nil)
+		return
+	}
+	lines := wrapTTYText(content, available)
+	if len(lines) == 0 {
+		out.WriteString(styledPrefix + "\n")
+		return
+	}
+	out.WriteString(styledPrefix + "  " + lines[0] + "\n")
+	continuation := strings.Repeat(" ", prefixWidth+2)
+	for _, line := range lines[1:] {
+		out.WriteString(continuation + line + "\n")
+	}
+}
+
+func writeTTYWrapped(out *strings.Builder, theme terminalTheme, firstPrefix, continuationPrefix, value string, style func(string) string) {
+	available := theme.terminalWidth() - ttyDisplayWidth(firstPrefix)
+	if continuationAvailable := theme.terminalWidth() - ttyDisplayWidth(continuationPrefix); continuationAvailable < available {
+		available = continuationAvailable
+	}
+	if available < 1 {
+		available = 1
+	}
+	lines := wrapTTYText(value, available)
+	if len(lines) == 0 {
+		return
+	}
+	for index, line := range lines {
+		prefix := continuationPrefix
+		if index == 0 {
+			prefix = firstPrefix
+		}
+		rendered := prefix + line
+		if style != nil {
+			rendered = style(rendered)
+		}
+		out.WriteString(rendered + "\n")
+	}
+}
+
+func minTTYIndent(indent, width int) int {
+	maximum := width / 2
+	if maximum < 2 {
+		maximum = 2
+	}
+	if indent > maximum {
+		return maximum
+	}
+	return indent
 }
 
 func writeTTYNow(out *strings.Builder, theme terminalTheme, board query.BoardSnapshot) {
@@ -202,7 +282,7 @@ func writeTTYSessionNode(out *strings.Builder, theme terminalTheme, session quer
 		"current_task="+text(session.TaskID),
 	), " · ")
 	writeTTYStatusLine(out, theme, prefix, connector, state, primary, meta)
-	out.WriteString(theme.dim(childPrefix + "   " + identity(&session, text) + "\n"))
+	writeTTYWrapped(out, theme, childPrefix+"   ", childPrefix+"   ", identity(&session, text), theme.dim)
 	for index, child := range children[session.ID] {
 		writeTTYSessionNode(out, theme, child, children, visited, childPrefix, index == len(children[session.ID])-1)
 	}
@@ -269,7 +349,7 @@ func writeTTYTaskNode(out *strings.Builder, theme terminalTheme, task query.Task
 	primary := fmt.Sprintf("#%d %s", task.DisplayNumber, text(task.Title))
 	meta := strings.Join(nonEmpty("task="+text(task.ID), "state="+text(task.State), "claimed_by_session="+text(task.ClaimedBySessionID), "parent_task="+text(task.ParentTaskID)), " · ")
 	writeTTYStatusLine(out, theme, prefix, connector, presentStatus(task.State), primary, meta)
-	out.WriteString(theme.dim(childPrefix + "   " + tasksRunsRows(query.BoardSnapshot{Tasks: []query.TaskView{task}}, text)[0] + "\n"))
+	writeTTYWrapped(out, theme, childPrefix+"   ", childPrefix+"   ", tasksRunsRows(query.BoardSnapshot{Tasks: []query.TaskView{task}}, text)[0], theme.dim)
 	for _, run := range runs[task.ID] {
 		writeTTYStatusLine(out, theme, childPrefix, "├─ ", presentStatus(run.State), "run "+shortID(run.ID), strings.Join(nonEmpty("task="+text(run.TaskID), "session="+text(run.SessionID), "state="+text(run.State)), " · "))
 	}
@@ -280,15 +360,15 @@ func writeTTYTaskNode(out *strings.Builder, theme terminalTheme, task query.Task
 		}
 		writeTTYStatusLine(out, theme, childPrefix, "├─ ", state, "progress "+shortID(item.ID), strings.Join(nonEmpty("task="+text(item.TaskID), "run="+text(item.RunID), "phase="+text(item.Phase)), " · "))
 		for _, value := range item.Done {
-			out.WriteString(theme.dim(childPrefix + "│    ✔ done  " + text(value) + "\n"))
+			writeTTYWrapped(out, theme, childPrefix+"│    ✔ done  ", childPrefix+"│            ", text(value), theme.dim)
 		}
 		for _, value := range item.Doing {
-			out.WriteString(childPrefix + "│    ⟳ doing " + text(value) + "\n")
+			writeTTYWrapped(out, theme, childPrefix+"│    ⟳ doing ", childPrefix+"│            ", text(value), nil)
 		}
 		for _, value := range item.Next {
-			out.WriteString(theme.dim(childPrefix + "│    ○ next  " + text(value) + "\n"))
+			writeTTYWrapped(out, theme, childPrefix+"│    ○ next  ", childPrefix+"│            ", text(value), theme.dim)
 		}
-		out.WriteString(theme.dim(childPrefix + "│    " + progressRows(query.BoardSnapshot{Progress: []query.ProgressView{item}}, text)[0] + "\n"))
+		writeTTYWrapped(out, theme, childPrefix+"│    ", childPrefix+"│    ", progressRows(query.BoardSnapshot{Progress: []query.ProgressView{item}}, text)[0], theme.dim)
 	}
 	for index, child := range children[task.ID] {
 		writeTTYTaskNode(out, theme, child, children, runs, progress, visited, childPrefix, index == len(children[task.ID])-1)
@@ -410,11 +490,11 @@ func writeTTYActions(out *strings.Builder, theme terminalTheme, board query.Boar
 		return
 	}
 	for _, action := range board.SuggestedActions {
-		out.WriteString("  " + theme.accent("❯") + " " + theme.bold(text(action.Command)))
+		content := text(action.Command)
 		if action.Code != "" {
-			out.WriteString(theme.dim("  " + text(action.Code)))
+			content += "  " + text(action.Code)
 		}
-		out.WriteByte('\n')
+		writeTTYWrapped(out, theme, "  ❯ ", "    ", content, nil)
 	}
 }
 
@@ -438,7 +518,7 @@ func writeTTYSnapshot(out *strings.Builder, theme terminalTheme, board query.Boa
 		if strings.HasSuffix(field, "=") {
 			continue
 		}
-		out.WriteString(theme.dim("  · " + field + "\n"))
+		writeTTYWrapped(out, theme, "  · ", "    ", field, theme.dim)
 	}
 }
 

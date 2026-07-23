@@ -13,7 +13,7 @@ func runRestorePlan(ctx context.Context, output io.Writer, input io.Reader, requ
 		request.IdempotencyKey != "" || request.Integrity || request.Status || request.Stdio || request.Runtime != "" ||
 		len(request.Command) != 0 || request.Output != "" || request.PlanFile != "" || request.ApprovalFile != "" ||
 		request.Format != "" || request.SessionID != "" || request.TaskID != "" {
-		return writeError(output, request.JSON, invalid("backup restore plan request is invalid"))
+		return writeInvalidRequest(output, request, "backup restore plan request is invalid")
 	}
 	rawPayload, err := loadApplicationPayload(request, input)
 	if err != nil {

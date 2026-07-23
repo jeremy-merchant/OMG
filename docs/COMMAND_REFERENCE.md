@@ -251,7 +251,7 @@ omg watch status [selection] [--json]
 omg mcp serve --stdio
 ```
 
-`run` deliberately does not support `--json`; stdout and stderr belong to the wrapped process, followed by one human-readable result line. When the child starts and exits, OMG preserves its exit code. An unavailable executable maps to exit 3.
+`run` deliberately does not support `--json`; stdout and stderr belong to the wrapped process, followed by one compact structured terminal result. When the child starts and exits, OMG preserves its exit code. An unavailable executable maps to exit 3.
 
 `watch` remains in the foreground until cancellation. Shell commands print generated scripts and never edit startup files. MCP uses protocol-only stdout.
 

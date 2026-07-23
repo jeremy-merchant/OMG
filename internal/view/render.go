@@ -42,7 +42,7 @@ func Render(format Format, model query.ViewModel, output io.Writer) error {
 	var rendered string
 	switch format {
 	case FormatTTY:
-		rendered = renderTTY(board, terminalColorEnabled(output))
+		rendered = renderTTYWidth(board, terminalColorEnabled(output), ttyOutputWidth(output))
 	case FormatMarkdown:
 		rendered = renderMarkdown(board)
 	case FormatHTML:

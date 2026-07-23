@@ -251,13 +251,23 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	if ctx == nil || application.Foundation == nil || application.Dispatcher == nil || stdin == nil || output == nil || stderr == nil {
 		return writeError(output, hasJSON(args), invalid("command context is invalid"))
 	}
-	if helpRequested(args) {
-		usage := renderUsage(version, !hasJSON(args) && cliTerminalColorEnabled(output))
-		if hasJSON(args) {
+	if target, requested := parseHelpTarget(args); requested {
+		jsonOutput := hasJSON(args)
+		width := cliTerminalWidth(output)
+		color := !jsonOutput && cliTerminalColorEnabled(output)
+		if jsonOutput {
+			width = defaultTerminalWidth
+		}
+		usage, found := renderHelp(version, color, width, target)
+		if !found {
+			message, hint, next := unknownHelpMessage(target)
+			return writeErrorWithContext(output, jsonOutput, invalid(message), terminalErrorContext{Hint: hint, Next: next})
+		}
+		if jsonOutput {
 			return writeSuccess(output, true, struct {
 				Version string `json:"version"`
 				Usage   string `json:"usage"`
-			}{Version: version, Usage: usage})
+			}{Version: version, Usage: stripTerminalANSI(usage)})
 		}
 		if _, err := io.WriteString(output, usage); err != nil {
 			return ExitInternal
@@ -267,6 +277,11 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	request, err := Decode(args)
 	if err.Code != "" {
 		return writeError(output, hasJSON(args), err)
+	}
+	if !request.JSON && applicationCommandName(request.Name) {
+		if message, context, invalidPath := commandPathProblem(request.Name, request.Subcommand); invalidPath {
+			return writeErrorWithContext(output, false, domain.NewError(domain.CodeCommandNotWired, message, false), context)
+		}
 	}
 	if (request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin) && !applicationCommandName(request.Name) &&
 		!(request.Name == "backup" && request.Subcommand == "restore") {
@@ -290,12 +305,12 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	case "init":
 		if request.Subcommand == "" {
 			result, commandErr := application.Foundation.Init(ctx, selection)
-			return statusResult(output, request.JSON, result, commandErr)
+			return statusResult(output, request, result, commandErr)
 		}
 	case "doctor":
 		if request.Subcommand == "" {
 			result, commandErr := application.Foundation.Status(ctx, selection, request.Integrity)
-			return statusResult(output, request.JSON, result, commandErr)
+			return statusResult(output, request, result, commandErr)
 		}
 	case "preflight":
 		return runPreflight(ctx, output, request, application, selection)
@@ -330,7 +345,16 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	case "mcp":
 		return runMCP(ctx, stdin, output, request, version, application)
 	}
-	return writeError(output, request.JSON, domain.NewError(domain.CodeCommandNotWired, "command is not supported", false))
+	if !knownCommand(request.Name) {
+		suggestion := closestCommand(request.Name)
+		context := terminalErrorContext{Next: "omg --help"}
+		if suggestion != "" {
+			context.Hint = fmt.Sprintf("Did you mean %q?", suggestion)
+			context.Next = "omg " + suggestion + " --help"
+		}
+		return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeCommandNotWired, fmt.Sprintf("unknown command %q", request.Name), false), context)
+	}
+	return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeCommandNotWired, "command is not supported", false), terminalErrorContext{Next: "omg " + request.Name + " --help"})
 }
 func runMCP(ctx context.Context, input io.Reader, output io.Writer, request Request, version string, application app.CLIService) int {
 	if request.Subcommand != "serve" || !request.Stdio || request.JSON || request.Integrity || request.Status ||
@@ -338,7 +362,7 @@ func runMCP(ctx context.Context, input io.Reader, output io.Writer, request Requ
 		request.Store != "" || request.Output != "" || request.PlanFile != "" || request.ApprovalFile != "" ||
 		request.IdempotencyKey != "" || request.Format != "" || request.SessionID != "" || request.TaskID != "" ||
 		request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin {
-		return writeError(output, request.JSON, invalid("MCP request is invalid"))
+		return writeInvalidRequest(output, request, "MCP request is invalid")
 	}
 	err := application.MCPServe(ctx, input, output, version, application.Dispatcher)
 	if err != nil {
@@ -351,7 +375,7 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 	if len(request.Command) != 0 || request.Output != "" || request.PlanFile != "" ||
 		request.ApprovalFile != "" || request.Format != "" || request.SessionID != "" || request.TaskID != "" ||
 		request.Runtime != "" || request.Integrity || request.Status || request.Stdio {
-		return writeError(output, request.JSON, invalid("application request is invalid"))
+		return writeInvalidRequest(output, request, "application request is invalid")
 	}
 	payload, err := loadApplicationPayload(request, input)
 	if err != nil {
@@ -392,7 +416,7 @@ func decodePayload(data string, target any) bool {
 
 func runBoard(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
 	if !validBoardRequest(request) {
-		return writeError(output, request.JSON, invalid("board request is invalid"))
+		return writeInvalidRequest(output, request, "board request is invalid")
 	}
 	format, _ := boardFormat(request.Format)
 	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{
@@ -473,7 +497,7 @@ func validExportRequest(request Request) bool {
 
 func runExport(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
 	if !validExportRequest(request) {
-		return writeError(output, request.JSON, invalid("export request is invalid"))
+		return writeInvalidRequest(output, request, "export request is invalid")
 	}
 	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
 	if err.Code != "" {
@@ -584,7 +608,7 @@ func runShell(output io.Writer, request Request, application app.CLIService) int
 		request.Output != "" || request.PlanFile != "" || request.ApprovalFile != "" ||
 		request.IdempotencyKey != "" || request.Format != "" || request.SessionID != "" ||
 		request.TaskID != "" || request.Runtime != "" || request.Integrity || request.Status {
-		return writeError(output, request.JSON, invalid("shell request is invalid"))
+		return writeInvalidRequest(output, request, "shell request is invalid")
 	}
 	result, err := application.Shell(request.Name, request.Subcommand)
 	if err != nil {
@@ -606,7 +630,7 @@ func runWatch(ctx context.Context, output io.Writer, request Request, applicatio
 		request.Output != "" || request.PlanFile != "" || request.ApprovalFile != "" ||
 		request.IdempotencyKey != "" || request.Format != "" || request.SessionID != "" ||
 		request.TaskID != "" || request.Runtime != "" || request.Integrity {
-		return writeError(output, request.JSON, invalid("watch request is invalid"))
+		return writeInvalidRequest(output, request, "watch request is invalid")
 	}
 	result, err := application.Watch(ctx, app.CLIWatchRequest{
 		Project: selection.Project, Workspace: selection.Workspace, Store: selection.Store, Status: statusOnly,
@@ -662,8 +686,7 @@ func runRuntime(ctx context.Context, output, stderr io.Writer, stdin io.Reader, 
 }
 
 func writeRunResult(output io.Writer, result app.CLIRuntimeResult) {
-	_, _ = fmt.Fprintf(output, "\nOMG runtime=%s executable=%s resolution=%s status=%s exit_code=%d\n",
-		result.Runtime, result.Executable, result.Resolution, result.Status, result.ExitCode)
+	renderRuntimeResult(output, result)
 }
 
 func runIntegration(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
@@ -671,7 +694,7 @@ func runIntegration(output io.Writer, request Request, application app.CLIServic
 		return writeError(output, request.JSON, invalid("integration request does not support --workspace or --store"))
 	}
 	if !validIntegrationRequest(request) {
-		return writeError(output, request.JSON, invalid("integration request is invalid"))
+		return writeInvalidRequest(output, request, "integration request is invalid")
 	}
 	result, err := application.Integration(ctx, app.CLIIntegrationRequest{
 		Project: selection.Project, Subcommand: request.Subcommand, Status: request.Status,
@@ -773,14 +796,43 @@ func safePlan(plan foundation.Plan) any {
 		Checksums   []string `json:"checksums"`
 	}{plan.ID, plan.Project, plan.FromVersion, plan.ToVersion, plan.Checksums}
 }
-func statusResult(output io.Writer, jsonOutput bool, result foundation.Status, err domain.DomainError) int {
+func statusResult(output io.Writer, request Request, result foundation.Status, err domain.DomainError) int {
 	if err.Code != "" {
-		return writeError(output, jsonOutput, err)
+		context := requestErrorContext(request)
+		if strings.Contains(err.Message, "state path") {
+			context.Hint = "Choose an absolute store path whose ancestors are owner/root controlled and grant no other account write access."
+		}
+		return writeErrorWithContext(output, request.JSON, err, context)
 	}
-	return writeSuccess(output, jsonOutput, result)
+	return writeSuccess(output, request.JSON, result)
 }
 func invalid(message string) domain.DomainError {
 	return domain.NewError(domain.CodeInvalidArgument, message, false)
+}
+
+func requestErrorContext(request Request) terminalErrorContext {
+	command, found := helpCommandByName(request.Name)
+	if !found {
+		return terminalErrorContext{Next: "omg --help"}
+	}
+	if request.Subcommand == "" {
+		return terminalErrorContext{Next: "omg " + command.Name + " --help"}
+	}
+	if _, valid := helpSubcommandByName(command, request.Subcommand); valid {
+		return terminalErrorContext{Next: "omg " + command.Name + " " + request.Subcommand + " --help"}
+	}
+	suggestion := closestSubcommand(command, request.Subcommand)
+	if suggestion != "" {
+		return terminalErrorContext{
+			Hint: fmt.Sprintf("Did you mean %q?", suggestion),
+			Next: "omg " + command.Name + " " + suggestion + " --help",
+		}
+	}
+	return terminalErrorContext{Next: "omg " + command.Name + " --help"}
+}
+
+func writeInvalidRequest(output io.Writer, request Request, message string) int {
+	return writeErrorWithContext(output, request.JSON, invalid(message), requestErrorContext(request))
 }
 func ExitCode(err domain.DomainError) int {
 	switch err.Code {
@@ -835,9 +887,13 @@ func neutralizeTerminalControls(value string) string {
 }
 
 func writeError(output io.Writer, jsonOutput bool, err domain.DomainError) int {
+	return writeErrorWithContext(output, jsonOutput, err, terminalErrorContext{})
+}
+
+func writeErrorWithContext(output io.Writer, jsonOutput bool, err domain.DomainError, context terminalErrorContext) int {
 	exit := ExitCode(err)
 	if !jsonOutput {
-		renderError(output, err, exit)
+		renderErrorWithContext(output, err, exit, context)
 		return exit
 	}
 	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{string(err.Code), err.Message, err.Retryable, exit}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: []string{}}, exit)
@@ -860,23 +916,8 @@ func hasJSON(args []string) bool {
 }
 
 func helpRequested(args []string) bool {
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--" {
-			break
-		}
-		if optionTakesValue(arg) {
-			if i+1 < len(args) {
-				i++
-			}
-			continue
-		}
-		switch arg {
-		case "help", "--help", "-h":
-			return true
-		}
-	}
-	return false
+	_, requested := parseHelpTarget(args)
+	return requested
 }
 
 func usageText(version string) string {

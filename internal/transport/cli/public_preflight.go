@@ -27,7 +27,7 @@ func validPreflightRequest(request Request) bool {
 
 func runPreflight(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
 	if !validPreflightRequest(request) {
-		return writeError(output, request.JSON, invalid("preflight request is invalid"))
+		return writeInvalidRequest(output, request, "preflight request is invalid")
 	}
 	payload, err := json.Marshal(app.PreflightRequest{SessionID: request.SessionID})
 	if err != nil {
@@ -51,6 +51,6 @@ func runPreflight(ctx context.Context, output io.Writer, request Request, applic
 	if request.JSON {
 		return writeSuccess(output, true, result)
 	}
-	_, _ = io.WriteString(output, view.RenderPreflightTTY(result))
+	_, _ = io.WriteString(output, view.RenderPreflightTTYWithOptions(result, cliTerminalWidth(output), cliTerminalColorEnabled(output)))
 	return ExitSuccess
 }

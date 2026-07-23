@@ -1,41 +1,61 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"reflect"
+	"sort"
 	"strings"
 
+	"example.invalid/coordledger/internal/app"
 	"example.invalid/coordledger/internal/domain"
 )
 
 const (
-	cliANSIReset  = "\x1b[0m"
-	cliANSIBold   = "\x1b[1m"
-	cliANSIDim    = "\x1b[2m"
-	cliANSICyan   = "\x1b[96m"
-	cliANSIGreen  = "\x1b[92m"
-	cliANSIYellow = "\x1b[93m"
-	cliANSIRed    = "\x1b[91m"
+	ansiReset   = "\x1b[0m"
+	ansiBold    = "\x1b[1m"
+	ansiDim     = "\x1b[2m"
+	ansiCyan    = "\x1b[96m"
+	ansiGreen   = "\x1b[92m"
+	ansiYellow  = "\x1b[93m"
+	ansiMagenta = "\x1b[95m"
+	ansiRed     = "\x1b[91m"
 )
 
-type cliTheme struct {
-	enabled bool
+type terminalTheme struct {
+	color bool
 }
 
-func (theme cliTheme) paint(code, value string) string {
-	if !theme.enabled || value == "" {
+type terminalErrorContext struct {
+	Hint string
+	Next string
+}
+
+type presentationFact struct {
+	Label string
+	Value string
+}
+
+func newTerminalTheme(color bool) terminalTheme {
+	return terminalTheme{color: color}
+}
+
+func (theme terminalTheme) paint(code, value string) string {
+	if !theme.color || value == "" {
 		return value
 	}
-	return code + value + cliANSIReset
+	return code + value + ansiReset
 }
 
-func (theme cliTheme) bold(value string) string    { return theme.paint(cliANSIBold, value) }
-func (theme cliTheme) dim(value string) string     { return theme.paint(cliANSIDim, value) }
-func (theme cliTheme) accent(value string) string  { return theme.paint(cliANSICyan, value) }
-func (theme cliTheme) success(value string) string { return theme.paint(cliANSIGreen, value) }
-func (theme cliTheme) warning(value string) string { return theme.paint(cliANSIYellow, value) }
-func (theme cliTheme) danger(value string) string  { return theme.paint(cliANSIRed, value) }
+func (theme terminalTheme) bold(value string) string    { return theme.paint(ansiBold, value) }
+func (theme terminalTheme) dim(value string) string     { return theme.paint(ansiDim, value) }
+func (theme terminalTheme) info(value string) string    { return theme.paint(ansiCyan, value) }
+func (theme terminalTheme) success(value string) string { return theme.paint(ansiGreen, value) }
+func (theme terminalTheme) warn(value string) string    { return theme.paint(ansiYellow, value) }
+func (theme terminalTheme) blocked(value string) string { return theme.paint(ansiMagenta, value) }
+func (theme terminalTheme) danger(value string) string  { return theme.paint(ansiRed, value) }
 
 func cliTerminalColorEnabled(output io.Writer) bool {
 	if os.Getenv("NO_COLOR") != "" || strings.EqualFold(os.Getenv("TERM"), "dumb") {
@@ -49,116 +69,292 @@ func cliTerminalColorEnabled(output io.Writer) bool {
 	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
-func renderUsage(version string, color bool) string {
-	theme := cliTheme{enabled: color}
-	var out strings.Builder
-	out.WriteString(theme.bold("OMG"))
-	out.WriteString(theme.accent("  OPERATOR LEDGER"))
-	out.WriteString(theme.dim("  " + version))
-	out.WriteByte('\n')
-	out.WriteString(theme.dim("Local coordination control plane for coding agents."))
-	out.WriteByte('\n')
-	out.WriteString(theme.dim(strings.Repeat("━", 78)))
-	out.WriteString("\n\n")
-	out.WriteString(theme.accent("Usage:"))
-	out.WriteString("\n  " + theme.bold("omg <command> [subcommand] [options]") + "\n")
-
-	groups := []struct {
-		Title    string
-		Commands [][2]string
-	}{
-		{
-			Title: "START + VERIFY",
-			Commands: [][2]string{
-				{"init", "Initialize the local coordination ledger"},
-				{"preflight", "Resolve identity, scope, inbox, blockers, and reservations"},
-				{"doctor", "Inspect configuration, store, platform, and recovery health"},
-				{"migration", "Plan or apply schema migration through guarded commands"},
-				{"backup", "Create or validate local recovery artifacts"},
-				{"release", "Inspect source-bound release readiness"},
-			},
-		},
-		{
-			Title: "COORDINATE WORK",
-			Commands: [][2]string{
-				{"human / session", "Register operators and agent sessions"},
-				{"delegate / checkpoint", "Transfer authority and persist continuation points"},
-				{"task / progress", "Claim work and report done, doing, and next"},
-				{"dependency", "Connect blockers and unblock conditions"},
-				{"message / receipt", "Exchange and acknowledge coordination messages"},
-				{"handoff / reserve", "Transfer verified work and protect path intent"},
-			},
-		},
-		{
-			Title: "INSPECT + INTEGRATE",
-			Commands: [][2]string{
-				{"board", "Render the operator board as tty, json, markdown, or html"},
-				{"git", "Observe branches, worktrees, ownership, and dirty state"},
-				{"watch", "Follow coordination changes without polling by hand"},
-				{"export / import", "Move canonical records through explicit transports"},
-				{"integration / run", "Connect supported runtimes and guarded child commands"},
-				{"shell-init / completion / mcp", "Install local interaction surfaces"},
-			},
-		},
-	}
-	for _, group := range groups {
-		out.WriteString("\n" + theme.accent(group.Title) + "\n")
-		for _, command := range group.Commands {
-			out.WriteString("  " + theme.accent("❯") + " " + theme.bold(fmt.Sprintf("%-34s", command[0])) + theme.dim(command[1]) + "\n")
-		}
-	}
-
-	out.WriteString("\n" + theme.accent("GLOBAL OPTIONS") + "\n")
-	for _, option := range [][2]string{
-		{"--project <path>", "Select a project root"},
-		{"--workspace <path>", "Select a workspace"},
-		{"--store <path>", "Use an explicit SQLite store"},
-		{"--json", "Emit a stable JSON envelope"},
-		{"--payload <json>", "Supply a strict command payload"},
-		{"--payload-file <path>", "Read a strict command payload from a file"},
-		{"--payload-stdin", "Read a strict command payload from stdin"},
-	} {
-		out.WriteString("  " + theme.bold(fmt.Sprintf("%-25s", option[0])) + theme.dim(option[1]) + "\n")
-	}
-	out.WriteString("\n" + theme.dim("Reference  docs/COMMAND_REFERENCE.md") + "\n")
-	return out.String()
-}
-
 func renderSuccess(output io.Writer, data any) {
-	theme := cliTheme{enabled: cliTerminalColorEnabled(output)}
-	message := neutralizeTerminalControls(fmt.Sprint(data))
-	_, _ = fmt.Fprintln(output, theme.success("✔")+" "+theme.bold("OMG")+theme.success("  VERIFIED"))
-	_, _ = fmt.Fprintln(output, "  "+message)
+	theme := newTerminalTheme(cliTerminalColorEnabled(output))
+	width := cliTerminalWidth(output)
+	var rendered strings.Builder
+	rendered.WriteString(theme.success("✔") + " " + theme.bold("OMG") + theme.success("  VERIFIED") + "\n")
+	facts := presentationFacts(data)
+	if len(facts) == 0 {
+		rendered.WriteString("  " + theme.dim("Command completed without a result payload.") + "\n")
+		_, _ = io.WriteString(output, rendered.String())
+		return
+	}
+	writePresentationFacts(&rendered, theme, width, facts)
+	_, _ = io.WriteString(output, rendered.String())
 }
 
 func renderError(output io.Writer, err domain.DomainError, exit int) {
-	theme := cliTheme{enabled: cliTerminalColorEnabled(output)}
-	retry := "unavailable"
-	if err.Retryable {
-		retry = "available"
+	renderErrorWithContext(output, err, exit, terminalErrorContext{})
+}
+
+func renderErrorWithContext(output io.Writer, err domain.DomainError, exit int, context terminalErrorContext) {
+	theme := newTerminalTheme(cliTerminalColorEnabled(output))
+	width := cliTerminalWidth(output)
+	var rendered strings.Builder
+	rendered.WriteString(theme.danger("✘") + " " + theme.bold("OMG") + theme.danger("  ERROR") + "\n")
+
+	next := context.Next
+	if next == "" {
+		next = nextCommand(err)
 	}
-	_, _ = fmt.Fprintln(output, theme.danger("✘")+" "+theme.bold("OMG")+theme.danger("  ERROR"))
-	_, _ = fmt.Fprintln(output, "  "+theme.dim("code ")+"  "+neutralizeTerminalControls(string(err.Code)))
-	_, _ = fmt.Fprintln(output, "  "+theme.dim("cause")+"  "+neutralizeTerminalControls(err.Message))
-	_, _ = fmt.Fprintln(output, "  "+theme.dim("retryable")+"  "+retry)
-	_, _ = fmt.Fprintln(output, "  "+theme.dim("next ")+"  "+theme.accent(nextCommand(err)))
-	_, _ = fmt.Fprintln(output, "  "+theme.dim(fmt.Sprintf("exit=%d", exit)))
+	facts := []presentationFact{
+		{Label: "code", Value: string(err.Code)},
+		{Label: "cause", Value: neutralizeTerminalControls(err.Message)},
+		{Label: "retryable", Value: retryLabel(err.Retryable)},
+	}
+	if context.Hint != "" {
+		facts = append(facts, presentationFact{Label: "hint", Value: neutralizeTerminalControls(context.Hint)})
+	}
+	facts = append(facts,
+		presentationFact{Label: "next", Value: next},
+		presentationFact{Label: "exit", Value: fmt.Sprint(exit)},
+	)
+	writePresentationFacts(&rendered, theme, width, facts)
+	_, _ = io.WriteString(output, rendered.String())
+}
+
+func renderRuntimeResult(output io.Writer, result app.CLIRuntimeResult) {
+	theme := newTerminalTheme(cliTerminalColorEnabled(output))
+	width := cliTerminalWidth(output)
+	var rendered strings.Builder
+	glyph := theme.success("✔")
+	heading := theme.success("  RUN COMPLETE")
+	if result.ExitCode != 0 || strings.Contains(strings.ToLower(result.Status), "fail") {
+		glyph = theme.warn("⚠")
+		heading = theme.warn("  RUN EXITED")
+	}
+	rendered.WriteString("\n" + glyph + " " + theme.bold("OMG") + heading + "\n")
+	writePresentationFacts(&rendered, theme, width, []presentationFact{
+		{Label: "status", Value: result.Status},
+		{Label: "runtime", Value: result.Runtime},
+		{Label: "executable", Value: result.Executable},
+		{Label: "resolution", Value: result.Resolution},
+		{Label: "exit", Value: fmt.Sprint(result.ExitCode)},
+	})
+	_, _ = io.WriteString(output, rendered.String())
+}
+
+func writePresentationFacts(output *strings.Builder, theme terminalTheme, width int, facts []presentationFact) {
+	labelWidth := 0
+	for _, fact := range facts {
+		if measured := terminalDisplayWidth(fact.Label); measured > labelWidth {
+			labelWidth = measured
+		}
+	}
+	if labelWidth > 14 {
+		labelWidth = 14
+	}
+	wide := width >= 54
+	for _, fact := range facts {
+		value := neutralizeTerminalControls(fact.Value)
+		if value == "" {
+			value = "—"
+		}
+		if wide {
+			prefix := "  " + theme.dim(padTerminalRight(fact.Label, labelWidth)) + "  "
+			available := width - labelWidth - 4
+			lines := wrapTerminalText(value, available)
+			if len(lines) == 0 {
+				lines = []string{"—"}
+			}
+			output.WriteString(prefix + styleFactValue(theme, fact.Label, lines[0]) + "\n")
+			continuation := strings.Repeat(" ", labelWidth+4)
+			for _, line := range lines[1:] {
+				output.WriteString(continuation + line + "\n")
+			}
+			continue
+		}
+		output.WriteString("  " + theme.dim(fact.Label) + "\n")
+		for _, line := range wrapTerminalText(value, width-4) {
+			output.WriteString("    " + styleFactValue(theme, fact.Label, line) + "\n")
+		}
+	}
+}
+
+func styleFactValue(theme terminalTheme, label, value string) string {
+	switch label {
+	case "status":
+		return theme.success(value)
+	case "hint":
+		return theme.warn(value)
+	case "next":
+		return theme.info(value)
+	case "code", "exit":
+		return theme.bold(value)
+	default:
+		return value
+	}
+}
+
+func presentationFacts(data any) []presentationFact {
+	value := reflect.ValueOf(data)
+	for value.IsValid() && (value.Kind() == reflect.Pointer || value.Kind() == reflect.Interface) {
+		if value.IsNil() {
+			return nil
+		}
+		value = value.Elem()
+	}
+	if !value.IsValid() {
+		return nil
+	}
+	return factsFromValue(value, "")
+}
+
+func factsFromValue(value reflect.Value, label string) []presentationFact {
+	for value.IsValid() && (value.Kind() == reflect.Pointer || value.Kind() == reflect.Interface) {
+		if value.IsNil() {
+			return []presentationFact{{Label: label, Value: "—"}}
+		}
+		value = value.Elem()
+	}
+	if !value.IsValid() {
+		return nil
+	}
+
+	switch value.Kind() {
+	case reflect.Struct:
+		facts := make([]presentationFact, 0, value.NumField())
+		typeInfo := value.Type()
+		for index := 0; index < value.NumField(); index++ {
+			fieldInfo := typeInfo.Field(index)
+			if fieldInfo.PkgPath != "" {
+				continue
+			}
+			name := jsonFieldName(fieldInfo)
+			if name == "-" {
+				continue
+			}
+			field := value.Field(index)
+			if hasJSONOmitEmpty(fieldInfo) && isZeroPresentationValue(field) {
+				continue
+			}
+			facts = append(facts, factsFromValue(field, humanizeFactLabel(name))...)
+		}
+		return facts
+	case reflect.Map:
+		keys := value.MapKeys()
+		sort.Slice(keys, func(first, second int) bool {
+			return fmt.Sprint(keys[first].Interface()) < fmt.Sprint(keys[second].Interface())
+		})
+		facts := make([]presentationFact, 0, len(keys))
+		for _, key := range keys {
+			keyLabel := humanizeFactLabel(fmt.Sprint(key.Interface()))
+			facts = append(facts, factsFromValue(value.MapIndex(key), keyLabel)...)
+		}
+		return facts
+	case reflect.Slice, reflect.Array:
+		if value.Len() == 0 {
+			return []presentationFact{{Label: label, Value: "none"}}
+		}
+		if value.Type().Elem().Kind() == reflect.Uint8 {
+			return []presentationFact{{Label: label, Value: fmt.Sprint(value.Interface())}}
+		}
+		items := make([]string, 0, value.Len())
+		for index := 0; index < value.Len(); index++ {
+			items = append(items, compactPresentationValue(value.Index(index)))
+		}
+		return []presentationFact{{Label: label, Value: strings.Join(items, " · ")}}
+	default:
+		return []presentationFact{{Label: label, Value: scalarPresentationValue(value)}}
+	}
+}
+
+func compactPresentationValue(value reflect.Value) string {
+	for value.IsValid() && (value.Kind() == reflect.Pointer || value.Kind() == reflect.Interface) {
+		if value.IsNil() {
+			return "—"
+		}
+		value = value.Elem()
+	}
+	if !value.IsValid() {
+		return "—"
+	}
+	switch value.Kind() {
+	case reflect.String, reflect.Bool,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+		return scalarPresentationValue(value)
+	}
+	encoded, err := json.Marshal(value.Interface())
+	if err != nil {
+		return neutralizeTerminalControls(fmt.Sprint(value.Interface()))
+	}
+	return neutralizeTerminalControls(string(encoded))
+}
+
+func scalarPresentationValue(value reflect.Value) string {
+	if value.IsValid() && value.CanInterface() {
+		return neutralizeTerminalControls(fmt.Sprint(value.Interface()))
+	}
+	return "—"
+}
+
+func jsonFieldName(field reflect.StructField) string {
+	tag := field.Tag.Get("json")
+	if tag == "" {
+		return field.Name
+	}
+	name := strings.Split(tag, ",")[0]
+	if name == "" {
+		return field.Name
+	}
+	return name
+}
+
+func hasJSONOmitEmpty(field reflect.StructField) bool {
+	for _, option := range strings.Split(field.Tag.Get("json"), ",")[1:] {
+		if option == "omitempty" {
+			return true
+		}
+	}
+	return false
+}
+
+func isZeroPresentationValue(value reflect.Value) bool {
+	for value.IsValid() && value.Kind() == reflect.Interface {
+		if value.IsNil() {
+			return true
+		}
+		value = value.Elem()
+	}
+	return !value.IsValid() || value.IsZero()
+}
+
+func humanizeFactLabel(value string) string {
+	value = strings.TrimSpace(strings.ReplaceAll(value, "_", " "))
+	if value == "" {
+		return "result"
+	}
+	return value
+}
+
+func retryLabel(retryable bool) string {
+	if retryable {
+		return "available"
+	}
+	return "unavailable"
 }
 
 func nextCommand(err domain.DomainError) string {
 	switch err.Code {
 	case domain.CodeInvalidArgument:
 		return "omg --help"
-	case domain.CodeUninitialized:
-		return "omg init --project <path>"
-	case domain.CodeNotFound, domain.CodeConflict:
+	case domain.CodeNotFound:
 		return "omg board all"
-	case domain.CodeCommandNotWired, domain.CodeUnavailable, domain.CodeInternal:
+	case domain.CodeConflict:
+		return "omg board all"
+	case domain.CodeUninitialized:
+		return "omg init"
+	case domain.CodeUnavailable:
 		return "omg doctor"
+	case domain.CodeCommandNotWired:
+		return "omg --help"
 	default:
 		if err.Retryable {
-			return "omg preflight"
+			return "retry the same command"
 		}
-		return "omg --help"
+		return "omg doctor"
 	}
 }

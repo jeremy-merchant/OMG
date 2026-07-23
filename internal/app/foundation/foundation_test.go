@@ -555,3 +555,28 @@ func TestReadApprovalRejectsUnknownFields(t *testing.T) {
 		t.Fatal("accepted unexpected approval field")
 	}
 }
+
+func TestUnavailableFromStatePathErrorsIsSafeAndActionable(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"sqlite: state ancestor extended ACL is not private", "ancestor grants another account write access"},
+		{"sqlite: state path DACL is not private", "ancestor grants another account write access"},
+		{"sqlite: unsafe writable state ancestor", "ancestor is writable by another account"},
+		{"sqlite: state directory owner is not the current user", "not owned by the current user"},
+		{"sqlite: reparse points are not permitted in state paths", "unsafe filesystem component"},
+	}
+	for _, test := range tests {
+		err := unavailableFrom(errors.New(test.input))
+		if err.Code != domain.CodeUnavailable || !strings.Contains(err.Message, test.want) {
+			t.Errorf("unavailableFrom(%q) = %+v", test.input, err)
+		}
+		if strings.Contains(err.Message, "/") || strings.Contains(err.Message, "\\") {
+			t.Errorf("safe error leaked a path: %q", err.Message)
+		}
+	}
+	if err := unavailableFrom(errors.New("sqlite: configure failed at /private/path")); err.Message != "foundation service is unavailable" {
+		t.Fatalf("unknown error detail escaped generic boundary: %+v", err)
+	}
+}

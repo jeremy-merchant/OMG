@@ -1,8 +1,8 @@
 # OMG TODO
 
-> Last audited: 2026-07-23 (Asia/Seoul)
+> Last audited: 2026-07-24 (Asia/Seoul)
 > Scope: only remaining actionable work. Completed verification is not duplicated here.
-> Current source status at audit: 826 named tests/subtests passed across 35 packages, all packages passed under `-race`, and `go vet ./...` passed. Package, target, release, and acceptance evidence must be rebuilt against this newer source before any gate counts can change.
+> Current source status at audit: 895 named tests/subtests passed across 35 packages, all packages passed under `-race`, and `go vet ./...` passed. Package, target, release, and acceptance evidence must be rebuilt against this newer source before any gate counts can change.
 > Publication status: **NO-GO / NOT PUBLISHED**. The 126-row fail-closed gate has 3 automated passes and 123 rows pending criterion-specific executable or independent human/legal evidence; native Windows execution is also pending.
 
 ## P0 — Close criterion-specific acceptance evidence
