@@ -1,6 +1,6 @@
 # OMG
 
-[![CI](https://github.com/jeremy-merchant/OMG/actions/workflows/ci.yml/badge.svg)](https://github.com/jeremy-merchant/OMG/actions/workflows/ci.yml) [![Security](https://github.com/jeremy-merchant/OMG/actions/workflows/security.yml/badge.svg)](https://github.com/jeremy-merchant/OMG/actions/workflows/security.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **Local-first coordination and recovery for people and AI coding agents.**
 

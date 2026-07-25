@@ -33,15 +33,16 @@ The current 126-row gate records only 3 automated passes. Eighty-two rows still 
 
 ### P0-CI-1. Run native hosted CI, especially Windows
 
-**Status:** pending external execution
+**Status:** pending external execution / hosted runner allocation blocked outside the repository
 
 **Problem**
 
-The final gate retains 123 pending rows: 82 require criterion-specific executable evidence, 39 require independent human review, and 2 require legal/publication approval. The Windows artifact is cross-compile verified only; local macOS, Rosetta, containers, or Wine cannot provide authoritative native Windows proof.
+The workflows are syntactically valid and all equivalent local checks pass, but the 2026-07-25 GitHub Actions runs were rejected before any job step or runner allocation because of an account-level Actions availability restriction. The final gate also retains criterion-specific executable, independent review, and stable-release approval work. The Windows artifact is cross-compile verified only; local macOS, Rosetta, containers, or Wine cannot provide authoritative native Windows proof.
 
 **Next actions**
 
-- Run `.github/workflows/ci.yml` on hosted macOS, Ubuntu, and native `windows-latest` runners.
+- Restore GitHub-hosted runner availability in the repository owner's account settings, then rerun `.github/workflows/ci.yml` and `.github/workflows/security.yml` on the current public SHA.
+- Run hosted macOS, Ubuntu, and native `windows-latest` jobs without any pre-run allocation failure.
 - Collect native Windows evidence for:
   - current-user-only DACL enforcement;
   - reparse-point rejection;
@@ -55,7 +56,7 @@ The final gate retains 123 pending rows: 82 require criterion-specific executabl
 
 - Every required acceptance row is PASS.
 - No executable, human, legal, publication, or native-platform row remains pending.
-- Publication still requires separate explicit human authorization.
+- Stable binary or package publication still requires separate explicit human authorization.
 
 ## P1 — Repository and artifact hygiene
 
