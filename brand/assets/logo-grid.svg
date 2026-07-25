@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="240" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <metadata>OPEN SOURCE</metadata>
+
+  <rect width="24" height="24" fill="#ffffff" />
+  
+  <g stroke="#e2e8f0" stroke-width="0.1">
+    <line x1="0" y1="0" x2="0" y2="24"/><line x1="1" y1="0" x2="1" y2="24"/><line x1="2" y1="0" x2="2" y2="24"/><line x1="3" y1="0" x2="3" y2="24"/><line x1="4" y1="0" x2="4" y2="24"/><line x1="5" y1="0" x2="5" y2="24"/><line x1="6" y1="0" x2="6" y2="24"/><line x1="7" y1="0" x2="7" y2="24"/><line x1="8" y1="0" x2="8" y2="24"/><line x1="9" y1="0" x2="9" y2="24"/><line x1="10" y1="0" x2="10" y2="24"/><line x1="11" y1="0" x2="11" y2="24"/><line x1="12" y1="0" x2="12" y2="24"/><line x1="13" y1="0" x2="13" y2="24"/><line x1="14" y1="0" x2="14" y2="24"/><line x1="15" y1="0" x2="15" y2="24"/><line x1="16" y1="0" x2="16" y2="24"/><line x1="17" y1="0" x2="17" y2="24"/><line x1="18" y1="0" x2="18" y2="24"/><line x1="19" y1="0" x2="19" y2="24"/><line x1="20" y1="0" x2="20" y2="24"/><line x1="21" y1="0" x2="21" y2="24"/><line x1="22" y1="0" x2="22" y2="24"/><line x1="23" y1="0" x2="23" y2="24"/><line x1="24" y1="0" x2="24" y2="24"/>
+    <line x1="0" y1="0" x2="24" y2="0"/><line x1="0" y1="1" x2="24" y2="1"/><line x1="0" y1="2" x2="24" y2="2"/><line x1="0" y1="3" x2="24" y2="3"/><line x1="0" y1="4" x2="24" y2="4"/><line x1="0" y1="5" x2="24" y2="5"/><line x1="0" y1="6" x2="24" y2="6"/><line x1="0" y1="7" x2="24" y2="7"/><line x1="0" y1="8" x2="24" y2="8"/><line x1="0" y1="9" x2="24" y2="9"/><line x1="0" y1="10" x2="24" y2="10"/><line x1="0" y1="11" x2="24" y2="11"/><line x1="0" y1="12" x2="24" y2="12"/><line x1="0" y1="13" x2="24" y2="13"/><line x1="0" y1="14" x2="24" y2="14"/><line x1="0" y1="15" x2="24" y2="15"/><line x1="0" y1="16" x2="24" y2="16"/><line x1="0" y1="17" x2="24" y2="17"/><line x1="0" y1="18" x2="24" y2="18"/><line x1="0" y1="19" x2="24" y2="19"/><line x1="0" y1="20" x2="24" y2="20"/><line x1="0" y1="21" x2="24" y2="21"/><line x1="0" y1="22" x2="24" y2="22"/><line x1="0" y1="23" x2="24" y2="23"/><line x1="0" y1="24" x2="24" y2="24"/>
+  </g>
+
+  
+  <!-- Outer O -->
+  <circle cx="12" cy="12" r="11" fill="none" stroke="#0f172a" stroke-width="1.5" />
+  <!-- M-like Branch Pair -->
+  <path d="M 6 18 L 6 12 L 12 18 L 18 12 L 18 18" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-linejoin="round" />
+  <!-- Returning G-like Handoff -->
+  <path d="M 18 12 A 7 7 0 1 0 16 19 V 15 H 13" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />
+  <!-- Human Root (Diamond) -->
+  <polygon points="12,16 14,18 12,20 10,18" fill="#0f172a" />
+  <!-- Agent Nodes (Circles) -->
+  <circle cx="6" cy="12" r="1.5" fill="#0f172a" />
+  <circle cx="18" cy="12" r="1.5" fill="#0f172a" />
+
+
+</svg>

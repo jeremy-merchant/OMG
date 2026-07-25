@@ -1,0 +1,29 @@
+# Local agent harness state and conversation artifacts.
+/.gjc/
+/.chatgpt2codex/
+
+# OMG runtime state is private; only .omg/project.toml is tracked.
+/.omg/private/
+/.omg/*.db
+/.omg/*.db-*
+/.omg/backups/
+/.omg/locks/
+/.omg/reports/
+/.omg/views/
+
+# Local secrets and workstation metadata.
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Cross-compiled Go test executables generated at the repository root.
+/*.test.exe
+
+# Local builds, test captures, and one-session implementation scratch files.
+/bin/
+/.tmp/
+
+# Generated acceptance evidence and release artifacts are local/CI outputs.
+/evidence/
+/dist/

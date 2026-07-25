@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible non-sensitive OMG defect
+title: "bug: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report vulnerabilities, secrets, unsafe migrations, or privacy incidents here. Follow SECURITY.md. Never attach stores, backups, approval files, tokens, prompts, messages, final output, transcripts, runtime locators, or private paths.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Paste the safe version value from `omg version --json`.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS arm64
+        - macOS amd64
+        - Linux arm64
+        - Linux amd64
+        - Windows amd64
+        - Source build / other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Use a disposable project and synthetic values; replace private paths with placeholders.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior and safe error envelope
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data-safety confirmation
+      options:
+        - label: This report contains no secret, private repository data, database/backup, approval artifact, token, prompt, message, final output, transcript, or runtime locator.
+          required: true

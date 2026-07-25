@@ -1,0 +1,8 @@
+OMG
+Copyright 2026 OMG contributors
+
+Licensed under the Apache License, Version 2.0.
+
+OMG is a greenfield implementation. No source code, tests, prompts, expressive documentation, product identity, or repository layout was copied from the agent-coordination projects surveyed in docs/research/UPSTREAM_REUSE_DECISION.md.
+
+Third-party Go modules remain under their respective licenses. Any binary distribution must generate and review third-party notices, checksums, SBOM, and provenance from the exact dependency lock and source revision used for that distribution.

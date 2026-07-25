@@ -1,0 +1,124 @@
+name: Release-candidate verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Candidate version; this workflow verifies artifacts but never publishes them
+        required: true
+        default: v0.1.0-rc.1
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  CGO_ENABLED: "0"
+  GOFLAGS: -buildvcs=false
+
+jobs:
+  build-candidate:
+    name: Build pinned verification candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source without credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Reject release-shaped version input
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          case "$VERSION" in
+            v0.1.0-rc.[0-9]*) ;;
+            *) echo "Only v0.1.0-rc.N verification candidates are allowed" >&2; exit 2 ;;
+          esac
+      - name: Test exact source
+        run: go test -race -count=1 ./...
+        env:
+          CGO_ENABLED: "1"
+      - name: Build five verification candidate binaries
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p dist
+          for target in darwin/arm64 darwin/amd64 linux/arm64 linux/amd64 windows/amd64; do
+            goos="${target%/*}"
+            goarch="${target#*/}"
+            suffix=""
+            if [ "$goos" = windows ]; then suffix=.exe; fi
+            output="dist/omg-${VERSION}-${goos}-${goarch}${suffix}"
+            GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
+              go build -trimpath -ldflags "-s -X main.version=${VERSION}" -o "$output" ./cmd/omg
+          done
+          sha256sum dist/* > dist/SHA256SUMS
+          cat dist/SHA256SUMS
+      - name: Upload one immutable ephemeral candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: omg-local-${{ inputs.version }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  verify-native-candidate:
+    name: Verify pinned candidate (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: build-candidate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            goos: darwin
+            goarch: arm64
+          - runner: macos-15-intel
+            goos: darwin
+            goarch: amd64
+          - runner: ubuntu-24.04-arm
+            goos: linux
+            goarch: arm64
+          - runner: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+          - runner: windows-2025
+            goos: windows
+            goarch: amd64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Download the exact build output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: omg-local-${{ inputs.version }}
+          path: dist
+      - name: Verify digest, native execution, and source-publication metadata
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          suffix=""
+          if [ "${{ matrix.goos }}" = windows ]; then suffix=.exe; fi
+          artifact="omg-${VERSION}-${{ matrix.goos }}-${{ matrix.goarch }}${suffix}"
+          expected="$(awk -v name="dist/${artifact}" '$2 == name { print $1 }' dist/SHA256SUMS)"
+          actual="$(sha256sum "dist/${artifact}" | awk '{ print $1 }')"
+          test -n "$expected"
+          test "$actual" = "$expected"
+          chmod +x "dist/${artifact}"
+          "./dist/${artifact}" version --json
+          "./dist/${artifact}" release status --json
+          project="${RUNNER_TEMP}/omg-native-${{ matrix.goos }}-${{ matrix.goarch }}"
+          mkdir -p "$project"
+          "./dist/${artifact}" init --project "$project" --json
+          "./dist/${artifact}" doctor --project "$project" --integrity --json
+      - name: Confirm workflow has no publication material
+        shell: bash
+        run: |
+          test ! -e dist/*.sig
+          echo "The one-day workflow artifact is for native verification only; no stable release, tag, or package publication action is configured."

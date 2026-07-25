@@ -1,0 +1,56 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CGO_ENABLED: "0"
+  GOFLAGS: -buildvcs=false
+
+jobs:
+  dependency-and-static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source without credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify locked modules
+        run: go mod verify
+      - name: Vet all packages
+        run: go vet ./...
+      - name: Scan reachable Go vulnerabilities
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+      - name: Run security and privacy regression suites
+        run: |
+          go test -count=1 ./internal/domain/...
+          go test -count=1 ./internal/store/sqlite ./internal/integration/instructions
+          go test -count=1 ./internal/runtime/... ./internal/transport/...
+          go test -count=1 ./internal/view ./internal/app/query
+      - name: Confirm public-source release metadata
+        shell: bash
+        run: |
+          go build -trimpath -ldflags "-s -w -X main.version=security-ci" -o ./omg ./cmd/omg
+          payload="$(./omg release status --json)"
+          test "$(jq -r .data.status <<<"$payload")" = "SOURCE PUBLISHED"
+          test "$(jq -r .data.repository <<<"$payload")" = "github.com/jeremy-merchant/OMG"
+          test "$(jq -r .data.license <<<"$payload")" = "Apache-2.0"
+          test "$(jq -r .data.stable_release <<<"$payload")" = "false"
