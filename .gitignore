@@ -19,3 +19,7 @@
 
 # Cross-compiled Go test executables generated at the repository root.
 /*.test.exe
+
+# Local builds, test captures, and one-session implementation scratch files.
+/bin/
+/.tmp/

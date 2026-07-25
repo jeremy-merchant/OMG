@@ -60,6 +60,10 @@ omg completion powershell
 
 Generation has no side effects. Review the output and install it through the shell's normal configuration mechanism. OMG does not modify dotfiles automatically and does not shadow `codex`, `claude`, `gjc`, or any other agent binary.
 
+The initialization snippets provide three explicit workflow helpers: `omg_preflight` / `OMG-Preflight`, `omg_board` / `OMG-Board`, and `omg_checkpoint` / `OMG-Checkpoint`. Each binds the current project path and delegates to the real `omg` binary; none evaluates task or message content.
+
+Completion is a generated command tree rather than one global word list. At the top level it offers command families with descriptions where the shell supports them. After a family it offers that family's subcommands; after a valid leaf subcommand it removes siblings and offers options only. `help task` traverses into the task family. `--project`/`--workspace` use directory completion, private file/output flags use file completion, and `--format` offers only `tty|markdown|html|json`. Bash, Zsh, Fish, and PowerShell are derived from the same vocabulary and tested against the CLI help/decoder contract plus real Bash behavior.
+
 ## MCP stdio adapter
 
 Start:

@@ -72,7 +72,7 @@ P2-B owns `migrations/0001_foundation.sql` and migration runner/checksum rules. 
 
 ### 2.4 Command families
 
-P2: `init`, `version`, `doctor`, `backup create|restore --plan`, `migration plan|apply`, `export`, `preflight`, shared `--json`, `--project`, `--workspace`, idempotency options. `version`, `doctor`, status, and queries remain read-only when migrations are pending.
+P2: `init`, `version`, `doctor`, `backup create [--plan-file FILE]` and `backup restore --payload-file FILE`, `migration plan|apply`, `export`, `preflight`, shared `--json`, `--project`, `--workspace`, idempotency options. `version`, `doctor`, status, and queries remain read-only when migrations are pending.
 P3: `human`, `session`, `delegate`, `task`, `progress`, `dependency`, `message`, `handoff`, `checkpoint`, `board me|tree|task|all`.  
 P4: `reserve`, `git inventory|adopt|cleanup-plan`, `board git`.  
 P5: `integration plan|apply|status|remove`, `run --runtime ... -- <command>`, `shell-init`, `completion`, `watch`, `mcp`, format-selecting `export`.  
@@ -128,7 +128,7 @@ A lane must not edit another lane’s directories or migrations. P4-A may edit o
 
 **P2-A Composition and contracts:** establish module `example.invalid/coordledger` (or a local-only equivalent) while the publication block remains. Do not reserve a public module path, package, organization, domain, or registry name. Product-facing private CLI can remain `omg`; build/release labels use neutral `coordledger` where a publisher namespace is needed. Define packages/interfaces in §2.2, JSON envelope/exit codes, command manifest, safe error/redaction DTOs, dependency manifest, and fixture/evidence harness.
 
-**P2-B Store and platform:** implement resolver and `0001_foundation.sql`; pure-Go pinned SQLite behind `Store`; CGO-free build; Git common-dir store location; non-Git user-config placement; explicit workspace; owner-only local state; FK/busy/retry/WAL eligibility/fallback; pending-migration discovery; read-only `migration plan`; verified pre-migration backup created after the plan and before a separately human-approved `migration apply`; approval PIN bound to plan ID, project/fixture, from/to schema, migration checksums, verified backup checksum/destination, command, and UTC timestamp; fail-closed migrations/restore plans; integrity checks, events/receipts, and local fixtures that retain secret-free approval evidence.
+**P2-B Store and platform:** implement resolver and `0001_foundation.sql`; pure-Go pinned SQLite behind `Store`; CGO-free build; Git common-dir identity mapped into an owner-only user-state location; non-Git user-state placement; explicit workspace; owner-only local state; FK/busy/retry/WAL eligibility/fallback; pending-migration discovery; read-only `migration plan`; verified pre-migration backup created after the plan and before a separately human-approved `migration apply`; approval PIN bound to plan ID, project/fixture, from/to schema, migration checksums, verified backup checksum/destination, command, and UTC timestamp; fail-closed migrations/restore plans; integrity checks, events/receipts, and local fixtures that retain secret-free approval evidence.
 
 **P2-C Foundation CLI:** wire init/version/doctor/backup/migration/export/preflight skeletons only through app/store; `version`, `doctor`, status, and queries report pending migrations without schema mutation; diagnostic safe path redaction; daemon-off operation; no network.
 

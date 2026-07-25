@@ -6,13 +6,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"unicode"
+
+	"example.invalid/coordledger/internal/terminaltext"
 )
 
 const (
 	minimumTerminalWidth = 36
 	defaultTerminalWidth = 96
 	maximumTerminalWidth = 160
+
+	minimumTerminalHeight = 12
+	compactHelpHeight     = 36
+	maximumTerminalHeight = 200
 )
 
 type helpTarget struct {
@@ -37,6 +42,46 @@ func cliTerminalWidth(output io.Writer) int {
 		}
 	}
 	return defaultTerminalWidth
+}
+
+func cliTerminalHeight(output io.Writer) int {
+	file, ok := output.(*os.File)
+	if !ok {
+		return 0
+	}
+	info, err := file.Stat()
+	if err != nil || info.Mode()&os.ModeCharDevice == 0 {
+		return 0
+	}
+	if configured, ok := configuredTerminalHeight(); ok {
+		return configured
+	}
+	if height, found := platformTerminalHeight(file); found {
+		return normalizeTerminalHeight(height)
+	}
+	return 0
+}
+
+func configuredTerminalHeight() (int, bool) {
+	value := strings.TrimSpace(os.Getenv("LINES"))
+	if value == "" {
+		return 0, false
+	}
+	height, err := strconv.Atoi(value)
+	if err != nil || height <= 0 {
+		return 0, false
+	}
+	return normalizeTerminalHeight(height), true
+}
+
+func normalizeTerminalHeight(height int) int {
+	if height < minimumTerminalHeight {
+		return minimumTerminalHeight
+	}
+	if height > maximumTerminalHeight {
+		return maximumTerminalHeight
+	}
+	return height
 }
 
 func configuredTerminalWidth() (int, bool) {
@@ -115,9 +160,14 @@ func renderUsage(version string, color bool) string {
 }
 
 func renderHelp(version string, color bool, width int, target helpTarget) (string, bool) {
+	return renderHelpWithHeight(version, color, width, 0, target)
+}
+
+func renderHelpWithHeight(version string, color bool, width, height int, target helpTarget) (string, bool) {
 	width = normalizeTerminalWidth(width)
+	height = normalizeHelpHeight(height)
 	if target.Command == "" {
-		return renderGlobalHelp(version, color, width), true
+		return renderGlobalHelp(version, color, width, height), true
 	}
 	command, ok := helpCommandByName(target.Command)
 	if !ok {
@@ -133,30 +183,46 @@ func renderHelp(version string, color bool, width int, target helpTarget) (strin
 	return renderCommandHelp(version, color, width, command), true
 }
 
-func renderGlobalHelp(version string, color bool, width int) string {
+func renderGlobalHelp(version string, color bool, width, height int) string {
 	theme := newTerminalTheme(color)
 	var output strings.Builder
-	writeProductHeader(&output, theme, width, version, "Local coordination control plane for coding agents.")
+	writeProductHeader(&output, theme, width, version, fmt.Sprintf("Local coordination control plane · %d commands · human and machine output", len(helpCommands)))
 
 	writeHelpHeading(&output, theme, "Usage:")
 	writeWrappedLine(&output, "  ", theme.bold("omg <command> [subcommand] [options]"), width)
 
-	writeHelpHeading(&output, theme, "QUICK START")
-	writeHelpRows(&output, theme, width, []helpRow{
-		{Marker: "1", Label: "omg init --project .", Description: "Initialize local canonical state."},
-		{Marker: "2", Label: "omg preflight --project .", Description: "Resolve identity, blockers, inbox, and reservations before writing."},
-		{Marker: "3", Label: "omg board all --project .", Description: "Inspect current ownership, work, waits, and safe next actions."},
-	})
+	if height > 0 && height < compactHelpHeight {
+		writeCompactGlobalHelp(&output, theme, width)
+		return output.String()
+	}
+
+	writeHelpHeading(&output, theme, "WORKFLOWS")
+	workflowRows := make([]helpRow, 0, len(helpWorkflows))
+	for _, workflow := range helpWorkflows {
+		workflowRows = append(workflowRows, helpRow{
+			Marker:      workflow.Marker,
+			Label:       workflow.Name,
+			Description: workflow.Command + " · " + workflow.Summary,
+		})
+	}
+	writeHelpRows(&output, theme, width, workflowRows)
 
 	groups := []string{"START + VERIFY", "COORDINATE WORK", "INSPECT + INTEGRATE"}
 	for _, group := range groups {
-		writeHelpHeading(&output, theme, group)
-		rows := make([]helpRow, 0)
+		commands := make([]helpCommand, 0)
 		for _, command := range helpCommands {
-			if command.Group != group {
-				continue
+			if command.Group == group {
+				commands = append(commands, command)
 			}
-			rows = append(rows, helpRow{Marker: "❯", Label: command.Name, Description: command.Summary})
+		}
+		writeHelpHeading(&output, theme, fmt.Sprintf("%s · %d", group, len(commands)))
+		if width < 68 {
+			writeCompactCommandGrid(&output, theme, width, commands)
+			continue
+		}
+		rows := make([]helpRow, 0, len(commands))
+		for _, command := range commands {
+			rows = append(rows, helpRow{Marker: "❯", Label: command.Name, Description: globalCommandSummary(command.Name)})
 		}
 		writeHelpRows(&output, theme, width, rows)
 	}
@@ -176,6 +242,39 @@ func renderGlobalHelp(version string, color bool, width int) string {
 	writeWrappedLine(&output, "", theme.dim("Tip: use `omg <command> --help` to inspect one command family."), width)
 	writeWrappedLine(&output, "", theme.dim("Reference: docs/COMMAND_REFERENCE.md"), width)
 	return output.String()
+}
+
+func normalizeHelpHeight(height int) int {
+	if height <= 0 {
+		return 0
+	}
+	return normalizeTerminalHeight(height)
+}
+
+func writeCompactGlobalHelp(output *strings.Builder, theme terminalTheme, width int) {
+	writeHelpHeading(output, theme, "WORKFLOWS")
+	rows := make([]helpRow, 0, len(helpWorkflows))
+	for _, workflow := range helpWorkflows {
+		rows = append(rows, helpRow{Marker: workflow.Marker, Label: workflow.Name, Description: workflow.Command})
+	}
+	writeHelpRows(output, theme, width, rows)
+
+	writeHelpHeading(output, theme, "COMMAND FAMILIES")
+	for _, group := range []string{"START + VERIFY", "COORDINATE WORK", "INSPECT + INTEGRATE"} {
+		names := make([]string, 0)
+		for _, command := range helpCommands {
+			if command.Group == group {
+				names = append(names, command.Name)
+			}
+		}
+		writeWrappedLine(output, "  ", theme.bold(group)+": "+strings.Join(names, " · "), width)
+	}
+
+	writeHelpHeading(output, theme, "COMMON OPTIONS")
+	writeWrappedLine(output, "  ", "--project <path> · --json · --help", width)
+	output.WriteString("\n")
+	writeWrappedLine(output, "", theme.dim("Short terminal view · use `omg <command> --help` for the full command contract."), width)
+	writeWrappedLine(output, "", theme.dim("Reference: docs/COMMAND_REFERENCE.md"), width)
 }
 
 func renderCommandHelp(version string, color bool, width int, command helpCommand) string {
@@ -205,6 +304,7 @@ func renderCommandHelp(version string, color bool, width int, command helpComman
 
 	writeCommandOptions(&output, theme, width, command, nil)
 	writeExamples(&output, theme, width, command.Examples)
+	writeRelatedCommands(&output, theme, width, command)
 
 	output.WriteString("\n")
 	writeWrappedLine(&output, "", theme.dim("Reference: docs/COMMAND_REFERENCE.md"), width)
@@ -237,6 +337,7 @@ func renderSubcommandHelp(version string, color bool, width int, command helpCom
 		examples = []string{subcommand.Example}
 	}
 	writeExamples(&output, theme, width, examples)
+	writeRelatedCommands(&output, theme, width, command)
 
 	output.WriteString("\n")
 	writeWrappedLine(&output, "", theme.dim("Parent help: omg "+command.Name+" --help"), width)
@@ -314,8 +415,49 @@ func writeExamples(output *strings.Builder, theme terminalTheme, width int, exam
 	}
 	writeHelpHeading(output, theme, "EXAMPLES")
 	for _, example := range examples {
-		writeWrappedLine(output, "  ", theme.info("❯")+" "+theme.bold(example), width)
+		firstPrefix := "  " + theme.info("❯") + " "
+		continuation := "    "
+		available := width - terminalDisplayWidth(firstPrefix)
+		if available < 8 {
+			available = 8
+		}
+		lines := wrapTerminalText(example, available)
+		if len(lines) == 0 {
+			continue
+		}
+		output.WriteString(firstPrefix + theme.bold(lines[0]) + "\n")
+		for _, line := range lines[1:] {
+			output.WriteString(continuation + theme.bold(line) + "\n")
+		}
 	}
+}
+
+func writeCompactCommandGrid(output *strings.Builder, theme terminalTheme, width int, commands []helpCommand) {
+	names := make([]string, 0, len(commands))
+	for _, command := range commands {
+		names = append(names, command.Name)
+	}
+	for _, line := range wrapTerminalText(strings.Join(names, " · "), width-2) {
+		output.WriteString("  " + theme.bold(line) + "\n")
+	}
+	writeWrappedLine(output, "  ", theme.dim("Open one family with: omg <command> --help"), width)
+}
+
+func writeRelatedCommands(output *strings.Builder, theme terminalTheme, width int, command helpCommand) {
+	names := relatedCommandNames(command.Name)
+	if len(names) == 0 {
+		return
+	}
+	writeHelpHeading(output, theme, "RELATED PATHS")
+	rows := make([]helpRow, 0, len(names))
+	for _, name := range names {
+		rows = append(rows, helpRow{
+			Marker:      "→",
+			Label:       "omg " + name + " --help",
+			Description: globalCommandSummary(name),
+		})
+	}
+	writeHelpRows(output, theme, width, rows)
 }
 
 func writeProductHeader(output *strings.Builder, theme terminalTheme, width int, version, subtitle string) {
@@ -475,26 +617,7 @@ func wrapTerminalText(value string, width int) []string {
 }
 
 func splitTerminalToken(value string, width int) []string {
-	if terminalDisplayWidth(value) <= width {
-		return []string{value}
-	}
-	parts := make([]string, 0, 2)
-	var current strings.Builder
-	currentWidth := 0
-	for _, character := range value {
-		cellWidth := terminalRuneWidth(character)
-		if currentWidth > 0 && currentWidth+cellWidth > width {
-			parts = append(parts, current.String())
-			current.Reset()
-			currentWidth = 0
-		}
-		current.WriteRune(character)
-		currentWidth += cellWidth
-	}
-	if current.Len() > 0 {
-		parts = append(parts, current.String())
-	}
-	return parts
+	return terminaltext.SplitToken(value, width)
 }
 
 func padTerminalRight(value string, width int) string {
@@ -506,32 +629,7 @@ func padTerminalRight(value string, width int) string {
 }
 
 func terminalDisplayWidth(value string) int {
-	value = stripTerminalANSI(value)
-	width := 0
-	for _, character := range value {
-		width += terminalRuneWidth(character)
-	}
-	return width
-}
-
-func terminalRuneWidth(character rune) int {
-	if character == 0 || unicode.IsControl(character) || unicode.Is(unicode.Mn, character) || unicode.Is(unicode.Me, character) {
-		return 0
-	}
-	if character >= 0x1100 && (character <= 0x115f ||
-		character == 0x2329 || character == 0x232a ||
-		(character >= 0x2e80 && character <= 0xa4cf && character != 0x303f) ||
-		(character >= 0xac00 && character <= 0xd7a3) ||
-		(character >= 0xf900 && character <= 0xfaff) ||
-		(character >= 0xfe10 && character <= 0xfe19) ||
-		(character >= 0xfe30 && character <= 0xfe6f) ||
-		(character >= 0xff00 && character <= 0xff60) ||
-		(character >= 0xffe0 && character <= 0xffe6) ||
-		(character >= 0x1f300 && character <= 0x1faff) ||
-		(character >= 0x20000 && character <= 0x3fffd)) {
-		return 2
-	}
-	return 1
+	return terminaltext.Width(stripTerminalANSI(value))
 }
 
 func stripTerminalANSI(value string) string {

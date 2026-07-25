@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -126,8 +127,8 @@ func TestHumanCommandRecoverySuggestsClosestValidPath(t *testing.T) {
 	}
 
 	exit, output = run(t, "task")
-	if exit != ExitUnavailable || !strings.Contains(output, "task subcommand is required") || !strings.Contains(output, "omg task --help") {
-		t.Fatalf("missing subcommand recovery exit=%d: %s", exit, output)
+	if exit != ExitSuccess || !strings.Contains(output, "OMG / TASK") || !strings.Contains(output, "SUBCOMMANDS") || !strings.Contains(output, "claim") || strings.Contains(output, "task subcommand is required") {
+		t.Fatalf("parent command discovery exit=%d: %s", exit, output)
 	}
 }
 
@@ -169,6 +170,29 @@ func TestStructuredSuccessAndRuntimeResultsAreWidthSafe(t *testing.T) {
 	for _, line := range strings.Split(strings.TrimSuffix(got, "\n"), "\n") {
 		if visible := terminalDisplayWidth(line); visible > 40 {
 			t.Fatalf("runtime line exceeds width: visible=%d line=%q", visible, line)
+		}
+	}
+}
+
+func TestCLITokenSplittingPrefersSemanticDelimiters(t *testing.T) {
+	tests := []struct {
+		value string
+		width int
+		want  []string
+	}{
+		{"instruction_source=delegation_token", 32, []string{"instruction_source=", "delegation_token"}},
+		{"omg/task/with-a-very-long-id", 16, []string{"omg/task/with-a-", "very-long-id"}},
+		{"0123456789abcdef", 8, []string{"01234567", "89abcdef"}},
+	}
+	for _, test := range tests {
+		got := splitTerminalToken(test.value, test.width)
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("splitTerminalToken(%q, %d) = %#v, want %#v", test.value, test.width, got, test.want)
+		}
+		for _, part := range got {
+			if width := terminalDisplayWidth(part); width > test.width {
+				t.Errorf("split part %q width=%d exceeds %d", part, width, test.width)
+			}
 		}
 	}
 }

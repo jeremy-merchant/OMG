@@ -11,21 +11,12 @@ import (
 
 	"example.invalid/coordledger/internal/app"
 	"example.invalid/coordledger/internal/domain"
-)
-
-const (
-	ansiReset   = "\x1b[0m"
-	ansiBold    = "\x1b[1m"
-	ansiDim     = "\x1b[2m"
-	ansiCyan    = "\x1b[96m"
-	ansiGreen   = "\x1b[92m"
-	ansiYellow  = "\x1b[93m"
-	ansiMagenta = "\x1b[95m"
-	ansiRed     = "\x1b[91m"
+	"example.invalid/coordledger/internal/terminalstyle"
 )
 
 type terminalTheme struct {
-	color bool
+	color   bool
+	palette terminalstyle.Palette
 }
 
 type terminalErrorContext struct {
@@ -39,23 +30,31 @@ type presentationFact struct {
 }
 
 func newTerminalTheme(color bool) terminalTheme {
-	return terminalTheme{color: color}
+	return terminalTheme{color: color, palette: terminalstyle.CurrentPalette()}
 }
 
 func (theme terminalTheme) paint(code, value string) string {
 	if !theme.color || value == "" {
 		return value
 	}
-	return code + value + ansiReset
+	return code + value + terminalstyle.Reset
 }
 
-func (theme terminalTheme) bold(value string) string    { return theme.paint(ansiBold, value) }
-func (theme terminalTheme) dim(value string) string     { return theme.paint(ansiDim, value) }
-func (theme terminalTheme) info(value string) string    { return theme.paint(ansiCyan, value) }
-func (theme terminalTheme) success(value string) string { return theme.paint(ansiGreen, value) }
-func (theme terminalTheme) warn(value string) string    { return theme.paint(ansiYellow, value) }
-func (theme terminalTheme) blocked(value string) string { return theme.paint(ansiMagenta, value) }
-func (theme terminalTheme) danger(value string) string  { return theme.paint(ansiRed, value) }
+func (theme terminalTheme) bold(value string) string { return theme.paint(terminalstyle.Bold, value) }
+func (theme terminalTheme) dim(value string) string  { return theme.paint(theme.palette.Muted, value) }
+func (theme terminalTheme) info(value string) string { return theme.paint(theme.palette.Accent, value) }
+func (theme terminalTheme) success(value string) string {
+	return theme.paint(theme.palette.Success, value)
+}
+func (theme terminalTheme) warn(value string) string {
+	return theme.paint(theme.palette.Warning, value)
+}
+func (theme terminalTheme) blocked(value string) string {
+	return theme.paint(theme.palette.Blocked, value)
+}
+func (theme terminalTheme) danger(value string) string {
+	return theme.paint(theme.palette.Danger, value)
+}
 
 func cliTerminalColorEnabled(output io.Writer) bool {
 	if os.Getenv("NO_COLOR") != "" || strings.EqualFold(os.Getenv("TERM"), "dumb") {

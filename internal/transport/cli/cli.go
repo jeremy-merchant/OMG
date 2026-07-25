@@ -251,14 +251,34 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	if ctx == nil || application.Foundation == nil || application.Dispatcher == nil || stdin == nil || output == nil || stderr == nil {
 		return writeError(output, hasJSON(args), invalid("command context is invalid"))
 	}
+	if len(args) == 0 {
+		width := cliTerminalWidth(output)
+		color := cliTerminalColorEnabled(output)
+		usage := renderGlobalHelp(version, color, width, compactHelpHeight-1)
+		if _, err := io.WriteString(output, usage); err != nil {
+			return ExitInternal
+		}
+		return ExitSuccess
+	}
+	if len(args) == 1 && commandRequiresSubcommand(args[0]) {
+		usage, found := renderHelpWithHeight(version, cliTerminalColorEnabled(output), cliTerminalWidth(output), cliTerminalHeight(output), helpTarget{Command: args[0]})
+		if found {
+			if _, err := io.WriteString(output, usage); err != nil {
+				return ExitInternal
+			}
+			return ExitSuccess
+		}
+	}
 	if target, requested := parseHelpTarget(args); requested {
 		jsonOutput := hasJSON(args)
 		width := cliTerminalWidth(output)
+		height := cliTerminalHeight(output)
 		color := !jsonOutput && cliTerminalColorEnabled(output)
 		if jsonOutput {
 			width = defaultTerminalWidth
+			height = 0
 		}
-		usage, found := renderHelp(version, color, width, target)
+		usage, found := renderHelpWithHeight(version, color, width, height, target)
 		if !found {
 			message, hint, next := unknownHelpMessage(target)
 			return writeErrorWithContext(output, jsonOutput, invalid(message), terminalErrorContext{Hint: hint, Next: next})

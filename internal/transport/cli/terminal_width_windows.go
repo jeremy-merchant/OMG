@@ -22,3 +22,17 @@ func platformTerminalWidth(file *os.File) (int, bool) {
 	}
 	return width, true
 }
+func platformTerminalHeight(file *os.File) (int, bool) {
+	if file == nil {
+		return 0, false
+	}
+	var info windows.ConsoleScreenBufferInfo
+	if err := windows.GetConsoleScreenBufferInfo(windows.Handle(file.Fd()), &info); err != nil {
+		return 0, false
+	}
+	height := int(info.Window.Bottom-info.Window.Top) + 1
+	if height <= 0 {
+		return 0, false
+	}
+	return height, true
+}

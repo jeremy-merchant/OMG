@@ -18,7 +18,7 @@ func RenderPreflightTTY(preflight app.PreflightView) string {
 // RenderPreflightTTYWithOptions renders the preflight projection with the same
 // width and color semantics as the interactive board.
 func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color bool) string {
-	theme := terminalTheme{enabled: color, width: normalizeTTYWidth(width)}
+	theme := newViewTerminalTheme(color, width)
 	var out strings.Builder
 	state := presentStatus("verified")
 	headline := "Ready to coordinate"

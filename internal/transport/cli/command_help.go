@@ -20,6 +20,20 @@ type helpCommand struct {
 	Examples    []string
 }
 
+type helpWorkflow struct {
+	Marker  string
+	Name    string
+	Command string
+	Summary string
+}
+
+var helpWorkflows = []helpWorkflow{
+	{Marker: "01", Name: "First run", Command: "omg init → omg preflight → omg board all", Summary: "Create state, verify readiness, then inspect the whole coordination graph."},
+	{Marker: "02", Name: "Start work", Command: "omg session create → omg task claim → omg checkpoint", Summary: "Establish identity, claim exactly one task, and record liveness."},
+	{Marker: "03", Name: "Share state", Command: "omg progress add → omg message send → omg handoff create", Summary: "Publish done / doing / next, coordinate, then transfer evidence and risk."},
+	{Marker: "04", Name: "Recover safely", Command: "omg doctor → omg board git → omg backup create", Summary: "Inspect health and repository risk before creating a recovery artifact."},
+}
+
 var helpCommands = []helpCommand{
 	{Name: "init", Group: "START + VERIFY", Summary: "Initialize the local coordination ledger without applying pending migrations.", Usage: []string{"omg init [selection] [--json]"}, Examples: []string{"omg init --project /absolute/project", "omg init --workspace /absolute/workspace --json"}},
 	{Name: "preflight", Group: "START + VERIFY", Summary: "Resolve startup readiness, identity, active work, inbox, blockers, reservations, and Git state.", Usage: []string{"omg preflight [selection] [--session ID] [--json]"}, Options: [][2]string{{"--session <id>", "Select the current session identity"}}, Examples: []string{"omg preflight --project /absolute/project", "omg preflight --project /absolute/project --session SESSION_ID"}},
@@ -199,4 +213,78 @@ func commandSupportsJSON(name string) bool {
 	default:
 		return true
 	}
+}
+
+func globalCommandSummary(name string) string {
+	summaries := map[string]string{
+		"init":        "Create local canonical state.",
+		"preflight":   "Check readiness, identity, blockers, inbox, reservations, and Git.",
+		"doctor":      "Inspect store, platform, recovery, and integrity health.",
+		"migration":   "Plan or apply an explicitly approved schema migration.",
+		"backup":      "Create or validate private recovery artifacts.",
+		"release":     "Inspect publication and source-bound readiness.",
+		"version":     "Print the current build version.",
+		"human":       "Create or inspect canonical human identities.",
+		"session":     "Create, resume, adopt, or import agent sessions.",
+		"delegate":    "Issue, redeem, or revoke bounded delegation.",
+		"checkpoint":  "Record session liveness and continuation.",
+		"task":        "Create, inspect, claim, or transition tasks and runs.",
+		"progress":    "Record or inspect done / doing / next.",
+		"dependency":  "Connect prerequisite work and reject cycles.",
+		"message":     "Send messages and record delivery / read / acknowledgement.",
+		"handoff":     "Transfer work, evidence, risk, and ownership decisions.",
+		"reserve":     "Declare and inspect path intent and conflicts.",
+		"board":       "Render operator views for sessions, tasks, Git, or all work.",
+		"git":         "Observe repository state and canonical ownership.",
+		"export":      "Write a private static board snapshot.",
+		"import":      "Import one normalized external record.",
+		"integration": "Manage bounded project instruction integration.",
+		"watch":       "Follow local coordination changes.",
+		"run":         "Execute a guarded child command.",
+		"shell-init":  "Generate shell initialization.",
+		"completion":  "Generate completion scripts from the command contract.",
+		"mcp":         "Serve OMG over protocol-only MCP stdio.",
+		"receipt":     "Inspect canonical command receipts.",
+	}
+	if summary := summaries[name]; summary != "" {
+		return summary
+	}
+	if command, ok := helpCommandByName(name); ok {
+		return command.Summary
+	}
+	return ""
+}
+
+func relatedCommandNames(name string) []string {
+	related := map[string][]string{
+		"init":        {"preflight", "board"},
+		"preflight":   {"board", "doctor"},
+		"doctor":      {"preflight", "migration", "backup"},
+		"migration":   {"backup", "doctor", "preflight"},
+		"backup":      {"doctor", "migration"},
+		"release":     {"version", "doctor"},
+		"version":     {"release"},
+		"human":       {"session", "delegate"},
+		"session":     {"task", "checkpoint", "delegate"},
+		"delegate":    {"session", "human"},
+		"checkpoint":  {"session", "progress", "reserve"},
+		"task":        {"progress", "dependency", "handoff", "board"},
+		"progress":    {"task", "message", "handoff"},
+		"dependency":  {"task", "board"},
+		"message":     {"task", "handoff", "board"},
+		"handoff":     {"task", "message", "reserve", "board"},
+		"reserve":     {"task", "handoff", "board"},
+		"board":       {"preflight", "export", "watch"},
+		"git":         {"board", "reserve", "handoff"},
+		"export":      {"board", "preflight"},
+		"import":      {"session", "task", "board"},
+		"integration": {"preflight", "doctor"},
+		"watch":       {"board", "preflight"},
+		"run":         {"preflight", "board"},
+		"shell-init":  {"completion"},
+		"completion":  {"shell-init"},
+		"mcp":         {"preflight", "board"},
+		"receipt":     {"task", "message", "handoff"},
+	}
+	return append([]string(nil), related[name]...)
 }

@@ -78,6 +78,93 @@ func TestHelpTextAndJSON(t *testing.T) {
 	}
 }
 
+func TestEmptyInvocationShowsConciseDiscoveryWithoutDispatch(t *testing.T) {
+	dispatcher := &recordingDispatcher{}
+	service := bootstrap.CLIService(bootstrap.Foundation())
+	service.Dispatcher = dispatcher
+	var output bytes.Buffer
+	exit := RunWithApplication(
+		context.Background(),
+		nil,
+		"test-version",
+		strings.NewReader(""),
+		&output,
+		io.Discard,
+		service,
+	)
+	if exit != ExitSuccess {
+		t.Fatalf("empty invocation exit=%d output=%q", exit, output.String())
+	}
+	got := output.String()
+	for _, want := range []string{
+		"OMG  OPERATOR LEDGER", "Usage:", "WORKFLOWS", "First run", "Start work", "Share state", "Recover safely",
+		"COMMAND FAMILIES", "START + VERIFY", "COORDINATE WORK", "INSPECT + INTEGRATE",
+		"COMMON OPTIONS", "Short terminal view", "omg <command> --help",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("empty invocation missing %q:\n%s", want, got)
+		}
+	}
+	for _, forbidden := range []string{"✘ OMG  ERROR", "a command is required", "GLOBAL OPTIONS", "Create local canonical state."} {
+		if strings.Contains(got, forbidden) {
+			t.Errorf("empty invocation contains expanded/error text %q", forbidden)
+		}
+	}
+	if len(dispatcher.requests) != 0 {
+		t.Fatalf("empty invocation dispatched application requests: %+v", dispatcher.requests)
+	}
+	if lines := strings.Count(got, "\n"); lines > 32 {
+		t.Fatalf("empty discovery remains too tall: %d lines\n%s", lines, got)
+	}
+}
+
+func TestBareParentCommandsOpenContextualHelpWithoutDispatch(t *testing.T) {
+	for _, command := range []string{
+		"release", "migration", "backup", "board", "integration", "shell-init", "completion",
+		"human", "session", "delegate", "task", "progress", "dependency", "message",
+		"handoff", "reserve", "git", "import", "mcp", "receipt",
+	} {
+		t.Run(command, func(t *testing.T) {
+			dispatcher := &recordingDispatcher{}
+			service := bootstrap.CLIService(bootstrap.Foundation())
+			service.Dispatcher = dispatcher
+			var output bytes.Buffer
+			exit := RunWithApplication(context.Background(), []string{command}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+			if exit != ExitSuccess {
+				t.Fatalf("bare %s exit=%d output=%q", command, exit, output.String())
+			}
+			got := output.String()
+			for _, want := range []string{"Usage:", "SUBCOMMANDS", "omg " + command} {
+				if !strings.Contains(got, want) {
+					t.Errorf("bare %s help missing %q: %s", command, want, got)
+				}
+			}
+			if strings.Contains(got, "✘ OMG  ERROR") || strings.Contains(got, "subcommand is required") {
+				t.Errorf("bare %s still renders an error: %s", command, got)
+			}
+			if len(dispatcher.requests) != 0 {
+				t.Fatalf("bare %s dispatched requests: %+v", command, dispatcher.requests)
+			}
+		})
+	}
+}
+
+func TestParentCommandWithAdditionalIntentStillUsesValidation(t *testing.T) {
+	for _, args := range [][]string{{"task", "--json"}, {"task", "--project", "project"}, {"task", "unknown"}} {
+		exit, output := run(t, args...)
+		if exit == ExitSuccess || strings.Contains(output, "OMG / TASK") && !strings.Contains(output, "ERROR") {
+			t.Fatalf("parent command with additional intent bypassed validation: %v exit=%d output=%q", args, exit, output)
+		}
+	}
+}
+
+func TestDecodeStillRejectsMissingCommandForInternalCallers(t *testing.T) {
+	request, err := Decode(nil)
+	if !reflect.DeepEqual(request, Request{}) || err.Code == "" || err.Message != "a command is required" {
+		t.Fatalf("Decode(nil) = (%+v, %+v)", request, err)
+	}
+}
+
 func TestHelpRecognitionRespectsOptionGrammar(t *testing.T) {
 	parent := t.TempDir()
 	if err := os.Mkdir(filepath.Join(parent, "help"), 0o700); err != nil {
@@ -1379,7 +1466,7 @@ func TestGenericRuntimeWrapperExecutesOnlyExplicitArgv(t *testing.T) {
 
 func TestShellInitAndCompletionCommandsEmitStaticScripts(t *testing.T) {
 	exit, output := run(t, "shell-init", "bash")
-	if exit != ExitSuccess || !strings.Contains(output, "omg_preflight") || strings.Contains(output, "eval ") {
+	if exit != ExitSuccess || !strings.Contains(output, "omg_preflight") || !strings.Contains(output, "omg_board") || strings.Contains(output, "eval ") {
 		t.Fatalf("bash init exit=%d: %s", exit, output)
 	}
 	exit, output = run(t, "completion", "powershell", "--json")

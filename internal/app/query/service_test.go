@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -604,13 +605,29 @@ func TestSuggestedActionsBindOriginScopeWithoutLeakingPrivateSelectors(t *testin
 	if len(snapshot.SuggestedActions) != 4 {
 		t.Fatalf("suggested actions = %#v", snapshot.SuggestedActions)
 	}
+	wantCommands := map[string]string{
+		"show_task":           "omg board task --project '<PROJECT_PATH>' --task task-origin",
+		"show_handoff":        `omg handoff show --project '<PROJECT_PATH>' --payload '{"handoff_id":"handoff-origin"}'`,
+		"reservation_history": `omg reserve history --project '<PROJECT_PATH>' --payload '{"reservation_id":"reservation-origin"}'`,
+		"git_cleanup_plan":    `omg git cleanup-plan --project '<PROJECT_PATH>' --payload '{"fingerprint":"asset-origin"}'`,
+	}
 	for _, action := range snapshot.SuggestedActions {
-		if action.Command != "" || action.Shell != "" || len(action.Argv) != 0 {
-			t.Fatalf("suggested action must not execute in a caller-selected project: %#v", action)
+		if action.Command == "" || action.Shell != "" || len(action.Argv) == 0 {
+			t.Fatalf("suggested action must be a reviewable non-shell template: %#v", action)
 		}
+		if !strings.Contains(action.Command, "'<PROJECT_PATH>'") || !slices.Contains(action.Argv, "<PROJECT_PATH>") {
+			t.Fatalf("suggested action lacks explicit project placeholder: %#v", action)
+		}
+		if action.Command != wantCommands[action.Code] {
+			t.Fatalf("suggested action command for %s = %q; want %q", action.Code, action.Command, wantCommands[action.Code])
+		}
+		delete(wantCommands, action.Code)
 		if action.Scope != (BoardScope{ProjectID: "project-origin", WorkspaceID: "workspace-origin", Mode: BoardTask}) {
 			t.Fatalf("suggested action origin scope = %#v", action.Scope)
 		}
+	}
+	if len(wantCommands) != 0 {
+		t.Fatalf("missing suggested actions: %#v", wantCommands)
 	}
 
 	private := BoardSnapshot{
@@ -619,8 +636,11 @@ func TestSuggestedActionsBindOriginScopeWithoutLeakingPrivateSelectors(t *testin
 	}
 	dedupeAndAdviseForOS(&private, "windows")
 	action := private.SuggestedActions[0]
-	if action.Command != "" || action.Shell != "" || len(action.Argv) != 0 || action.Scope.ProjectID != "" || action.Scope.WorkspaceID != "" {
-		t.Fatalf("private selection leaked into suggested action: %#v", action)
+	if action.Command == "" || action.Shell != "" || len(action.Argv) == 0 || action.Scope.ProjectID != "" || action.Scope.WorkspaceID != "" {
+		t.Fatalf("private selection handling in suggested action = %#v", action)
+	}
+	if !strings.Contains(action.Command, "'<PROJECT_PATH>'") || !slices.Contains(action.Argv, "<PROJECT_PATH>") {
+		t.Fatalf("private selection action lacks explicit placeholder: %#v", action)
 	}
 	encoded, err := json.Marshal(action)
 	if err != nil {

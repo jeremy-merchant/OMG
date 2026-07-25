@@ -25,6 +25,7 @@ type Dependencies struct {
 	Git               GitRunner
 	LoadProjectConfig func(string) (config.Project, error)
 	UserConfigDir     func() (string, error)
+	UserStateDir      func() (string, error)
 	Root              func(string) (string, error)
 	Environment       func(string) string
 	WorkingDir        func() (string, error)
@@ -37,8 +38,16 @@ func NewResolver(dependencies Dependencies) *Resolver {
 	if dependencies.Git == nil {
 		dependencies.Git = runGit
 	}
+	userConfigDirProvided := dependencies.UserConfigDir != nil
 	if dependencies.UserConfigDir == nil {
 		dependencies.UserConfigDir = os.UserConfigDir
+	}
+	if dependencies.UserStateDir == nil {
+		if userConfigDirProvided {
+			dependencies.UserStateDir = dependencies.UserConfigDir
+		} else {
+			dependencies.UserStateDir = defaultUserStateDir
+		}
 	}
 	if dependencies.Root == nil {
 		dependencies.Root = canonicalRoot
@@ -117,13 +126,13 @@ func (r *Resolver) resolveWorkspace(projectRoot, workspace string) (ports.Resolv
 	if err != nil {
 		return ports.ResolvedStore{}, fmt.Errorf("resolve workspace root: %w", err)
 	}
-	configDir, err := r.dependencies.UserConfigDir()
+	stateDir, err := r.dependencies.UserStateDir()
 	if err != nil {
-		return ports.ResolvedStore{}, fmt.Errorf("resolve user config directory: %w", err)
+		return ports.ResolvedStore{}, fmt.Errorf("resolve user state directory: %w", err)
 	}
 	workspaceID := workspaceID(workspaceRoot)
 	return ports.ResolvedStore{
-		Path: filepath.Join(configDir, "omg", "workspaces", string(workspaceID), "state.db"), Mode: ports.StoreModeWorkspace,
+		Path: filepath.Join(stateDir, "omg", "workspaces", string(workspaceID), "state.db"), Mode: ports.StoreModeWorkspace,
 		Project: projectID(projectRoot), Workspace: workspaceID, ProjectRoot: projectRoot, WorkspaceRoot: workspaceRoot,
 	}, nil
 }
@@ -136,17 +145,22 @@ func (r *Resolver) resolveProject(ctx context.Context, projectRoot string) (port
 	common, err := r.dependencies.Git(ctx, projectRoot, "rev-parse", "--path-format=absolute", "--git-common-dir")
 	if err == nil {
 		common = strings.TrimSpace(common)
-		if filepath.IsAbs(common) {
-			return ports.ResolvedStore{Path: filepath.Join(common, "omg", "state.db"), Mode: ports.StoreModeGit, Project: projectID(common), ProjectRoot: projectRoot, GitCommonDir: common}, nil
+		if !filepath.IsAbs(common) {
+			return ports.ResolvedStore{}, errors.New("Git returned a non-absolute common directory")
 		}
-		return ports.ResolvedStore{}, errors.New("Git returned a non-absolute common directory")
+		stateDir, stateErr := r.dependencies.UserStateDir()
+		if stateErr != nil {
+			return ports.ResolvedStore{}, fmt.Errorf("resolve user state directory: %w", stateErr)
+		}
+		id := projectID(common)
+		return ports.ResolvedStore{Path: filepath.Join(stateDir, "omg", "git", string(id), "state.db"), Mode: ports.StoreModeGit, Project: id, ProjectRoot: projectRoot, GitCommonDir: common}, nil
 	}
-	configDir, err := r.dependencies.UserConfigDir()
+	stateDir, err := r.dependencies.UserStateDir()
 	if err != nil {
-		return ports.ResolvedStore{}, fmt.Errorf("resolve user config directory: %w", err)
+		return ports.ResolvedStore{}, fmt.Errorf("resolve user state directory: %w", err)
 	}
 	id := projectID(projectRoot)
-	return ports.ResolvedStore{Path: filepath.Join(configDir, "omg", "projects", string(id), "state.db"), Mode: ports.StoreModeProject, Project: id, ProjectRoot: projectRoot}, nil
+	return ports.ResolvedStore{Path: filepath.Join(stateDir, "omg", "projects", string(id), "state.db"), Mode: ports.StoreModeProject, Project: id, ProjectRoot: projectRoot}, nil
 }
 
 func canonicalRoot(path string) (string, error) {

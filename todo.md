@@ -1,8 +1,8 @@
 # OMG TODO
 
-> Last audited: 2026-07-24 (Asia/Seoul)
+> Last audited: 2026-07-25 (Asia/Tokyo)
 > Scope: only remaining actionable work. Completed verification is not duplicated here.
-> Current source status at audit: 895 named tests/subtests passed across 35 packages, all packages passed under `-race`, and `go vet ./...` passed. Package, target, release, and acceptance evidence must be rebuilt against this newer source before any gate counts can change.
+> Current source status at audit: 1008 named tests/subtests passed across 37 packages, all packages passed under `-race`, and `go vet ./...` passed. Package, target, release, and acceptance evidence must be rebuilt against this newer source before any gate counts can change.
 > Publication status: **NO-GO / NOT PUBLISHED**. The 126-row fail-closed gate has 3 automated passes and 123 rows pending criterion-specific executable or independent human/legal evidence; native Windows execution is also pending.
 
 ## P0 — Close criterion-specific acceptance evidence
@@ -57,11 +57,11 @@ The working name `OMG` is explicitly not yet cleared for publication.
 
 ### P0-OSS-2. Create the first trusted Git baseline
 
-**Status:** pending / partial local root commit exists; full baseline and remote operations still require separate review
+**Status:** pending clean source baseline; configured upstream exists, but current local source is not yet committed as one reproducible revision
 
 **Problem**
 
-The repository now has a task-scoped root commit (`34ac0f1`) containing the verified operator-surface paths. Most project files still predate that commit and remain untracked, so a clean clone is not yet a reproducible full source baseline. There is no remote or upstream.
+The repository has an `origin/main` upstream and the local `main` branch is currently ahead, but the latest verified implementation still spans pre-existing tracked modifications and new source files that are not committed as one revision. A clean clone therefore does not yet reproduce the exact locally verified source.
 
 **Next actions**
 
@@ -69,7 +69,7 @@ The repository now has a task-scoped root commit (`34ac0f1`) containing the veri
 - Exclude runtime state, local approvals, caches, test binaries, private evidence, and generated local-only files as appropriate.
 - Review the complete initial diff and secret scan.
 - Review and commit the remaining tracked-source baseline only after separate explicit authorization for those unrelated pre-existing files.
-- Create/configure a remote and push only after separate explicit authorization.
+- Reconcile the configured remote identity, then push only after separate explicit authorization.
 
 **Done when**
 
@@ -103,61 +103,6 @@ The final gate retains 123 pending rows: 82 require criterion-specific executabl
 - Every required acceptance row is PASS.
 - No executable, human, legal, publication, or native-platform row remains pending.
 - Publication still requires separate explicit human authorization.
-
-## P1 — Make OMG coordinate its own development
-
-### P1-DOGFOOD-1. Add the repository's own agent entry rules
-
-**Status:** pending
-
-**Problem**
-
-The OMG repository itself currently has no root `AGENTS.md`, although multiple heterogeneous agents are modifying it concurrently.
-
-**Next actions**
-
-- Add a concise root `AGENTS.md` that requires `omg preflight` before inspection or modification once the local binary/store is available.
-- Define fallback behavior for a fresh clone before OMG is built or initialized.
-- Route detailed coordination behavior to stable documentation instead of duplicating a large protocol block.
-- Add or integrate equivalent bounded blocks for `CLAUDE.md`, Codex, GJC, OMP/OMO, and other supported instruction surfaces where appropriate.
-
-**Done when**
-
-- A newly attached supported agent is directed to discover identity, parent/root lineage, task, inbox, dependencies, reservations, and handoffs before writing.
-- Repeated integration is idempotent and preserves unrelated rule content.
-
-### P1-DOGFOOD-2. Run a real heterogeneous multi-process collaboration trial
-
-**Status:** pending
-
-**Scope**
-
-Use real processes rather than only one-process CLI fixtures:
-
-```text
-Human
-└── root coordinator
-    ├── Codex worker
-    └── Claude/GJC/OMP worker or reviewer
-```
-
-**Scenario**
-
-- Register one human-direct root agent.
-- Delegate two child agents with one-use tokens.
-- Create a hard dependency between their tasks.
-- Verify the blocked child cannot claim early.
-- Send dependency/question messages and ACK them.
-- Create overlapping path reservations and confirm advisory conflict handling.
-- Complete the prerequisite, verify exactly-once unblock notification, and resume the dependent worker.
-- Create immutable handoffs containing done/doing/next, changed files, verification, risks, and final output policy.
-- Interrupt one process and verify stale/orphan/adoption behavior.
-- Confirm branch/worktree inventory finds registered and unregistered Git assets.
-
-**Done when**
-
-- The entire scenario succeeds with actual heterogeneous agent processes and no manual SQLite intervention.
-- No duplicate task claims, lost messages, ghost locks, stale blockers, or orphaned unreported work occurs.
 
 ## P1 — Repository and artifact hygiene
 

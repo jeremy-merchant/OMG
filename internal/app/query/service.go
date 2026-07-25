@@ -428,13 +428,13 @@ func dedupeAndAdviseForOS(snapshot *BoardSnapshot, goos string) {
 	}
 	actions := map[string]SuggestedActionView{}
 	for _, task := range snapshot.Tasks {
-		actions["show-task:"+task.ID] = suggestedAction(snapshot.Scope, "show_task")
+		actions["show-task:"+task.ID] = suggestedAction(snapshot.Scope, "show_task", task.ID)
 	}
 	for _, handoff := range snapshot.Handoffs {
-		actions["show-handoff:"+handoff.ID] = suggestedAction(snapshot.Scope, "show_handoff")
+		actions["show-handoff:"+handoff.ID] = suggestedAction(snapshot.Scope, "show_handoff", handoff.ID)
 	}
 	for _, reservation := range snapshot.Reservations {
-		actions["reservation-history:"+reservation.ID] = suggestedAction(snapshot.Scope, "reservation_history")
+		actions["reservation-history:"+reservation.ID] = suggestedAction(snapshot.Scope, "reservation_history", reservation.ID)
 	}
 	if snapshot.Git != nil {
 		for _, asset := range snapshot.Git.Assets {
@@ -442,7 +442,7 @@ func dedupeAndAdviseForOS(snapshot *BoardSnapshot, goos string) {
 				switch label {
 				case "dirty_unowned", "unpushed", "diverged", "orphaned_worktree", "detached_unowned":
 					key := "git-cleanup-plan:" + asset.Fingerprint
-					actions[key] = suggestedAction(snapshot.Scope, "git_cleanup_plan")
+					actions[key] = suggestedAction(snapshot.Scope, "git_cleanup_plan", asset.Fingerprint)
 					goto nextAsset
 				}
 			}
@@ -455,17 +455,51 @@ func dedupeAndAdviseForOS(snapshot *BoardSnapshot, goos string) {
 	}
 }
 
-// suggestedAction deliberately carries only the snapshot's stable selection
-// identifiers. The application query does not retain the private path or store
-// selector necessary to replay an OMG command in a different project, so it
-// must not emit argv that would silently run against the caller's current
-// selection.
-func suggestedAction(scope BoardScope, code string) SuggestedActionView {
-	return SuggestedActionView{
-		Code:  code,
-		Argv:  []string{},
-		Scope: safeSuggestedActionScope(scope),
+// suggestedAction emits a reviewable command template rather than an ambient
+// command. The explicit, quoted <PROJECT_PATH> placeholder prevents a copied
+// command from silently acting on the caller's current directory. Canonical
+// private paths are never retained in the snapshot or command template.
+func suggestedAction(scope BoardScope, code, selector string) SuggestedActionView {
+	const projectPlaceholder = "<PROJECT_PATH>"
+	var argv []string
+	switch code {
+	case "show_task":
+		argv = []string{"omg", "board", "task", "--project", projectPlaceholder, "--task", selector}
+	case "show_handoff":
+		argv = []string{"omg", "handoff", "show", "--project", projectPlaceholder, "--payload", actionPayload("handoff_id", selector)}
+	case "reservation_history":
+		argv = []string{"omg", "reserve", "history", "--project", projectPlaceholder, "--payload", actionPayload("reservation_id", selector)}
+	case "git_cleanup_plan":
+		argv = []string{"omg", "git", "cleanup-plan", "--project", projectPlaceholder, "--payload", actionPayload("fingerprint", selector)}
+	default:
+		return SuggestedActionView{Code: code, Argv: []string{}, Scope: safeSuggestedActionScope(scope)}
 	}
+	return SuggestedActionView{
+		Code:    code,
+		Command: actionCommand(argv),
+		Argv:    argv,
+		Scope:   safeSuggestedActionScope(scope),
+	}
+}
+
+func actionPayload(key, value string) string {
+	encoded, _ := json.Marshal(map[string]string{key: value})
+	return string(encoded)
+}
+
+func actionCommand(argv []string) string {
+	parts := make([]string, len(argv))
+	for index, value := range argv {
+		switch {
+		case value == "<PROJECT_PATH>":
+			parts[index] = "'<PROJECT_PATH>'"
+		case strings.HasPrefix(value, "{"):
+			parts[index] = "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
+		default:
+			parts[index] = value
+		}
+	}
+	return strings.Join(parts, " ")
 }
 
 func safeSuggestedActionScope(scope BoardScope) BoardScope {

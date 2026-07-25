@@ -2,6 +2,14 @@
 
 This reference describes the v0.1 CLI contract implemented by this checkout. Place global options after the command/subcommand. Paths used for project, workspace, store, input, and output selection should be absolute in automation.
 
+## Discovery and human presentation
+
+- `omg` with no arguments prints a concise discovery surface and exits successfully without opening state or dispatching a command.
+- `omg --help` and `omg help` print global help. On a short real TTY the global view preserves all workflows and command families but folds long descriptions; contextual command help is never truncated by terminal height.
+- A bare namespace command that requires a subcommand, such as `omg task`, `omg board`, or `omg migration`, prints that family's help and exits successfully. Any additional option or unknown value uses normal strict validation.
+- Human TTY width is grapheme-aware. `OMG_COLOR_SCHEME=light|dark` selects a foreground palette; conventional `COLORFGBG` white-background hints select light when no explicit value exists. `NO_COLOR`, `TERM=dumb`, and non-TTY output remain plain.
+- These discovery rules do not alter JSON envelopes, application dispatch, idempotency, or exit behavior for actual command requests.
+
 ## Common selectors and options
 
 | Option | Meaning |
@@ -253,7 +261,7 @@ omg mcp serve --stdio
 
 `run` deliberately does not support `--json`; stdout and stderr belong to the wrapped process, followed by one compact structured terminal result. When the child starts and exits, OMG preserves its exit code. An unavailable executable maps to exit 3.
 
-`watch` remains in the foreground until cancellation. Shell commands print generated scripts and never edit startup files. MCP uses protocol-only stdout.
+`watch` remains in the foreground until cancellation. Shell commands print generated scripts and never edit startup files. `shell-init` emits explicit preflight/board/checkpoint helpers, and `completion` limits suggestions to the selected command family while sharing one vocabulary across Bash, Zsh, Fish, and PowerShell. MCP uses protocol-only stdout.
 
 ## JSON envelopes
 

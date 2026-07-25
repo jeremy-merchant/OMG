@@ -1,6 +1,7 @@
 package view
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -98,6 +99,79 @@ func TestPreflightSharesWidthAndColorSemantics(t *testing.T) {
 			if !strings.Contains(normalizedTokenStream, "task-with-a-very-long-canonical-identifier") {
 				t.Errorf("width=%d color=%t preflight lost canonical task ID:\n%s", width, color, output)
 			}
+		}
+	}
+}
+
+func TestTTYTokenSplittingPrefersSemanticDelimiters(t *testing.T) {
+	tests := []struct {
+		value string
+		width int
+		want  []string
+	}{
+		{"instruction_source=delegation_token", 32, []string{"instruction_source=", "delegation_token"}},
+		{"claimed_by_session=agt-preview", 24, []string{"claimed_by_session=", "agt-preview"}},
+		{"0123456789abcdef", 8, []string{"01234567", "89abcdef"}},
+		{"한글협업상태확인", 8, []string{"한글협업", "상태확인"}},
+	}
+	for _, test := range tests {
+		got := splitTTYToken(test.value, test.width)
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("splitTTYToken(%q, %d) = %#v, want %#v", test.value, test.width, got, test.want)
+		}
+		for _, part := range got {
+			if width := ttyDisplayWidth(part); width > test.width {
+				t.Errorf("split part %q width=%d exceeds %d", part, width, test.width)
+			}
+		}
+	}
+}
+
+func TestNarrowTTYSeparatesStatusFromCanonicalMetadataWithoutDuplication(t *testing.T) {
+	model := viewModel(t, `{"schema_version":1,"view_version":1,"mode":"all","project_id":"project-compact","snapshot_cursor":"cursor-compact","scope":{"project_id":"project-compact","mode":"all"},"identity":{"id":"session-with-a-very-long-canonical-id","kind":"agent_delegated","role":"reviewer","runtime":"generic","instruction_source":"delegation_token","provenance_confidence":"verified","task_id":"task-with-a-very-long-id","native_access_state":"available","started_at":"2026-07-24T01:02:03Z"},"sessions":[],"tasks":[{"id":"task-with-a-very-long-id","display_number":8,"title":"Review narrow terminal metadata","state":"WAITING","created_by_session_id":"session-owner","claimed_by_session_id":"session-with-a-very-long-canonical-id","created_at":"2026-07-24T01:02:03Z","updated_at":"2026-07-24T02:03:04Z"}],"runs":[],"progress":[{"id":"progress-with-a-very-long-id","task_id":"task-with-a-very-long-id","run_id":"run-with-a-very-long-id","session_id":"session-with-a-very-long-canonical-id","phase":"review","done":["inspected"],"doing":["verify"],"next":["handoff"],"created_at":"2026-07-24T02:04:05Z"}],"dependencies":[],"inbox":[],"handoffs":[],"reservations":[],"warnings":[],"suggested_actions":[]}`)
+	board, err := decodeBoard(model)
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := renderTTYWidth(board, false, 40)
+	canonical := strings.Map(func(character rune) rune {
+		switch character {
+		case ' ', '\n', '\r', '\t', '│', '├', '└', '─', '·':
+			return -1
+		default:
+			return character
+		}
+	}, output)
+	for _, want := range []string{
+		"instruction_source=delegation_token",
+		"task=task-with-a-very-long-id",
+		"created_by_session=session-owner",
+		"claimed_by_session=session-with-a-very-long-canonical-id",
+		"created=2026-07-24T01:02:03Z",
+		"updated=2026-07-24T02:03:04Z",
+		"progress_id=progress-with-a-very-long-id",
+		"session=session-with-a-very-long-canonical-id",
+	} {
+		if !strings.Contains(canonical, want) {
+			t.Errorf("narrow TTY lost canonical fact %q:\n%s", want, output)
+		}
+	}
+	if strings.Count(output, "kind=agent_delegated") != 1 {
+		t.Fatalf("session kind is duplicated in narrow TTY:\n%s", output)
+	}
+	if strings.Contains(output, "Task task-with-a-very-long-id") || strings.Contains(output, "Progress progress-with-a-very-long-id") {
+		t.Fatalf("narrow TTY retained duplicate prose rows:\n%s", output)
+	}
+	if lines := len(strings.Split(strings.TrimSuffix(output, "\n"), "\n")); lines > 105 {
+		t.Fatalf("narrow TTY expanded to %d lines, want at most 105:\n%s", lines, output)
+	}
+}
+
+func TestTTYProgressMetadataMarksEmptyLanes(t *testing.T) {
+	metadata := ttyProgressMetadata(query.ProgressView{ID: "progress-1", TaskID: "task-1", RunID: "run-1", SessionID: "session-1"})
+	for _, want := range []string{"progress_id=progress-1", "session=session-1", "done=none", "doing=none", "next=none"} {
+		if !strings.Contains(metadata, want) {
+			t.Errorf("progress metadata missing %q: %s", want, metadata)
 		}
 	}
 }

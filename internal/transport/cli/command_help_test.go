@@ -7,6 +7,7 @@ import (
 
 	"example.invalid/coordledger/internal/app/foundation"
 	"example.invalid/coordledger/internal/domain"
+	shellgen "example.invalid/coordledger/internal/shell"
 )
 
 func TestCommandHelpCatalogIsUniqueAndComplete(t *testing.T) {
@@ -75,8 +76,8 @@ func TestSubcommandHelpShowsOnlyApplicableOptions(t *testing.T) {
 
 func TestInvalidRequestRecoveryUsesValidHelpTargets(t *testing.T) {
 	exit, output := run(t, "board")
-	if exit != ExitUsage || !strings.Contains(output, "omg board --help") {
-		t.Fatalf("missing board mode recovery exit=%d output=%s", exit, output)
+	if exit != ExitSuccess || !strings.Contains(output, "OMG / BOARD") || !strings.Contains(output, "SUBCOMMANDS") || !strings.Contains(output, "board task") || strings.Contains(output, "missing board mode") {
+		t.Fatalf("bare board discovery exit=%d output=%s", exit, output)
 	}
 
 	exit, output = run(t, "export", "xml")
@@ -113,5 +114,177 @@ func TestStatePathSecurityErrorExplainsSafeRecovery(t *testing.T) {
 		if !strings.Contains(output.String(), want) {
 			t.Errorf("state path recovery missing %q: %s", want, output.String())
 		}
+	}
+}
+
+func TestGlobalHelpIsWorkflowFirstAndCompact(t *testing.T) {
+	exit, output := run(t, "--help")
+	if exit != ExitSuccess {
+		t.Fatalf("global help exit=%d: %s", exit, output)
+	}
+	for _, want := range []string{
+		"28 commands",
+		"WORKFLOWS",
+		"First run",
+		"Start work",
+		"Share state",
+		"Recover safely",
+		"omg init → omg preflight → omg board all",
+		"START + VERIFY · 7",
+		"COORDINATE WORK · 10",
+		"INSPECT + INTEGRATE · 11",
+		"Record or inspect done / doing / next.",
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("workflow-first global help missing %q:\n%s", want, output)
+		}
+	}
+	if strings.Contains(output, "Transfer work, evidence, risks, and ownership decisions without treating self-report as verification.") {
+		t.Fatalf("global command palette still uses verbose contextual copy:\n%s", output)
+	}
+}
+
+func TestContextualHelpShowsBoundedRelatedPaths(t *testing.T) {
+	for _, test := range []struct {
+		args []string
+		want []string
+	}{
+		{args: []string{"task", "--help"}, want: []string{"RELATED PATHS", "omg progress --help", "omg dependency --help", "omg handoff --help", "omg board --help"}},
+		{args: []string{"task", "claim", "--help"}, want: []string{"RELATED PATHS", "omg progress --help", "Parent help: omg task --help"}},
+		{args: []string{"doctor", "--help"}, want: []string{"omg preflight --help", "omg migration --help", "omg backup --help"}},
+	} {
+		exit, output := run(t, test.args...)
+		if exit != ExitSuccess {
+			t.Fatalf("help %v exit=%d: %s", test.args, exit, output)
+		}
+		for _, want := range test.want {
+			if !strings.Contains(output, want) {
+				t.Errorf("help %v missing related path %q:\n%s", test.args, want, output)
+			}
+		}
+		if strings.Count(output, "RELATED PATHS") != 1 {
+			t.Errorf("help %v renders related paths more than once:\n%s", test.args, output)
+		}
+	}
+}
+
+func TestWorkflowAndRelatedCatalogReferencesKnownCommands(t *testing.T) {
+	for _, workflow := range helpWorkflows {
+		if workflow.Marker == "" || workflow.Name == "" || workflow.Command == "" || workflow.Summary == "" {
+			t.Errorf("incomplete workflow: %+v", workflow)
+		}
+	}
+	for _, command := range helpCommands {
+		if summary := globalCommandSummary(command.Name); summary == "" {
+			t.Errorf("global summary missing for %q", command.Name)
+		}
+		seen := map[string]bool{}
+		for _, related := range relatedCommandNames(command.Name) {
+			if !knownCommand(related) {
+				t.Errorf("%s related path references unknown command %q", command.Name, related)
+			}
+			if related == command.Name || seen[related] {
+				t.Errorf("%s has invalid duplicate/self related path %q", command.Name, related)
+			}
+			seen[related] = true
+		}
+	}
+}
+
+func TestNarrowGlobalHelpUsesCompactCommandGrid(t *testing.T) {
+	output, found := renderHelp("v-test", false, 40, helpTarget{})
+	if !found {
+		t.Fatal("global help was not rendered")
+	}
+	for _, want := range []string{
+		"init · preflight · doctor",
+		"human · session · delegate",
+		"board · git · export",
+		"Open one family with: omg <command>",
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("narrow command grid missing %q:\n%s", want, output)
+		}
+	}
+	if strings.Contains(output, "Create or inspect canonical human identities.") {
+		t.Fatalf("narrow command grid retained verbose descriptions:\n%s", output)
+	}
+	if lines := len(strings.Split(strings.TrimSuffix(output, "\n"), "\n")); lines > 100 {
+		t.Fatalf("narrow global help expanded to %d lines, want at most 100", lines)
+	}
+}
+
+func TestExamplesUseHangingIndentAtNarrowWidths(t *testing.T) {
+	output, found := renderHelp("v-test", false, 48, helpTarget{Command: "task"})
+	if !found {
+		t.Fatal("task help was not rendered")
+	}
+	lines := strings.Split(output, "\n")
+	for index, line := range lines {
+		if strings.Contains(line, "omg task create") && index+1 < len(lines) {
+			if !strings.HasPrefix(lines[index+1], "    ") {
+				t.Fatalf("wrapped example continuation lacks hanging indent:\n%s", output)
+			}
+			return
+		}
+	}
+	t.Fatalf("wrapped task example not found:\n%s", output)
+}
+
+func TestShellCompletionVocabularyCoversHelpAndDecoderContracts(t *testing.T) {
+	words := make(map[string]bool)
+	for _, word := range shellgen.CompletionWords() {
+		words[word] = true
+	}
+	for _, command := range helpCommands {
+		if !words[command.Name] {
+			t.Errorf("shell completion omitted command %q", command.Name)
+		}
+		contextual := make(map[string]bool)
+		for _, candidate := range shellgen.CompletionCandidates(command.Name) {
+			contextual[candidate] = true
+		}
+		for _, subcommand := range command.Subcommands {
+			if !words[subcommand.Name] {
+				t.Errorf("shell completion omitted %s subcommand %q", command.Name, subcommand.Name)
+			}
+			if !contextual[subcommand.Name] {
+				t.Errorf("shell completion does not offer %s subcommand %q in its command context", command.Name, subcommand.Name)
+			}
+		}
+	}
+	for _, flag := range []string{
+		"--help", "-h", "--json", "--integrity", "--status", "--stdio", "--payload-stdin",
+		"--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key",
+		"--format", "--session", "--task", "--runtime", "--payload", "--payload-file",
+	} {
+		if !words[flag] {
+			t.Errorf("shell completion omitted decoder/help option %q", flag)
+		}
+	}
+	for _, value := range []string{"help", "html", "markdown", "tty", "json", "bash", "zsh", "fish", "powershell"} {
+		if !words[value] {
+			t.Errorf("shell completion omitted presentation value %q", value)
+		}
+	}
+	if words["--plan"] {
+		t.Fatal("shell completion exposes unsupported --plan")
+	}
+}
+
+func TestShellCompletionDescriptionsStayBoundToHelpCatalog(t *testing.T) {
+	for _, command := range helpCommands {
+		if got, want := shellgen.CompletionDescription("", command.Name), globalCommandSummary(command.Name); got != want {
+			t.Errorf("completion description for %q = %q, want help summary %q", command.Name, got, want)
+		}
+		for _, subcommand := range command.Subcommands {
+			description := shellgen.CompletionDescription(command.Name, subcommand.Name)
+			if description == "" || description == "OMG "+command.Name+" value." {
+				t.Errorf("completion description for %s %s is generic: %q", command.Name, subcommand.Name, description)
+			}
+		}
+	}
+	if got := shellgen.CompletionDescription("", "help"); got != "Explore command families and contextual help." {
+		t.Errorf("completion description for help = %q", got)
 	}
 }

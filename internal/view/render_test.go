@@ -70,7 +70,7 @@ func TestHumanRenderersExposeOperatorHierarchy(t *testing.T) {
 		}
 		got := output.String()
 		for _, want := range []string{
-			`<title>OMG operator board</title>`,
+			`<title>OMG · project-1 · BLOCKED</title>`,
 			`class="brand-mark"`,
 			`aria-label="Board sections"`,
 			`aria-label="Snapshot metadata"`,
@@ -222,6 +222,29 @@ func TestRenderHTMLHashesInlineStylesAndPreservesAccessibleThemes(t *testing.T) 
 	if light < 0 || print <= light {
 		t.Fatal("print theme must override the light theme")
 	}
+	lightStyles := style[light:print]
+	for themeName, themeStyles := range map[string]string{"dark": style[:light], "light": lightStyles} {
+		for _, foreground := range []string{"--text-muted", "--text-secondary"} {
+			for _, background := range []string{"--canvas", "--surface", "--surface-raised"} {
+				ratio := contrastRatio(cssHexColor(t, themeStyles, foreground), cssHexColor(t, themeStyles, background))
+				if ratio < 4.5 {
+					t.Errorf("%s %s against %s contrast ratio %.2f is below 4.5:1", themeName, foreground, background, ratio)
+				}
+			}
+		}
+		for _, pair := range [][2]string{
+			{"--success", "--success-soft"},
+			{"--warning", "--warning-soft"},
+			{"--danger", "--danger-soft"},
+			{"--info", "--accent-soft"},
+			{"--blocked", "--blocked-soft"},
+		} {
+			ratio := contrastRatio(cssHexColor(t, themeStyles, pair[0]), cssHexColor(t, themeStyles, pair[1]))
+			if ratio < 4.5 {
+				t.Errorf("%s %s against %s contrast ratio %.2f is below 4.5:1", themeName, pair[0], pair[1], ratio)
+			}
+		}
+	}
 	printStyles := style[print:]
 	for _, want := range []string{"color-scheme:light", "--canvas:#fff", "--surface:#fff", "--text-primary:#000", "--text-muted:#444", "--accent:#000", ".rail,.skip-link{display:none}"} {
 		if !strings.Contains(printStyles, want) {
@@ -237,10 +260,18 @@ func cssHexColor(t *testing.T, stylesheet, property string) string {
 		t.Fatalf("stylesheet missing %s", property)
 	}
 	value, _, found := strings.Cut(remainder, ";")
-	if !found || len(value) != 7 || value[0] != '#' {
-		t.Fatalf("stylesheet %s is not a six-digit hex color: %q", property, value)
+	if !found || value == "" || value[0] != '#' {
+		t.Fatalf("stylesheet %s is not a hex color: %q", property, value)
 	}
-	return value
+	switch len(value) {
+	case 4:
+		return "#" + strings.Repeat(string(value[1]), 2) + strings.Repeat(string(value[2]), 2) + strings.Repeat(string(value[3]), 2)
+	case 7:
+		return value
+	default:
+		t.Fatalf("stylesheet %s is not a three- or six-digit hex color: %q", property, value)
+		return ""
+	}
 }
 
 func contrastRatio(first, second string) float64 {

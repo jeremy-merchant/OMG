@@ -109,7 +109,9 @@ Serve the same command policy over newline-delimited MCP JSON-RPC 2.0 on stdio:
 omg mcp serve --stdio
 ```
 
-Shell helpers are generated, not installed automatically:
+Running `omg` with no arguments prints a concise, non-dispatching discovery view. A bare namespace such as `omg task` or `omg board` opens that family's contextual help; explicit `omg --help` remains the full global contract.
+
+Shell helpers are generated, not installed automatically. Initialization adds bounded `preflight`, `board`, and `checkpoint` helpers. Completion is description-rich, traverses command/subcommand paths, and uses native directory/file/format candidates for typed option values:
 
 ```bash
 omg shell-init bash
@@ -117,11 +119,23 @@ omg completion zsh
 omg completion powershell
 ```
 
+The deterministic hostile-input preview can exercise every presentation without touching canonical state:
+
+```bash
+go run ./examples/board-preview --format html --output board-preview.html
+go run ./examples/board-preview --format tty --output -
+go run ./examples/board-preview --format markdown --output board-preview.md
+go run ./examples/board-preview --format json --output board-preview.json
+```
+
+File output is owner-only and refuses to overwrite an existing path. `--output -` is the explicit stdout mode for terminal QA. Human TTY output is grapheme-aware and supports `OMG_COLOR_SCHEME=light|dark`; a conventional light `COLORFGBG` value is used only as a fallback, while `NO_COLOR` and `TERM=dumb` remain authoritative plain-output controls.
+
 ## Documentation
 
 - [Operator guide](docs/OPERATIONS.md): storage, migrations, backup/recovery, watch, MCP, privacy, and troubleshooting.
 - [Command reference](docs/COMMAND_REFERENCE.md): supported command syntax, payloads, JSON envelopes, and stable exit codes.
-- [Adapter guide](docs/ADAPTERS.md): runtime wrappers, instruction surfaces, watch, MCP, and native-session metadata.
+- [Adapter guide](docs/ADAPTERS.md): runtime wrappers, contextual shell helpers/completion, instruction surfaces, watch, MCP, and native-session metadata.
+- [2026 interface research](docs/INTERFACE_RESEARCH_2026.md): official trend research, OMP source audit, accessibility decisions, and browser measurements.
 - [Product specification](docs/PRODUCT_SPEC.md) and [acceptance matrix](docs/ACCEPTANCE_MATRIX.md).
 - [Security policy](docs/SECURITY.md), [privacy contract](docs/PRIVACY.md), and [threat model](docs/THREAT_MODEL.md).
 

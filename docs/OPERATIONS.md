@@ -15,7 +15,7 @@ Selection is explicit and deterministic:
 3. `--project <path>` selects a project.
 4. Without a selector, OMG uses the current working directory.
 
-For a Git worktree, OMG resolves the Git common directory; linked worktrees therefore share one canonical store. Non-Git projects and explicit workspaces use the operating system user-data directory. Bare repositories are rejected as projects; use workspace mode when that is intentional.
+For a Git worktree, OMG resolves the Git common directory as the stable repository identity, then maps that identity into the operating system user-private state root; linked worktrees therefore share one canonical store without placing mutable state inside Git metadata. Non-Git projects and explicit workspaces use the same private state root with separate stable IDs. On macOS the default root is the per-user operating-system state directory, so an intentionally shared home or project directory does not weaken the database boundary. Bare repositories are rejected as projects; use workspace mode when that is intentional.
 
 The state directory and database are private local data. On POSIX systems OMG enforces mode `0700` for the managed state directory and `0600` for the database and SQLite sidecars, and rejects wrong-owner or broader existing nodes. On Windows it applies and verifies a current-user-only DACL and rejects reparse points or broader existing state artifacts. Exports, plans, and approval files are created owner-only where the platform supports it. Do not commit the SQLite store, WAL/SHM files, backup directory, lock files, PID files, delegation tokens, runtime homes, or native-session locators.
 

@@ -47,6 +47,44 @@ func TestResolveLinkedWorktreesUseCommonDirectory(t *testing.T) {
 	}
 }
 
+func TestResolveGitStoreUsesPrivateUserStateRoot(t *testing.T) {
+	common := filepath.Join(t.TempDir(), "repo.git")
+	root := filepath.Join(t.TempDir(), "worktree")
+	if err := os.Mkdir(root, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	stateRoot := filepath.Join(t.TempDir(), "private-state")
+	resolver := platform.NewResolver(platform.Dependencies{
+		Git: func(_ context.Context, _ string, args ...string) (string, error) {
+			switch strings.Join(args, " ") {
+			case "rev-parse --is-bare-repository":
+				return "false\n", nil
+			case "rev-parse --path-format=absolute --git-common-dir":
+				return common + "\n", nil
+			default:
+				return "", errors.New("unexpected git command")
+			}
+		},
+		UserConfigDir: func() (string, error) { return filepath.Join(t.TempDir(), "config"), nil },
+		UserStateDir:  func() (string, error) { return stateRoot, nil },
+	})
+
+	resolved, err := resolver.Resolve(context.Background(), ports.ResolveRequest{ProjectPath: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := filepath.Join(stateRoot, "omg", "git", string(resolved.Project), "state.db")
+	if resolved.Path != expected {
+		t.Fatalf("path = %q; want %q", resolved.Path, expected)
+	}
+	if resolved.GitCommonDir != common || resolved.Mode != ports.StoreModeGit {
+		t.Fatalf("resolved = %#v", resolved)
+	}
+	if strings.HasPrefix(resolved.Path, common+string(filepath.Separator)) {
+		t.Fatalf("store remained inside Git metadata: %q", resolved.Path)
+	}
+}
+
 func TestResolveNonGitIDIsStable(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "work space 한글")
 	if err := os.Mkdir(root, 0o700); err != nil {

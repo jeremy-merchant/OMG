@@ -27,18 +27,11 @@ The local DevSpace project boundary did not expose an installed `omp` binary or 
 
 ### Terminal
 
-- `accent`: ANSI bright cyan / OMP electric blue role
-- `success`: ANSI bright green
-- `warning`: ANSI bright yellow
-- `danger`: ANSI bright red
-- `info`: ANSI cyan
-- `pending`: ANSI yellow
-- `blocked`: ANSI magenta
-- `primary`: bold default foreground
-- `secondary`: default foreground
-- `muted`: dim foreground
+Dark-background semantic roles preserve the established bright Titanium mapping: bright cyan accent/info, bright green success, bright yellow warning/pending, bright magenta blocked, bright red danger, and dim metadata. Light-background roles use normal ANSI cyan/green/yellow/magenta/red plus gray metadata.
 
-Color is enabled only for a real terminal when `NO_COLOR` is unset and `TERM` is not `dumb`. Plain output keeps the same glyphs, ordering, labels, and tree structure.
+`OMG_COLOR_SCHEME=light|dark` is the explicit preference. When absent, only conventional white-background `COLORFGBG` values are treated as light; ambiguous indexed colors preserve the dark palette. Color is enabled only for a real terminal when `NO_COLOR` is unset and `TERM` is not `dumb`. Plain output keeps the same glyphs, ordering, labels, and tree structure.
+
+Cell measurement uses UAX #29 grapheme clusters through `github.com/rivo/uniseg`. Combining marks, ZWJ emoji, regional-indicator flags, and keycaps are never split. Hangul Compatibility Jamo follows current OMP terminal-identity behavior: Ghostty uses two cells even on macOS, other macOS terminals use one cell, and other platforms use the Unicode width result.
 
 ### HTML
 

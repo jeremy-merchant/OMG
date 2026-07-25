@@ -5,11 +5,13 @@ import (
 	"strings"
 
 	"example.invalid/coordledger/internal/app/query"
+	"example.invalid/coordledger/internal/terminalstyle"
 )
 
 type terminalTheme struct {
 	enabled bool
 	width   int
+	palette terminalstyle.Palette
 }
 
 func (theme terminalTheme) terminalWidth() int {
@@ -19,43 +21,38 @@ func (theme terminalTheme) terminalWidth() int {
 	return normalizeTTYWidth(theme.width)
 }
 
-const (
-	ansiReset   = "\x1b[0m"
-	ansiBold    = "\x1b[1m"
-	ansiDim     = "\x1b[2m"
-	ansiCyan    = "\x1b[96m"
-	ansiGreen   = "\x1b[92m"
-	ansiYellow  = "\x1b[93m"
-	ansiRed     = "\x1b[91m"
-	ansiMagenta = "\x1b[95m"
-)
-
 func (theme terminalTheme) paint(code, value string) string {
 	if !theme.enabled || value == "" {
 		return value
 	}
-	return code + value + ansiReset
+	return code + value + terminalstyle.Reset
 }
 
-func (theme terminalTheme) bold(value string) string   { return theme.paint(ansiBold, value) }
-func (theme terminalTheme) dim(value string) string    { return theme.paint(ansiDim, value) }
-func (theme terminalTheme) accent(value string) string { return theme.paint(ansiCyan, value) }
+func (theme terminalTheme) bold(value string) string { return theme.paint(terminalstyle.Bold, value) }
+func (theme terminalTheme) dim(value string) string  { return theme.paint(theme.palette.Muted, value) }
+func (theme terminalTheme) accent(value string) string {
+	return theme.paint(theme.palette.Accent, value)
+}
 
 func (theme terminalTheme) status(status statusPresentation) string {
-	code := ansiCyan
+	code := theme.palette.Accent
 	switch status.Semantic {
 	case stateSuccess:
-		code = ansiGreen
+		code = theme.palette.Success
 	case stateWarning, statePending:
-		code = ansiYellow
+		code = theme.palette.Warning
 	case stateBlocked:
-		code = ansiMagenta
+		code = theme.palette.Blocked
 	case stateDanger:
-		code = ansiRed
+		code = theme.palette.Danger
 	case stateMuted:
-		code = ansiDim
+		code = theme.palette.Muted
 	}
 	return theme.paint(code, status.Glyph+" "+strings.ToUpper(status.Label))
+}
+
+func newViewTerminalTheme(color bool, width int) terminalTheme {
+	return terminalTheme{enabled: color, width: normalizeTTYWidth(width), palette: terminalstyle.CurrentPalette()}
 }
 
 func renderTTY(board query.BoardSnapshot, color bool) string {
@@ -63,7 +60,7 @@ func renderTTY(board query.BoardSnapshot, color bool) string {
 }
 
 func renderTTYWidth(board query.BoardSnapshot, color bool, width int) string {
-	theme := terminalTheme{enabled: color, width: normalizeTTYWidth(width)}
+	theme := newViewTerminalTheme(color, width)
 	health := boardHealth(board)
 	var out strings.Builder
 
@@ -281,6 +278,9 @@ func writeTTYSessionNode(out *strings.Builder, theme terminalTheme, session quer
 		"access="+text(session.NativeAccessState),
 		"current_task="+text(session.TaskID),
 	), " · ")
+	if compactTTY(theme) {
+		meta = ""
+	}
 	writeTTYStatusLine(out, theme, prefix, connector, state, primary, meta)
 	writeTTYWrapped(out, theme, childPrefix+"   ", childPrefix+"   ", identity(&session, text), theme.dim)
 	for index, child := range children[session.ID] {
@@ -347,9 +347,12 @@ func writeTTYTaskNode(out *strings.Builder, theme terminalTheme, task query.Task
 		childPrefix = prefix + "   "
 	}
 	primary := fmt.Sprintf("#%d %s", task.DisplayNumber, text(task.Title))
-	meta := strings.Join(nonEmpty("task="+text(task.ID), "state="+text(task.State), "claimed_by_session="+text(task.ClaimedBySessionID), "parent_task="+text(task.ParentTaskID)), " · ")
+	meta := strings.Join(nonEmpty("task="+text(task.ID), "claimed_by_session="+text(task.ClaimedBySessionID), "parent_task="+text(task.ParentTaskID)), " · ")
+	if compactTTY(theme) {
+		meta = ""
+	}
 	writeTTYStatusLine(out, theme, prefix, connector, presentStatus(task.State), primary, meta)
-	writeTTYWrapped(out, theme, childPrefix+"   ", childPrefix+"   ", tasksRunsRows(query.BoardSnapshot{Tasks: []query.TaskView{task}}, text)[0], theme.dim)
+	writeTTYWrapped(out, theme, childPrefix+"   ", childPrefix+"   ", ttyTaskMetadata(task), theme.dim)
 	for _, run := range runs[task.ID] {
 		writeTTYStatusLine(out, theme, childPrefix, "├─ ", presentStatus(run.State), "run "+shortID(run.ID), strings.Join(nonEmpty("task="+text(run.TaskID), "session="+text(run.SessionID), "state="+text(run.State)), " · "))
 	}
@@ -368,11 +371,44 @@ func writeTTYTaskNode(out *strings.Builder, theme terminalTheme, task query.Task
 		for _, value := range item.Next {
 			writeTTYWrapped(out, theme, childPrefix+"│    ○ next  ", childPrefix+"│            ", text(value), theme.dim)
 		}
-		writeTTYWrapped(out, theme, childPrefix+"│    ", childPrefix+"│    ", progressRows(query.BoardSnapshot{Progress: []query.ProgressView{item}}, text)[0], theme.dim)
+		writeTTYWrapped(out, theme, childPrefix+"│    ", childPrefix+"│    ", ttyProgressMetadata(item), theme.dim)
 	}
 	for index, child := range children[task.ID] {
 		writeTTYTaskNode(out, theme, child, children, runs, progress, visited, childPrefix, index == len(children[task.ID])-1)
 	}
+}
+
+func compactTTY(theme terminalTheme) bool {
+	return theme.terminalWidth() < 68
+}
+
+func ttyTaskMetadata(task query.TaskView) string {
+	return strings.Join(nonEmpty(
+		"task="+text(task.ID),
+		"created_by_session="+text(task.CreatedBySessionID),
+		"claimed_by_session="+text(task.ClaimedBySessionID),
+		"parent_task="+text(task.ParentTaskID),
+		"created="+stamp(task.CreatedAt),
+		"updated="+stamp(task.UpdatedAt),
+	), " · ")
+}
+
+func ttyProgressMetadata(progress query.ProgressView) string {
+	fields := nonEmpty(
+		"progress_id="+text(progress.ID),
+		"session="+text(progress.SessionID),
+		"created="+stamp(progress.CreatedAt),
+	)
+	if len(progress.Done) == 0 {
+		fields = append(fields, "done=none")
+	}
+	if len(progress.Doing) == 0 {
+		fields = append(fields, "doing=none")
+	}
+	if len(progress.Next) == 0 {
+		fields = append(fields, "next=none")
+	}
+	return strings.Join(fields, " · ")
 }
 
 func writeTTYDependencies(out *strings.Builder, theme terminalTheme, board query.BoardSnapshot) {
@@ -489,12 +525,20 @@ func writeTTYActions(out *strings.Builder, theme terminalTheme, board query.Boar
 		writeTTYEmpty(out, theme, "No suggested action for this scope")
 		return
 	}
-	for _, action := range board.SuggestedActions {
-		content := text(action.Command)
-		if action.Code != "" {
-			content += "  " + text(action.Code)
+	writeTTYWrapped(out, theme, "  ", "  ", "Copy a command, replace '<PROJECT_PATH>' with the intended absolute checkout path, review its scope, then run it in your shell. Nothing is executed by this view.", theme.dim)
+	for _, group := range groupHTMLActions(board.SuggestedActions) {
+		if len(group.Actions) == 0 {
+			continue
 		}
-		writeTTYWrapped(out, theme, "  ❯ ", "    ", content, nil)
+		writeTTYWrapped(out, theme, "\n  ", "  ", strings.ToUpper(group.Label)+"  "+fmt.Sprintf("%d action(s)", len(group.Actions)), theme.accent)
+		for _, action := range group.Actions {
+			label := text(action.Code)
+			if label == "" {
+				label = "safe action"
+			}
+			writeTTYWrapped(out, theme, "    ", "    ", label+"  "+htmlActionDescription(action.Code), theme.dim)
+			writeTTYWrapped(out, theme, "    ❯ ", "      ", text(action.Command), nil)
+		}
 	}
 }
 
