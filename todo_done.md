@@ -415,5 +415,29 @@ The strict ancestor-ACL guard correctly rejected mutable state below the owner's
 
 **Remaining limitations**
 
-- This closes local personal-use heterogeneous coordination readiness. It does not satisfy native Windows, hosted CI, criterion-specific release evidence, public naming/module identity, legal approval, publication, clean-clone baseline, commit, or push gates.
-- No commit or push was created because the user did not explicitly request either action.
+- This closes local personal-use heterogeneous coordination readiness. It does not satisfy native Windows, hosted CI, criterion-specific release evidence, public naming/module identity, legal approval, publication, or push gates.
+- The verified implementation was subsequently committed as the local source-of-truth baseline in `794ac50`; no remote push was performed.
+
+
+## 2026-07-25 — P0-OSS-2: Establish the first trusted local Git source of truth
+
+**Status:** complete
+
+**Completed work**
+
+- Reviewed the complete tracked and untracked source set and confirmed that runtime databases, one-time approvals, local test captures, agent harness state, generated binaries, and implementation scratch files are excluded by `.gitignore`.
+- Re-ran `git diff --check` and the high-confidence secret scan before staging; both passed.
+- Committed the complete verified product state, including new source files, tests, documentation, and OMG-managed root instructions, as commit `794ac50` (`feat: establish OMG local source of truth`).
+- Confirmed the working tree was clean immediately after the baseline commit.
+
+**SOT definition**
+
+- Local branch: `main`
+- Baseline commit: `794ac50`
+- Upstream: `origin/main`
+- Remote push: not performed
+
+**Remaining limitations**
+
+- Public release identity and the final Go module path remain a separate human decision.
+- A remote source of truth still requires explicit reconciliation and push authorization.

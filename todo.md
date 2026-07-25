@@ -55,27 +55,6 @@ The working name `OMG` is explicitly not yet cleared for publication.
 
 - The final public name and module path are authorized and consistently used throughout source, docs, examples, CI, manifests, SBOM, and provenance.
 
-### P0-OSS-2. Create the first trusted Git baseline
-
-**Status:** pending clean source baseline; configured upstream exists, but current local source is not yet committed as one reproducible revision
-
-**Problem**
-
-The repository has an `origin/main` upstream and the local `main` branch is currently ahead, but the latest verified implementation still spans pre-existing tracked modifications and new source files that are not committed as one revision. A clean clone therefore does not yet reproduce the exact locally verified source.
-
-**Next actions**
-
-- Define `.gitignore` and the exact tracked-source set first.
-- Exclude runtime state, local approvals, caches, test binaries, private evidence, and generated local-only files as appropriate.
-- Review the complete initial diff and secret scan.
-- Review and commit the remaining tracked-source baseline only after separate explicit authorization for those unrelated pre-existing files.
-- Reconcile the configured remote identity, then push only after separate explicit authorization.
-
-**Done when**
-
-- A clean clone reproduces the source tree and tests.
-- Release source identity is a real commit/tag rather than an uncommitted archive-only identity.
-
 ## P0 — Complete external platform and publication gates
 
 ### P0-CI-1. Run native hosted CI, especially Windows
