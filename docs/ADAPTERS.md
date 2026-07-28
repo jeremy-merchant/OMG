@@ -6,6 +6,21 @@ All adapters are thin transports around the same application services and canoni
 
 Core correctness must remain available with every adapter stopped.
 
+## Global agent discovery
+
+The normal adapter entry is one global installation, not a project-specific wrapper. The binary installer runs `omg agent install`, which writes always-on OMG skills and bounded managed instruction blocks into the supported user-level discovery surfaces for Claude, Codex, Gemini, Cursor, Windsurf, Cline, OpenCode, OMP, and the generic `.agents` ecosystem.
+
+```bash
+omg agent install
+omg agent status
+omg agent doctor
+omg agent uninstall
+```
+
+Global installation preserves all non-OMG content, rejects symlink/reparse-point paths and drifted managed skills, uses atomic replacement with rollback, and renders home-relative paths only. The installed skill directs the agent itself to perform repository preflight, typed coordination, progress, and immutable handoff. It does not make the user operate OMG for the agent and does not grant additional authority.
+
+Project `omg integration` remains an optional repository-local visibility layer. It is not required for global discovery and must not become a second state authority. See `docs/GLOBAL_AGENT_INSTALL.md`.
+
 ## Generic runtime wrapper
 
 ```bash

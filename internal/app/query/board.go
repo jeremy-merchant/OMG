@@ -18,6 +18,10 @@ const (
 	BoardTask BoardMode = "task"
 	BoardAll  BoardMode = "all"
 	BoardGit  BoardMode = "git"
+	// BoardSummary is rendered from a BoardAll snapshot by the public CLI. It
+	// is not a wider data-selection mode and is therefore never dispatched to
+	// the canonical board query directly.
+	BoardSummary BoardMode = "summary"
 )
 
 const (
@@ -201,21 +205,91 @@ type HandoffDecisionView struct {
 }
 
 type HandoffView struct {
-	ID                    string               `json:"id"`
-	TaskID                string               `json:"task_id"`
-	RunID                 string               `json:"run_id"`
-	RunState              string               `json:"run_state"`
-	SourceSessionID       string               `json:"source_session_id"`
-	TargetSessionID       string               `json:"target_session_id,omitempty"`
-	TargetTaskID          string               `json:"target_task_id,omitempty"`
-	Summary               string               `json:"summary"`
-	FinalOutputPolicy     string               `json:"final_output_policy"`
-	FinalOutputHash       string               `json:"final_output_hash,omitempty"`
-	ChangedFileCount      int                  `json:"changed_file_count"`
-	VerificationItemCount int                  `json:"verification_item_count"`
-	Status                string               `json:"status"`
-	Decision              *HandoffDecisionView `json:"decision,omitempty"`
-	CreatedAt             time.Time            `json:"created_at"`
+	ID                    string                 `json:"id"`
+	TaskID                string                 `json:"task_id"`
+	RunID                 string                 `json:"run_id"`
+	RunState              string                 `json:"run_state"`
+	SourceSessionID       string                 `json:"source_session_id"`
+	TargetSessionID       string                 `json:"target_session_id,omitempty"`
+	TargetTaskID          string                 `json:"target_task_id,omitempty"`
+	Summary               string                 `json:"summary"`
+	FinalOutputPolicy     string                 `json:"final_output_policy"`
+	FinalOutputHash       string                 `json:"final_output_hash,omitempty"`
+	ChangedFileCount      int                    `json:"changed_file_count"`
+	VerificationItemCount int                    `json:"verification_item_count"`
+	Status                string                 `json:"status"`
+	IntegrationState      string                 `json:"integration_state"`
+	Lifecycle             []HandoffLifecycleView `json:"lifecycle"`
+	Decision              *HandoffDecisionView   `json:"decision,omitempty"`
+	CreatedAt             time.Time              `json:"created_at"`
+}
+
+type HandoffLifecycleView struct {
+	ID                           string     `json:"id"`
+	State                        string     `json:"state"`
+	ActorSessionID               string     `json:"actor_session_id"`
+	SourceCommit                 string     `json:"source_commit,omitempty"`
+	SourceTree                   string     `json:"source_tree,omitempty"`
+	IntegrationCommit            string     `json:"integration_commit,omitempty"`
+	CanaryRunID                  string     `json:"canary_run_id,omitempty"`
+	CanaryIntegrationRef         string     `json:"canary_integration_ref,omitempty"`
+	CanaryTargetSHA              string     `json:"canary_target_sha,omitempty"`
+	CanaryTargetTree             string     `json:"canary_target_tree,omitempty"`
+	CanaryResult                 string     `json:"canary_result,omitempty"`
+	CanaryCommand                string     `json:"canary_command,omitempty"`
+	CanaryExecutionKind          string     `json:"canary_execution_kind,omitempty"`
+	CanaryEnvironmentFingerprint string     `json:"canary_environment_fingerprint,omitempty"`
+	CanaryHeadBefore             string     `json:"canary_head_before,omitempty"`
+	CanaryHeadAfter              string     `json:"canary_head_after,omitempty"`
+	CanaryRefFingerprintBefore   string     `json:"canary_ref_fingerprint_before,omitempty"`
+	CanaryRefFingerprintAfter    string     `json:"canary_ref_fingerprint_after,omitempty"`
+	CanaryExitCode               *int       `json:"canary_exit_code,omitempty"`
+	CanaryPassedCount            int        `json:"canary_passed_count,omitempty"`
+	CanaryFailedCount            int        `json:"canary_failed_count,omitempty"`
+	CanarySkippedCount           int        `json:"canary_skipped_count,omitempty"`
+	CanaryStartedAt              *time.Time `json:"canary_started_at,omitempty"`
+	CanaryFinishedAt             *time.Time `json:"canary_finished_at,omitempty"`
+	CanaryEvidencePath           string     `json:"canary_evidence_path,omitempty"`
+	SourceWorktreeCleaned        bool       `json:"source_worktree_cleaned"`
+	SourceBranchCleaned          bool       `json:"source_branch_cleaned"`
+	Note                         string     `json:"note,omitempty"`
+	CreatedAt                    time.Time  `json:"created_at"`
+}
+
+// OperatorSummary is the small, stable projection used by preflight, status,
+// and board summary. Counts are intentionally sufficient to choose the next
+// operator action without returning the underlying ledger rows.
+type OperatorSummary struct {
+	ActiveSessions   int              `json:"active_sessions"`
+	StaleSessions    int              `json:"stale_sessions"`
+	Conflicts        int              `json:"conflicts"`
+	IntegrationQueue int              `json:"integration_queue"`
+	TasksByState     map[string]int   `json:"tasks_by_state"`
+	HandoffsByState  map[string]int   `json:"handoffs_by_state"`
+	Bottlenecks      []BottleneckView `json:"bottlenecks"`
+}
+
+type BottleneckView struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Waiting int    `json:"waiting"`
+	Done    int    `json:"done"`
+}
+
+type IntegrationQueueItemView struct {
+	HandoffID             string    `json:"handoff_id"`
+	TaskID                string    `json:"task_id"`
+	State                 string    `json:"state"`
+	SourceSessionID       string    `json:"source_session_id"`
+	ReviewerSessionID     string    `json:"reviewer_session_id,omitempty"`
+	SourceCommit          string    `json:"source_commit,omitempty"`
+	SourceTree            string    `json:"source_tree,omitempty"`
+	IntegrationCommit     string    `json:"integration_commit,omitempty"`
+	CanaryTargetSHA       string    `json:"canary_target_sha,omitempty"`
+	CanaryResult          string    `json:"canary_result,omitempty"`
+	SourceCleanupComplete bool      `json:"source_cleanup_complete"`
+	MissingEvidence       []string  `json:"missing_evidence"`
+	UpdatedAt             time.Time `json:"updated_at"`
 }
 
 type ReservationView struct {

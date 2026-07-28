@@ -122,7 +122,7 @@ func TestBareParentCommandsOpenContextualHelpWithoutDispatch(t *testing.T) {
 	for _, command := range []string{
 		"release", "migration", "backup", "board", "integration", "shell-init", "completion",
 		"human", "session", "delegate", "task", "progress", "dependency", "message",
-		"handoff", "reserve", "git", "import", "mcp", "receipt",
+		"handoff", "reserve", "git", "orphan", "canary", "import", "mcp", "receipt",
 	} {
 		t.Run(command, func(t *testing.T) {
 			dispatcher := &recordingDispatcher{}
@@ -156,6 +156,144 @@ func TestParentCommandWithAdditionalIntentStillUsesValidation(t *testing.T) {
 			t.Fatalf("parent command with additional intent bypassed validation: %v exit=%d output=%q", args, exit, output)
 		}
 	}
+}
+
+func TestDirectCanaryOptionsBuildStrictApplicationPayloads(t *testing.T) {
+	project := t.TempDir()
+	for _, test := range []struct {
+		name    string
+		args    []string
+		command string
+		assert  func(t *testing.T, payload map[string]any)
+	}{
+		{
+			name:    "start",
+			args:    []string{"canary", "start", "--project", project, "--handoff", "handoff-1", "--session", "session-1", "--integration-ref", "main", "--verification-command", "go test ./...", "--execution-kind", "real", "--environment-fingerprint", "env-1", "--idempotency-key", "start-key", "--json"},
+			command: "canary.start",
+			assert: func(t *testing.T, payload map[string]any) {
+				if payload["handoff_id"] != "handoff-1" || payload["integration_ref"] != "main" || payload["verification_command"] != "go test ./..." {
+					t.Fatalf("start payload = %#v", payload)
+				}
+			},
+		},
+		{
+			name:    "finish",
+			args:    []string{"canary", "finish", "--project", project, "--canary", "canary-1", "--session", "session-1", "--exit-code", "0", "--passed", "3", "--failed", "0", "--skipped", "1", "--evidence-path", "/logs/canary.txt", "--idempotency-key", "finish-key", "--json"},
+			command: "canary.finish",
+			assert: func(t *testing.T, payload map[string]any) {
+				if payload["canary_run_id"] != "canary-1" || payload["passed_count"] != float64(3) || payload["evidence_path"] != "/logs/canary.txt" {
+					t.Fatalf("finish payload = %#v", payload)
+				}
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			dispatcher := &recordingDispatcher{outcome: app.Outcome{Data: map[string]string{"state": "ok"}}}
+			service := bootstrap.CLIService(bootstrap.Foundation())
+			service.Dispatcher = dispatcher
+			var output bytes.Buffer
+			exit := RunWithApplication(context.Background(), test.args, "test-version", strings.NewReader(""), &output, io.Discard, service)
+			if exit != ExitSuccess || len(dispatcher.requests) != 1 || dispatcher.requests[0].Command != test.command {
+				t.Fatalf("exit=%d requests=%+v output=%s", exit, dispatcher.requests, output.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(dispatcher.requests[0].Payload, &payload); err != nil {
+				t.Fatal(err)
+			}
+			test.assert(t, payload)
+		})
+	}
+}
+
+func TestLegacyReservationArgumentsReturnActionableRecovery(t *testing.T) {
+	exit, output := run(t,
+		"reserve",
+		"--project", "/project",
+		"--session-id", "session-1",
+		"--path", "TODO.md",
+		"--json",
+	)
+	if exit != ExitUsage {
+		t.Fatalf("legacy reserve arguments exit=%d output=%s", exit, output)
+	}
+	var envelope ErrorEnvelope
+	if err := json.Unmarshal([]byte(output), &envelope); err != nil {
+		t.Fatalf("decode legacy reserve error: %v; output=%s", err, output)
+	}
+	if envelope.Error.Message != `unsupported command argument "--session-id"` {
+		t.Fatalf("legacy reserve message=%q", envelope.Error.Message)
+	}
+	warnings := strings.Join(envelope.Warnings, "\n")
+	for _, want := range []string{
+		"hint: reservations require `reserve add` with a strict lineage payload",
+		"next: omg reserve add --help",
+	} {
+		if !strings.Contains(warnings, want) {
+			t.Errorf("legacy reserve recovery missing %q: %s", want, output)
+		}
+	}
+}
+
+func TestJSONErrorsCarryHumanRecoveryContext(t *testing.T) {
+	exit, output := run(t, "prefligth", "--json")
+	if exit != ExitUnavailable {
+		t.Fatalf("JSON typo exit=%d output=%s", exit, output)
+	}
+	var envelope ErrorEnvelope
+	if err := json.Unmarshal([]byte(output), &envelope); err != nil {
+		t.Fatalf("decode JSON typo error: %v; output=%s", err, output)
+	}
+	warnings := strings.Join(envelope.Warnings, "\n")
+	for _, want := range []string{
+		`hint: Did you mean "preflight"?`,
+		"next: omg preflight --help",
+	} {
+		if !strings.Contains(warnings, want) {
+			t.Errorf("JSON typo recovery missing %q: %s", want, output)
+		}
+	}
+}
+
+func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
+	exit, output := run(t, "example", "list", "--json")
+	if exit != ExitSuccess {
+		t.Fatalf("example list exit=%d output=%s", exit, output)
+	}
+	var listed struct {
+		Topics []string `json:"topics"`
+	}
+	decodeData(t, output, &listed)
+	if !containsString(listed.Topics, "reserve-add") {
+		t.Fatalf("example topics omit reserve-add: %v", listed.Topics)
+	}
+
+	exit, output = run(t, "example", "show", "reservation-add", "--json")
+	if exit != ExitSuccess {
+		t.Fatalf("example show alias exit=%d output=%s", exit, output)
+	}
+	var shown struct {
+		Topic   string `json:"topic"`
+		Command string `json:"command"`
+		Usage   string `json:"usage"`
+	}
+	decodeData(t, output, &shown)
+	if shown.Topic != "reserve-add" || shown.Command != "omg reserve add" {
+		t.Fatalf("unexpected shown example metadata: %+v", shown)
+	}
+	for _, want := range []string{"OMG / RESERVE / ADD", "human_id", "session_id", "task_id", "run_id"} {
+		if !strings.Contains(shown.Usage, want) {
+			t.Errorf("shown reserve example missing %q: %+v", want, shown)
+		}
+	}
+}
+
+func containsString(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }
 
 func TestDecodeStillRejectsMissingCommandForInternalCallers(t *testing.T) {
@@ -617,14 +755,14 @@ func TestPreflightReportsUninitializedProjection(t *testing.T) {
 	}
 	var preflight app.PreflightView
 	decodeData(t, output, &preflight)
-	if preflight.Initialized || preflight.PendingMigrations != 0 || preflight.Sessions == nil || preflight.Tasks == nil || preflight.Inbox == nil || preflight.Dependencies == nil || preflight.Reservations == nil {
+	if preflight.Healthy || preflight.PendingMigrations != 0 || preflight.ActiveSessions != 0 || preflight.StaleSessions != 0 || preflight.Details != nil {
 		t.Fatalf("uninitialized preflight=%+v", preflight)
 	}
 	exit, output = run(t, "preflight", "--project", t.TempDir())
 	if exit != ExitSuccess {
 		t.Fatalf("TTY preflight exit=%d output=%s", exit, output)
 	}
-	for _, want := range []string{"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Initialized: false", "schema_state=uninitialized", "IDENTITY", "SESSIONS + TASKS", "INBOX", "DEPENDENCIES", "RESERVATIONS", "GIT"} {
+	for _, want := range []string{"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Healthy: false", "Pending migrations: 0", "Active sessions: 0", "integration_queue=0"} {
 		if !strings.Contains(output, want) {
 			t.Errorf("TTY preflight output missing %q:\n%s", want, output)
 		}
@@ -732,25 +870,37 @@ func TestBoardAndStaticExportUseCurrentCanonicalStore(t *testing.T) {
 	if model.Kind != "board" || len(model.Data.Sessions) != 1 || model.Data.Sessions[0].ID != "session-cli" || len(model.Data.Tasks) != 1 || model.Data.Tasks[0].Title != "Render canonical board" {
 		t.Fatalf("board model = %+v", model)
 	}
+	for _, args := range [][]string{{"status", "--project", root, "--json"}, {"board", "summary", "--project", root, "--json"}} {
+		output.Reset()
+		exit = RunWithService(args, "test-version", &output, service)
+		if exit != ExitSuccess || !strings.Contains(output.String(), `"active_sessions":1`) || !strings.Contains(output.String(), `"tasks_by_state":{"READY":1}`) {
+			t.Fatalf("operator summary %v exit=%d: %s", args, exit, output.String())
+		}
+	}
 	output.Reset()
 	exit = RunWithService([]string{"preflight", "--project", root, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"healthy":true`) || strings.Contains(output.String(), `"details"`) || strings.Contains(output.String(), `"sessions"`) {
+		t.Fatalf("compact preflight exit=%d: %s", exit, output.String())
+	}
+	output.Reset()
+	exit = RunWithService([]string{"preflight", "--project", root, "--verbose", "--json"}, "test-version", &output, service)
 	if exit != ExitSuccess {
 		t.Fatalf("preflight without session exit=%d: %s", exit, output.String())
 	}
 	var unselected app.PreflightView
 	decodeData(t, output.String(), &unselected)
-	if unselected.Identity != nil || len(unselected.Sessions) != 1 || unselected.Sessions[0].ID != "session-cli" {
+	if unselected.Details == nil || unselected.Details.Identity != nil || len(unselected.Details.Sessions) != 1 || unselected.Details.Sessions[0].ID != "session-cli" {
 		t.Fatalf("unselected preflight identities = %#v", unselected)
 	}
 	output.Reset()
-	exit = RunWithService([]string{"preflight", "--project", root, "--session", "session-cli", "--json"}, "test-version", &output, service)
+	exit = RunWithService([]string{"preflight", "--project", root, "--session", "session-cli", "--verbose", "--json"}, "test-version", &output, service)
 	if exit != ExitSuccess {
 		t.Fatalf("preflight with session exit=%d: %s", exit, output.String())
 	}
 	var preflight app.PreflightView
 	decodeData(t, output.String(), &preflight)
-	if preflight.Identity == nil || preflight.Identity.ID != "session-cli" {
-		t.Fatalf("preflight identity = %#v", preflight.Identity)
+	if preflight.Details == nil || preflight.Details.Identity == nil || preflight.Details.Identity.ID != "session-cli" {
+		t.Fatalf("preflight identity = %#v", preflight.Details)
 	}
 
 	taskPayload := `{"title":"MCP parity task","created_by_session_id":"session-cli"}`
@@ -777,11 +927,45 @@ func TestBoardAndStaticExportUseCurrentCanonicalStore(t *testing.T) {
 		t.Fatalf("message send exit=%d: %s", exit, output.String())
 	}
 
-	handoffPayload := `{"id":"handoff-cli","task_id":"task-cli","run_id":"run-cli","source_session_id":"session-cli","summary":"Completed safely","final_output_policy":"none","changed_files":["/private/cli-release.go"],"commits":["password=not-for-output"],"verification_evidence":[{"summary":"/private/verification","hash":"sha256:evidence"}],"remaining_risks":["password=not-for-output"],"suggested_actions":["/private/review"]}`
+	handoffPayload := `{"id":"handoff-cli","task_id":"task-cli","run_id":"run-cli","source_session_id":"session-cli","summary":"Completed safely","final_output_policy":"none","source_commit":"abc123","source_tree":"def456","changed_files":["/private/cli-release.go"],"commits":["password=not-for-output"],"verification_evidence":[{"summary":"/private/verification","hash":"sha256:evidence"}],"remaining_risks":["password=not-for-output"],"suggested_actions":["/private/review"]}`
 	output.Reset()
 	exit = RunWithService([]string{"handoff", "create", "--project", root, "--idempotency-key", "handoff-create-cli", "--payload", handoffPayload, "--json"}, "test-version", &output, service)
 	if exit != ExitSuccess || !strings.Contains(output.String(), `"status":"submitted"`) {
 		t.Fatalf("handoff create exit=%d: %s", exit, output.String())
+	}
+	output.Reset()
+	exit = RunWithService([]string{"integration", "queue", "--project", root, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"count":1`) || !strings.Contains(output.String(), `"state":"SUBMITTED"`) || !strings.Contains(output.String(), `"source_commit":"abc123"`) {
+		t.Fatalf("integration queue did not expose submitted evidence: exit=%d output=%s", exit, output.String())
+	}
+	output.Reset()
+	exit = RunWithService([]string{"handoff", "accept", "--project", root, "--idempotency-key", "handoff-accept-cli", "--payload", `{"handoff_id":"handoff-cli","actor_session_id":"session-cli"}`, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess {
+		t.Fatalf("handoff accept exit=%d: %s", exit, output.String())
+	}
+	for _, transition := range []struct {
+		key, payload string
+	}{
+		{"handoff-integrated-cli", `{"id":"lifecycle-integrated-cli","handoff_id":"handoff-cli","actor_session_id":"session-cli","state":"INTEGRATED","integration_commit":"fed789"}`},
+		{"handoff-canary-start-cli", `{"id":"lifecycle-canary-start-cli","handoff_id":"handoff-cli","actor_session_id":"session-cli","state":"CANARY_RUNNING","canary_run_id":"canary-cli","canary_integration_ref":"refs/heads/main","canary_target_sha":"fed789","canary_target_tree":"tree789","canary_command":"go test ./...","canary_execution_kind":"real","canary_environment_fingerprint":"env789","canary_head_before":"fed789","canary_ref_fingerprint_before":"reflog789","canary_started_at":"2026-07-28T00:00:00Z"}`},
+		{"handoff-canary-cli", `{"id":"lifecycle-canary-cli","handoff_id":"handoff-cli","actor_session_id":"session-cli","state":"CANARY_PASSED","canary_run_id":"canary-cli","canary_integration_ref":"refs/heads/main","canary_target_sha":"fed789","canary_target_tree":"tree789","canary_result":"PASS_REAL","canary_command":"go test ./...","canary_execution_kind":"real","canary_environment_fingerprint":"env789","canary_head_before":"fed789","canary_head_after":"fed789","canary_ref_fingerprint_before":"reflog789","canary_ref_fingerprint_after":"reflog789","canary_exit_code":0,"canary_passed_count":1,"canary_started_at":"2026-07-28T00:00:00Z","canary_finished_at":"2026-07-28T00:01:00Z"}`},
+		{"handoff-cleaned-cli", `{"id":"lifecycle-cleaned-cli","handoff_id":"handoff-cli","actor_session_id":"session-cli","state":"SOURCE_CLEANED","source_worktree_cleaned":true,"source_branch_cleaned":true}`},
+	} {
+		output.Reset()
+		exit = RunWithService([]string{"handoff", "advance", "--project", root, "--idempotency-key", transition.key, "--payload", transition.payload, "--json"}, "test-version", &output, service)
+		if exit != ExitSuccess {
+			t.Fatalf("handoff advance exit=%d: %s", exit, output.String())
+		}
+	}
+	output.Reset()
+	exit = RunWithService([]string{"handoff", "lifecycle", "--project", root, "--payload", `{"handoff_id":"handoff-cli"}`, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"state":"SOURCE_CLEANED"`) || !strings.Contains(output.String(), `"integration_commit":"fed789"`) {
+		t.Fatalf("handoff lifecycle missing evidence: exit=%d output=%s", exit, output.String())
+	}
+	output.Reset()
+	exit = RunWithService([]string{"integration", "queue", "--project", root, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"count":0`) {
+		t.Fatalf("cleaned handoff remained queued: exit=%d output=%s", exit, output.String())
 	}
 	output.Reset()
 	exit = RunWithService([]string{"handoff", "show", "--project", root, "--payload", `{"handoff_id":"handoff-cli"}`, "--json"}, "test-version", &output, service)
@@ -1308,6 +1492,22 @@ func TestIntegrationAllowsDocumentedRequestShapes(t *testing.T) {
 				t.Fatalf("integration dispatched %d times", calls)
 			}
 		})
+	}
+}
+
+func TestIntegrationQueueAllowsImplicitAndCanonicalSelections(t *testing.T) {
+	for _, request := range []Request{
+		{Name: "integration", Subcommand: "queue"},
+		{Name: "integration", Subcommand: "queue", Project: "/project", projectProvided: true},
+		{Name: "integration", Subcommand: "queue", Workspace: "/workspace", workspaceProvided: true},
+		{Name: "integration", Subcommand: "queue", Store: "/state.db", storeProvided: true},
+	} {
+		if !validIntegrationQueueRequest(request) {
+			t.Fatalf("queue selection was rejected: %+v", request)
+		}
+	}
+	if validIntegrationQueueRequest(Request{Name: "integration", Subcommand: "queue", Payload: "{}", PayloadProvided: true}) {
+		t.Fatal("queue accepted a payload")
 	}
 }
 

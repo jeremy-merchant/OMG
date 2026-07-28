@@ -12,9 +12,9 @@ import (
 
 func TestCommandHelpCatalogIsUniqueAndComplete(t *testing.T) {
 	wantCommands := []string{
-		"init", "preflight", "doctor", "migration", "backup", "release", "version",
+		"init", "preflight", "status", "doctor", "migration", "backup", "release", "version", "agent",
 		"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
-		"board", "git", "export", "import", "integration", "watch", "run", "shell-init", "completion", "mcp", "receipt",
+		"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 	}
 	if got := commandNames(); !reflect.DeepEqual(got, wantCommands) {
 		t.Fatalf("help command catalog = %v, want %v", got, wantCommands)
@@ -74,6 +74,75 @@ func TestSubcommandHelpShowsOnlyApplicableOptions(t *testing.T) {
 	}
 }
 
+func TestReserveAddHelpExposesRequiredLineageAndCopyablePayload(t *testing.T) {
+	exit, output := run(t, "reserve", "add", "--help")
+	if exit != ExitSuccess {
+		t.Fatalf("reserve add help exit=%d: %s", exit, output)
+	}
+	for _, want := range []string{
+		"Requires human_id, session_id, task_id, and run_id.",
+		"omg reserve add",
+		`"pattern_kind":"exact"`,
+		`"human_id":"HUMAN_ID"`,
+		`"run_id":"RUN_ID"`,
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("reserve add help missing %q:\n%s", want, output)
+		}
+	}
+}
+
+func TestSessionAndMessageHelpExposeCopyableAgentPayloads(t *testing.T) {
+	for _, test := range []struct {
+		args []string
+		want []string
+	}{
+		{
+			args: []string{"session", "create", "--help"},
+			want: []string{
+				"omg session create",
+				`"source_ref":"human:task-summary"`,
+				"instruction_source and provenance_confidence are derived output fields",
+			},
+		},
+		{
+			args: []string{"message", "send", "--help"},
+			want: []string{
+				"omg message send",
+				`"type":"QUESTION"`,
+				`"session_id":"PEER_SESSION_ID"`,
+				`"related_task_id":"TASK_ID"`,
+			},
+		},
+		{
+			args: []string{"git", "latest", "--help"},
+			want: []string{
+				"omg git latest --project /project --json",
+				"No payload is required",
+				"change project scope.",
+			},
+		},
+		{
+			args: []string{"git", "diff", "--help"},
+			want: []string{
+				"omg git diff --project /project --json",
+				"latest observations",
+				"before and after",
+			},
+		},
+	} {
+		exit, output := run(t, test.args...)
+		if exit != ExitSuccess {
+			t.Fatalf("%v help exit=%d: %s", test.args, exit, output)
+		}
+		for _, want := range test.want {
+			if !strings.Contains(output, want) {
+				t.Errorf("%v help missing %q:\n%s", test.args, want, output)
+			}
+		}
+	}
+}
+
 func TestInvalidRequestRecoveryUsesValidHelpTargets(t *testing.T) {
 	exit, output := run(t, "board")
 	if exit != ExitSuccess || !strings.Contains(output, "OMG / BOARD") || !strings.Contains(output, "SUBCOMMANDS") || !strings.Contains(output, "board task") || strings.Contains(output, "missing board mode") {
@@ -123,16 +192,16 @@ func TestGlobalHelpIsWorkflowFirstAndCompact(t *testing.T) {
 		t.Fatalf("global help exit=%d: %s", exit, output)
 	}
 	for _, want := range []string{
-		"28 commands",
+		"33 commands",
 		"WORKFLOWS",
 		"First run",
 		"Start work",
 		"Share state",
 		"Recover safely",
 		"omg init → omg preflight → omg board all",
-		"START + VERIFY · 7",
+		"START + VERIFY · 9",
 		"COORDINATE WORK · 10",
-		"INSPECT + INTEGRATE · 11",
+		"INSPECT + INTEGRATE · 14",
 		"Record or inspect done / doing / next.",
 	} {
 		if !strings.Contains(output, want) {
@@ -197,9 +266,9 @@ func TestNarrowGlobalHelpUsesCompactCommandGrid(t *testing.T) {
 		t.Fatal("global help was not rendered")
 	}
 	for _, want := range []string{
-		"init · preflight · doctor",
+		"init · preflight · status · doctor",
 		"human · session · delegate",
-		"board · git · export",
+		"board · git · orphan · canary · export",
 		"Open one family with: omg <command>",
 	} {
 		if !strings.Contains(output, want) {

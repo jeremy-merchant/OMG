@@ -463,9 +463,11 @@ func writeTTYHandoffs(out *strings.Builder, theme terminalTheme, board query.Boa
 		if index == len(board.Handoffs)-1 {
 			connector = "└─ "
 		}
-		stateValue := handoff.Status
-		if handoff.Decision != nil && handoff.Decision.Decision != "" {
+		stateValue := handoff.IntegrationState
+		if stateValue == "" && handoff.Decision != nil && handoff.Decision.Decision != "" {
 			stateValue = handoff.Decision.Decision
+		} else if stateValue == "" {
+			stateValue = handoff.Status
 		}
 		primary := shortID(handoff.SourceSessionID) + "  →  " + shortID(firstNonEmpty(handoff.TargetSessionID, handoff.TargetTaskID))
 		if handoff.Summary != "" {

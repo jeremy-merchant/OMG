@@ -134,6 +134,17 @@ func (s *Service) Submit(ctx context.Context, key domain.IdempotencyKey, project
 			return domain.Result{}, invalid()
 		}
 		e = r.Coordination().CreateHandoff(ctx, h)
+		if e == nil && h.SourceCommit != "" {
+			event := coord.HandoffLifecycleEvent{
+				ID: "lifecycle-" + h.ID + "-submitted", HandoffID: h.ID,
+				ActorSessionID: h.SourceSessionID, State: coord.IntegrationSubmitted,
+				SourceCommit: h.SourceCommit, SourceTree: h.SourceTree, CreatedAt: h.CreatedAt,
+			}
+			if event.Validate() != nil {
+				return domain.Result{}, invalid()
+			}
+			e = r.Coordination().CreateHandoffLifecycleEvent(ctx, event)
+		}
 		return domain.Result{ID: domain.ResultID(h.ID), Outcome: domain.OutcomeOK}, e
 	})
 	if e != nil {
@@ -190,6 +201,10 @@ func (s *Service) Supersede(ctx context.Context, key domain.IdempotencyKey, id, 
 			return domain.Result{}, invalid()
 		}
 		e = r.Coordination().CreateHandoff(ctx, out)
+		if e == nil && out.SourceCommit != "" {
+			event := coord.HandoffLifecycleEvent{ID: "lifecycle-" + out.ID + "-submitted", HandoffID: out.ID, ActorSessionID: out.SourceSessionID, State: coord.IntegrationSubmitted, SourceCommit: out.SourceCommit, SourceTree: out.SourceTree, CreatedAt: out.CreatedAt}
+			e = r.Coordination().CreateHandoffLifecycleEvent(ctx, event)
+		}
 		return domain.Result{ID: domain.ResultID(out.ID), Outcome: domain.OutcomeOK}, e
 	})
 	if e != nil {
@@ -229,6 +244,26 @@ func (s *Service) Decide(ctx context.Context, key domain.IdempotencyKey, id, dec
 			return domain.Result{}, invalid()
 		}
 		e = r.Coordination().CreateHandoffDecision(ctx, out)
+		if e == nil {
+			events, listErr := r.Coordination().ListHandoffLifecycleEvents(ctx, h.ID)
+			if listErr != nil {
+				return domain.Result{}, listErr
+			}
+			state := coord.IntegrationAccepted
+			note := ""
+			if out.Decision == coord.HandoffRejected {
+				state = coord.IntegrationRejected
+				note = "handoff rejected"
+			}
+			if transitionErr := coord.ValidateIntegrationTransition(events, nil, state); transitionErr != nil {
+				return domain.Result{}, invalid()
+			}
+			event := coord.HandoffLifecycleEvent{ID: "lifecycle-" + out.ID, HandoffID: h.ID, ActorSessionID: by, State: state, Note: note, CreatedAt: out.CreatedAt}
+			if event.Validate() != nil {
+				return domain.Result{}, invalid()
+			}
+			e = r.Coordination().CreateHandoffLifecycleEvent(ctx, event)
+		}
 		return domain.Result{ID: domain.ResultID(out.ID), Outcome: domain.OutcomeOK}, e
 	})
 	if e != nil {
@@ -249,6 +284,85 @@ func (s *Service) Decide(ctx context.Context, key domain.IdempotencyKey, id, dec
 		return coord.HandoffDecision{}, mapErr(e)
 	}
 	return out, nil
+}
+
+func (s *Service) Advance(ctx context.Context, key domain.IdempotencyKey, event coord.HandoffLifecycleEvent) (coord.HandoffLifecycleEvent, error) {
+	if !domain.IsSecretFreeStableMetadata(string(key)) || safety.RejectPrefixed(key, event) != nil {
+		return coord.HandoffLifecycleEvent{}, invalid()
+	}
+	if event.State == coord.IntegrationAccepted || event.State == coord.IntegrationRejected {
+		return coord.HandoffLifecycleEvent{}, invalid()
+	}
+	event.CreatedAt = s.now().UTC()
+	if event.Validate() != nil {
+		return coord.HandoffLifecycleEvent{}, invalid()
+	}
+	_, result, err := s.store.Write(ctx, key, "handoff.lifecycle", func(r ports.Repositories) (domain.Result, error) {
+		handoff, ok, readErr := r.Coordination().GetHandoff(ctx, event.HandoffID)
+		if readErr != nil {
+			return domain.Result{}, readErr
+		}
+		if !ok {
+			return domain.Result{}, missing()
+		}
+		if _, ok, readErr = r.Coordination().GetSession(ctx, lineage.ID(event.ActorSessionID)); readErr != nil {
+			return domain.Result{}, readErr
+		} else if !ok {
+			return domain.Result{}, missing()
+		}
+		events, readErr := r.Coordination().ListHandoffLifecycleEvents(ctx, handoff.ID)
+		if readErr != nil {
+			return domain.Result{}, readErr
+		}
+		decision, hasDecision, readErr := r.Coordination().GetHandoffDecision(ctx, handoff.ID)
+		if readErr != nil {
+			return domain.Result{}, readErr
+		}
+		var decisionPtr *coord.HandoffDecision
+		if hasDecision {
+			decisionPtr = &decision
+		}
+		if coord.ValidateIntegrationTransition(events, decisionPtr, event.State) != nil {
+			return domain.Result{}, invalid()
+		}
+		if createErr := r.Coordination().CreateHandoffLifecycleEvent(ctx, event); createErr != nil {
+			return domain.Result{}, createErr
+		}
+		return domain.Result{ID: domain.ResultID(event.ID), Outcome: domain.OutcomeOK}, nil
+	})
+	if err != nil {
+		return coord.HandoffLifecycleEvent{}, mapErr(err)
+	}
+	var out coord.HandoffLifecycleEvent
+	err = s.store.Read(ctx, func(r ports.Repositories) error {
+		var ok bool
+		var readErr error
+		out, ok, readErr = r.Coordination().GetHandoffLifecycleEventByID(ctx, string(result.ID))
+		if readErr != nil {
+			return readErr
+		}
+		if !ok {
+			return missing()
+		}
+		return nil
+	})
+	if err != nil {
+		return coord.HandoffLifecycleEvent{}, mapErr(err)
+	}
+	return out, nil
+}
+
+func (s *Service) Lifecycle(ctx context.Context, handoffID string) ([]coord.HandoffLifecycleEvent, error) {
+	var events []coord.HandoffLifecycleEvent
+	err := s.store.Read(ctx, func(r ports.Repositories) error {
+		var readErr error
+		events, readErr = r.Coordination().ListHandoffLifecycleEvents(ctx, handoffID)
+		return readErr
+	})
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return events, nil
 }
 func (s *Service) Adopt(ctx context.Context, key domain.IdempotencyKey, a coord.Adoption) (coord.Adoption, error) {
 	if !domain.IsSecretFreeStableMetadata(string(key)) || safety.RejectPrefixed(key, a) != nil {

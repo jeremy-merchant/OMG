@@ -69,6 +69,7 @@ type Dispatcher interface {
 type ServiceDispatcher struct {
 	service       *foundation.Service
 	scanner       ports.Scanner
+	verifier      ports.GitVerifier
 	pathInspector ports.PathInspector
 }
 
@@ -77,7 +78,11 @@ func NewDispatcher(service *foundation.Service) *ServiceDispatcher {
 }
 
 func NewDispatcherWithGitScanner(service *foundation.Service, scanner ports.Scanner, pathInspector ports.PathInspector) *ServiceDispatcher {
-	return &ServiceDispatcher{service: service, scanner: scanner, pathInspector: pathInspector}
+	return NewDispatcherWithGitTools(service, scanner, nil, pathInspector)
+}
+
+func NewDispatcherWithGitTools(service *foundation.Service, scanner ports.Scanner, verifier ports.GitVerifier, pathInspector ports.PathInspector) *ServiceDispatcher {
+	return &ServiceDispatcher{service: service, scanner: scanner, verifier: verifier, pathInspector: pathInspector}
 }
 
 func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outcome {
@@ -190,7 +195,7 @@ func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outco
 		}
 		var result HandoffResult
 		err := d.service.WithCurrentStore(ctx, selection, func(resolved ports.ResolvedStore, store ports.Store) error {
-			handoff, err := handoffapp.New(store, nil).Submit(ctx, domain.IdempotencyKey(request.IdempotencyKey), string(resolved.Project), coord.Handoff{ID: payload.ID, TaskID: payload.TaskID, RunID: payload.RunID, SourceSessionID: payload.SourceSessionID, TargetSessionID: payload.TargetSessionID, TargetTaskID: payload.TargetTaskID, Summary: payload.Summary, FinalOutput: coord.SensitiveText{Text: payload.FinalOutputText, Hash: payload.FinalOutputHash, Policy: coord.FinalOutputPolicy(payload.FinalOutputPolicy)}, ChangedFiles: payload.ChangedFiles, Commits: payload.Commits, VerificationEvidence: evidence, RemainingRisks: payload.RemainingRisks, SuggestedActions: payload.SuggestedActions})
+			handoff, err := handoffapp.New(store, nil).Submit(ctx, domain.IdempotencyKey(request.IdempotencyKey), string(resolved.Project), coord.Handoff{ID: payload.ID, TaskID: payload.TaskID, RunID: payload.RunID, SourceSessionID: payload.SourceSessionID, TargetSessionID: payload.TargetSessionID, TargetTaskID: payload.TargetTaskID, Summary: payload.Summary, FinalOutput: coord.SensitiveText{Text: payload.FinalOutputText, Hash: payload.FinalOutputHash, Policy: coord.FinalOutputPolicy(payload.FinalOutputPolicy)}, ChangedFiles: payload.ChangedFiles, Commits: payload.Commits, SourceCommit: payload.SourceCommit, SourceTree: payload.SourceTree, VerificationEvidence: evidence, RemainingRisks: payload.RemainingRisks, SuggestedActions: payload.SuggestedActions})
 			if err == nil {
 				result = HandoffResult{ID: handoff.ID, TaskID: handoff.TaskID, Status: string(handoff.Status)}
 			}
@@ -275,6 +280,8 @@ type HandoffCreate struct {
 	FinalOutputHash      string     `json:"final_output_hash,omitempty"`
 	ChangedFiles         []string   `json:"changed_files,omitempty"`
 	Commits              []string   `json:"commits,omitempty"`
+	SourceCommit         string     `json:"source_commit,omitempty"`
+	SourceTree           string     `json:"source_tree,omitempty"`
 	VerificationEvidence []Evidence `json:"verification_evidence,omitempty"`
 	RemainingRisks       []string   `json:"remaining_risks,omitempty"`
 	SuggestedActions     []string   `json:"suggested_actions,omitempty"`

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	canaryapp "github.com/jeremy-merchant/OMG/internal/app/canary"
 	"github.com/jeremy-merchant/OMG/internal/app/foundation"
 	gitapp "github.com/jeremy-merchant/OMG/internal/app/git"
 	handoffapp "github.com/jeremy-merchant/OMG/internal/app/handoff"
@@ -54,12 +55,35 @@ type gitInventoryPayload struct {
 	RunID     string `json:"run_id"`
 	Directory string `json:"directory"`
 }
+type gitQueryPayload struct {
+	SessionID string `json:"session_id,omitempty"`
+}
 type gitDiffPayload struct {
 	Before string `json:"before"`
 	After  string `json:"after"`
 }
 type gitCleanupPayload struct {
 	Fingerprint string `json:"fingerprint"`
+}
+type gitReconcilePayload struct {
+	IntegrationBranch string `json:"integration_branch"`
+}
+type canaryStartPayload struct {
+	HandoffID              string `json:"handoff_id"`
+	ActorSessionID         string `json:"actor_session_id"`
+	IntegrationRef         string `json:"integration_ref"`
+	VerificationCommand    string `json:"verification_command"`
+	ExecutionKind          string `json:"execution_kind"`
+	EnvironmentFingerprint string `json:"environment_fingerprint"`
+}
+type canaryFinishPayload struct {
+	CanaryRunID    string `json:"canary_run_id"`
+	ActorSessionID string `json:"actor_session_id"`
+	ExitCode       int    `json:"exit_code"`
+	PassedCount    int    `json:"passed_count"`
+	FailedCount    int    `json:"failed_count"`
+	SkippedCount   int    `json:"skipped_count"`
+	EvidencePath   string `json:"evidence_path,omitempty"`
 }
 type gitAdoptPayload struct {
 	ID                string `json:"id"`
@@ -94,9 +118,11 @@ type GitSnapshotResult struct {
 	AssetCount      int    `json:"asset_count"`
 }
 type GitDiffResult struct {
-	NewCount     int `json:"new_count"`
-	MissingCount int `json:"missing_count"`
-	ChangedCount int `json:"changed_count"`
+	Before       string `json:"before"`
+	After        string `json:"after"`
+	NewCount     int    `json:"new_count"`
+	MissingCount int    `json:"missing_count"`
+	ChangedCount int    `json:"changed_count"`
 }
 type GitCleanupPlanResult struct {
 	Advisory        bool           `json:"advisory"`
@@ -112,8 +138,8 @@ type GitAdoptionResult struct {
 }
 
 func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Request, selection foundation.Selection) (Outcome, bool) {
-	mutating := request.Command == "reserve.add" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" || request.Command == "git.inventory" || request.Command == "git.adopt"
-	query := request.Command == "reserve.list" || request.Command == "reserve.active" || request.Command == "reserve.history" || request.Command == "git.current" || request.Command == "git.latest" || request.Command == "git.history" || request.Command == "git.diff" || request.Command == "git.cleanup-plan"
+	mutating := request.Command == "reserve.add" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" || request.Command == "git.inventory" || request.Command == "git.adopt" || request.Command == "canary.start" || request.Command == "canary.finish"
+	query := request.Command == "reserve.list" || request.Command == "reserve.active" || request.Command == "reserve.history" || request.Command == "git.current" || request.Command == "git.latest" || request.Command == "git.history" || request.Command == "git.diff" || request.Command == "git.cleanup-plan" || request.Command == "git.reconcile" || request.Command == "orphan.scan"
 	if !mutating && !query {
 		return Outcome{}, false
 	}
@@ -210,8 +236,28 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 		if request.Command == "git.inventory" && d.pathInspector == nil {
 			return domain.NewError(domain.CodeUnavailable, "path inspector is unavailable", true)
 		}
-		svc := gitapp.New(store, d.scanner, nil)
+		svc := gitapp.NewWithVerifier(store, d.scanner, d.verifier, nil)
 		switch request.Command {
+		case "canary.start":
+			var p canaryStartPayload
+			if !decodePayload(request.Payload, &p) || d.verifier == nil {
+				return invalidRequest()
+			}
+			item, e := canaryapp.New(store, d.verifier, nil).Start(ctx, domain.IdempotencyKey(request.IdempotencyKey), canaryapp.StartRequest{ProjectID: project, Directory: resolved.ProjectRoot, HandoffID: p.HandoffID, ActorSessionID: p.ActorSessionID, IntegrationRef: p.IntegrationRef, Command: p.VerificationCommand, ExecutionKind: p.ExecutionKind, EnvironmentFingerprint: p.EnvironmentFingerprint})
+			if e != nil {
+				return e
+			}
+			result = safeCoordinationLifecycle(item)
+		case "canary.finish":
+			var p canaryFinishPayload
+			if !decodePayload(request.Payload, &p) || d.verifier == nil {
+				return invalidRequest()
+			}
+			item, e := canaryapp.New(store, d.verifier, nil).Finish(ctx, domain.IdempotencyKey(request.IdempotencyKey), canaryapp.FinishRequest{ProjectID: project, Directory: resolved.ProjectRoot, CanaryRunID: p.CanaryRunID, ActorSessionID: p.ActorSessionID, ExitCode: p.ExitCode, PassedCount: p.PassedCount, FailedCount: p.FailedCount, SkippedCount: p.SkippedCount, EvidencePath: p.EvidencePath})
+			if e != nil {
+				return e
+			}
+			result = safeCoordinationLifecycle(item)
 		case "git.inventory":
 			var p gitInventoryPayload
 			if !decodePayload(request.Payload, &p) || p.Directory == "" {
@@ -234,7 +280,7 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			}
 			result = snapshot
 		case "git.current", "git.latest":
-			var p struct{}
+			var p gitQueryPayload
 			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
 			}
@@ -250,7 +296,7 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			}
 			result = safeGitSnapshot(snapshot)
 		case "git.history":
-			var p struct{}
+			var p gitQueryPayload
 			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
 			}
@@ -265,14 +311,18 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			result = out
 		case "git.diff":
 			var p gitDiffPayload
-			if !decodePayload(request.Payload, &p) || p.Before == "" || p.After == "" {
+			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
 			}
-			diff, e := svc.Diff(ctx, project, p.Before, p.After)
+			before, after, e := resolveGitDiffBounds(ctx, svc, project, p)
 			if e != nil {
 				return e
 			}
-			result = GitDiffResult{NewCount: len(diff.New), MissingCount: len(diff.Missing), ChangedCount: len(diff.Changed)}
+			diff, e := svc.Diff(ctx, project, before, after)
+			if e != nil {
+				return e
+			}
+			result = GitDiffResult{Before: before, After: after, NewCount: len(diff.New), MissingCount: len(diff.Missing), ChangedCount: len(diff.Changed)}
 		case "git.cleanup-plan":
 			var p gitCleanupPayload
 			if !decodePayload(request.Payload, &p) {
@@ -283,6 +333,26 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 				return e
 			}
 			result = safeGitCleanupPlan(plan)
+		case "git.reconcile":
+			var p gitReconcilePayload
+			if !decodePayload(request.Payload, &p) || p.IntegrationBranch == "" || d.verifier == nil {
+				return invalidRequest()
+			}
+			report, e := svc.Reconcile(ctx, project, resolved.ProjectRoot, p.IntegrationBranch)
+			if e != nil {
+				return e
+			}
+			result = report
+		case "orphan.scan":
+			var p gitReconcilePayload
+			if !decodePayload(request.Payload, &p) || p.IntegrationBranch == "" || d.verifier == nil || d.scanner == nil {
+				return invalidRequest()
+			}
+			report, e := svc.OrphanScan(ctx, project, resolved.ProjectRoot, p.IntegrationBranch)
+			if e != nil {
+				return e
+			}
+			result = report
 		case "git.adopt":
 			var p gitAdoptPayload
 			if !decodePayload(request.Payload, &p) || p.ID == "" || p.GitAssetID == "" || p.NewOwnerSessionID == "" || p.Reason == "" {
@@ -328,6 +398,40 @@ func canonicalGitSnapshotResult(data any) (GitSnapshotResult, bool) {
 	}
 	return result, true
 }
+func resolveGitDiffBounds(ctx context.Context, svc *gitapp.Service, project domain.ProjectID, payload gitDiffPayload) (string, string, error) {
+	if payload.Before != "" && payload.After != "" {
+		return payload.Before, payload.After, nil
+	}
+
+	snapshots, err := svc.History(ctx, project)
+	if err != nil {
+		return "", "", err
+	}
+	if payload.Before == "" && payload.After == "" {
+		if len(snapshots) < 2 {
+			return "", "", domain.NewError(domain.CodeNotFound, "at least two Git observations are required", false)
+		}
+		return snapshots[len(snapshots)-2].ID, snapshots[len(snapshots)-1].ID, nil
+	}
+	if payload.Before == "" {
+		for i := range snapshots {
+			if snapshots[i].ID == payload.After {
+				if i == 0 {
+					return "", "", domain.NewError(domain.CodeNotFound, "a previous Git observation is not available", false)
+				}
+				return snapshots[i-1].ID, payload.After, nil
+			}
+		}
+		return "", "", domain.NewError(domain.CodeNotFound, "Git observation is not found", false)
+	}
+	for i := range snapshots {
+		if snapshots[i].ID == payload.Before {
+			return payload.Before, snapshots[len(snapshots)-1].ID, nil
+		}
+	}
+	return "", "", domain.NewError(domain.CodeNotFound, "Git observation is not found", false)
+}
+
 func safeGitSnapshot(snapshot gitobs.Snapshot) GitSnapshotResult {
 	return GitSnapshotResult{ObservationID: snapshot.ID, Sequence: snapshot.SequenceNo, Hash: snapshot.Observation.Hash, RepositoryState: string(snapshot.Observation.Repository), Confidence: string(snapshot.Observation.Confidence), AssetCount: len(snapshot.Assets)}
 }

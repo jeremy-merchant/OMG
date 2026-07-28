@@ -27,22 +27,26 @@ type lineageHumanGetPayload struct {
 }
 
 type lineageSessionPayload struct {
-	ID                     string     `json:"id,omitempty"`
-	ProjectID              string     `json:"project_id,omitempty"`
-	HumanID                string     `json:"human_id,omitempty"`
-	Runtime                string     `json:"runtime"`
-	Role                   string     `json:"role"`
-	SourceRef              string     `json:"source_ref"`
-	ParentSessionID        string     `json:"parent_session_id,omitempty"`
-	ContinuationOfID       string     `json:"continuation_of_id,omitempty"`
-	TaskID                 string     `json:"task_id,omitempty"`
-	WorktreeRef            string     `json:"worktree_ref,omitempty"`
-	NativeAccessState      string     `json:"native_access_state"`
-	RuntimeHome            string     `json:"runtime_home,omitempty"`
-	NativeSessionID        string     `json:"native_session_id,omitempty"`
-	NativeSessionRef       string     `json:"native_session_ref,omitempty"`
-	NativeSessionStartedAt *time.Time `json:"native_session_started_at,omitempty"`
-	NativeParentSessionID  string     `json:"native_parent_session_id,omitempty"`
+	ID        string `json:"id,omitempty"`
+	ProjectID string `json:"project_id,omitempty"`
+	HumanID   string `json:"human_id,omitempty"`
+	Runtime   string `json:"runtime"`
+	Role      string `json:"role"`
+	SourceRef string `json:"source_ref"`
+	// Projection-only fields are tolerated as inert compatibility hints. Canonical
+	// provenance always comes from lineage and the linked human record.
+	IgnoredInstructionSource    string     `json:"instruction_source,omitempty"`
+	IgnoredProvenanceConfidence string     `json:"provenance_confidence,omitempty"`
+	ParentSessionID             string     `json:"parent_session_id,omitempty"`
+	ContinuationOfID            string     `json:"continuation_of_id,omitempty"`
+	TaskID                      string     `json:"task_id,omitempty"`
+	WorktreeRef                 string     `json:"worktree_ref,omitempty"`
+	NativeAccessState           string     `json:"native_access_state"`
+	RuntimeHome                 string     `json:"runtime_home,omitempty"`
+	NativeSessionID             string     `json:"native_session_id,omitempty"`
+	NativeSessionRef            string     `json:"native_session_ref,omitempty"`
+	NativeSessionStartedAt      *time.Time `json:"native_session_started_at,omitempty"`
+	NativeParentSessionID       string     `json:"native_parent_session_id,omitempty"`
 }
 
 type lineageDelegateIssuePayload struct {
@@ -212,6 +216,9 @@ func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request
 			var payload lineageSessionPayload
 			if !decodePayload(request.Payload, &payload) {
 				return invalidRequest()
+			}
+			if request.Command == "session.create" && payload.SourceRef == "" {
+				payload.SourceRef = "session.create"
 			}
 			session := lineageSessionRequest(payload, project)
 			var err error

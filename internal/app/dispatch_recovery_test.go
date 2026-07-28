@@ -221,6 +221,51 @@ func TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnaps
 	}
 }
 
+func TestDispatchRecoveryGitQueriesAcceptCompatibilityHintAndDefaultDiffBounds(t *testing.T) {
+	dispatcher, selection, _ := recoveryDispatcher(t)
+	inventory := func(key string) GitSnapshotResult {
+		t.Helper()
+		result, owned := dispatcher.dispatchRecovery(context.Background(), Request{
+			Version:        RequestVersion,
+			Command:        "git.inventory",
+			Project:        selection.Project,
+			IdempotencyKey: key,
+			Payload:        recoveryInventoryPayload(t, selection.Project, true),
+		}, selection)
+		snapshot, ok := result.Data.(GitSnapshotResult)
+		if !owned || result.Error.Code != "" || !ok {
+			t.Fatalf("inventory result=%+v owned=%t", result, owned)
+		}
+		return snapshot
+	}
+	first := inventory("git-query-first")
+	second := inventory("git-query-second")
+
+	latest, owned := dispatcher.dispatchRecovery(context.Background(), Request{
+		Version: RequestVersion,
+		Command: "git.latest",
+		Project: selection.Project,
+		Payload: []byte(`{"session_id":"compatibility-hint"}`),
+	}, selection)
+	if snapshot, ok := latest.Data.(GitSnapshotResult); !owned || latest.Error.Code != "" || !ok || snapshot.ObservationID != second.ObservationID {
+		t.Fatalf("latest result=%+v owned=%t", latest, owned)
+	}
+
+	result, owned := dispatcher.dispatchRecovery(context.Background(), Request{
+		Version: RequestVersion,
+		Command: "git.diff",
+		Project: selection.Project,
+		Payload: []byte(`{}`),
+	}, selection)
+	diff, ok := result.Data.(GitDiffResult)
+	if !owned || result.Error.Code != "" || !ok {
+		t.Fatalf("diff result=%+v owned=%t", result, owned)
+	}
+	if diff.Before != first.ObservationID || diff.After != second.ObservationID {
+		t.Fatalf("diff bounds=%+v; want %q -> %q", diff, first.ObservationID, second.ObservationID)
+	}
+}
+
 func TestDispatchRecoveryGitInventoryAllowsUnattributedAndRejectsPartialLineage(t *testing.T) {
 	dispatcher, selection, scanner := recoveryDispatcher(t)
 	unattributed := Request{Version: RequestVersion, Command: "git.inventory", Project: selection.Project, IdempotencyKey: "unattributed-inventory", Payload: recoveryInventoryPayload(t, selection.Project, false)}

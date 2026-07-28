@@ -550,6 +550,128 @@ func (r coordination) GetHandoffDecisionByID(ctx context.Context, id string) (co
 	d.CreatedAt, err = parseP3BStamp(at)
 	return d, err == nil, err
 }
+func (r coordination) CreateHandoffLifecycleEvent(ctx context.Context, event coord.HandoffLifecycleEvent) error {
+	res, err := r.tx.ExecContext(ctx, `INSERT INTO handoff_lifecycle_events(
+		id,handoff_id,state,actor_session_id,source_commit,source_tree,integration_commit,
+		canary_run_id,canary_integration_ref,canary_target_sha,canary_target_tree,canary_result,
+		canary_command,canary_execution_kind,canary_environment_fingerprint,canary_head_before,canary_head_after,
+		canary_ref_fingerprint_before,canary_ref_fingerprint_after,canary_exit_code,
+		canary_passed_count,canary_failed_count,canary_skipped_count,canary_started_at,canary_finished_at,canary_evidence_path,
+		source_worktree_cleaned,source_branch_cleaned,note,created_at
+	) SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE ?='legacy' OR (
+		EXISTS (SELECT 1 FROM handoffs h JOIN tasks t ON t.id=h.task_id WHERE h.id=? AND t.project_id=?)
+		AND EXISTS (SELECT 1 FROM agent_sessions WHERE id=? AND project_id=?))`,
+		event.ID, event.HandoffID, event.State, event.ActorSessionID, nullString(event.SourceCommit), nullString(event.SourceTree), nullString(event.IntegrationCommit),
+		nullString(event.CanaryRunID), nullString(event.CanaryIntegrationRef), nullString(event.CanaryTargetSHA), nullString(event.CanaryTargetTree), nullString(event.CanaryResult),
+		nullString(event.CanaryCommand), nullString(event.CanaryExecutionKind), nullString(event.CanaryEnvironmentFingerprint), nullString(event.CanaryHeadBefore), nullString(event.CanaryHeadAfter),
+		nullString(event.CanaryRefFingerprintBefore), nullString(event.CanaryRefFingerprintAfter), nullInt(event.CanaryExitCode),
+		event.CanaryPassedCount, event.CanaryFailedCount, event.CanarySkippedCount, nullTime(event.CanaryStartedAt), nullTime(event.CanaryFinishedAt), nullString(event.CanaryEvidencePath),
+		event.SourceWorktreeCleaned, event.SourceBranchCleaned, nullString(event.Note), stamp(event.CreatedAt),
+		r.project, event.HandoffID, r.project, event.ActorSessionID, r.project)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return fmt.Errorf("project mismatch")
+	}
+	return nil
+}
+
+func scanHandoffLifecycleEvent(row *sql.Row) (coord.HandoffLifecycleEvent, bool, error) {
+	var event coord.HandoffLifecycleEvent
+	var sourceCommit, sourceTree, integrationCommit, canaryRunID, canaryIntegrationRef, canaryTarget, canaryTargetTree, canaryResult sql.NullString
+	var canaryCommand, canaryExecutionKind, canaryEnvironmentFingerprint, canaryHeadBefore, canaryHeadAfter sql.NullString
+	var canaryRefFingerprintBefore, canaryRefFingerprintAfter, canaryStartedAt, canaryFinishedAt, canaryEvidencePath, note sql.NullString
+	var canaryExitCode sql.NullInt64
+	var createdAt string
+	err := row.Scan(&event.ID, &event.HandoffID, &event.State, &event.ActorSessionID, &sourceCommit, &sourceTree, &integrationCommit,
+		&canaryRunID, &canaryIntegrationRef, &canaryTarget, &canaryTargetTree, &canaryResult, &canaryCommand, &canaryExecutionKind, &canaryEnvironmentFingerprint,
+		&canaryHeadBefore, &canaryHeadAfter, &canaryRefFingerprintBefore, &canaryRefFingerprintAfter, &canaryExitCode,
+		&event.CanaryPassedCount, &event.CanaryFailedCount, &event.CanarySkippedCount, &canaryStartedAt, &canaryFinishedAt, &canaryEvidencePath,
+		&event.SourceWorktreeCleaned, &event.SourceBranchCleaned, &note, &createdAt)
+	if err == sql.ErrNoRows {
+		return event, false, nil
+	}
+	if err != nil {
+		return event, false, err
+	}
+	event.SourceCommit = sourceCommit.String
+	event.SourceTree = sourceTree.String
+	event.IntegrationCommit = integrationCommit.String
+	event.CanaryRunID = canaryRunID.String
+	event.CanaryIntegrationRef = canaryIntegrationRef.String
+	event.CanaryTargetSHA = canaryTarget.String
+	event.CanaryTargetTree = canaryTargetTree.String
+	event.CanaryResult = canaryResult.String
+	event.CanaryCommand = canaryCommand.String
+	event.CanaryExecutionKind = canaryExecutionKind.String
+	event.CanaryEnvironmentFingerprint = canaryEnvironmentFingerprint.String
+	event.CanaryHeadBefore = canaryHeadBefore.String
+	event.CanaryHeadAfter = canaryHeadAfter.String
+	event.CanaryRefFingerprintBefore = canaryRefFingerprintBefore.String
+	event.CanaryRefFingerprintAfter = canaryRefFingerprintAfter.String
+	if canaryExitCode.Valid {
+		value := int(canaryExitCode.Int64)
+		event.CanaryExitCode = &value
+	}
+	if canaryStartedAt.Valid {
+		value, parseErr := parseP3BStamp(canaryStartedAt.String)
+		if parseErr != nil {
+			return event, false, parseErr
+		}
+		event.CanaryStartedAt = &value
+	}
+	if canaryFinishedAt.Valid {
+		value, parseErr := parseP3BStamp(canaryFinishedAt.String)
+		if parseErr != nil {
+			return event, false, parseErr
+		}
+		event.CanaryFinishedAt = &value
+	}
+	event.CanaryEvidencePath = canaryEvidencePath.String
+	event.Note = note.String
+	event.CreatedAt, err = parseP3BStamp(createdAt)
+	return event, err == nil, err
+}
+
+const handoffLifecycleSelect = `SELECT e.id,e.handoff_id,e.state,e.actor_session_id,e.source_commit,e.source_tree,e.integration_commit,
+e.canary_run_id,e.canary_integration_ref,e.canary_target_sha,e.canary_target_tree,e.canary_result,
+e.canary_command,e.canary_execution_kind,e.canary_environment_fingerprint,e.canary_head_before,e.canary_head_after,
+e.canary_ref_fingerprint_before,e.canary_ref_fingerprint_after,e.canary_exit_code,
+e.canary_passed_count,e.canary_failed_count,e.canary_skipped_count,e.canary_started_at,e.canary_finished_at,e.canary_evidence_path,
+e.source_worktree_cleaned,e.source_branch_cleaned,e.note,e.created_at FROM handoff_lifecycle_events e`
+
+func (r coordination) GetHandoffLifecycleEventByID(ctx context.Context, id string) (coord.HandoffLifecycleEvent, bool, error) {
+	return scanHandoffLifecycleEvent(r.tx.QueryRowContext(ctx, handoffLifecycleSelect+` JOIN handoffs h ON h.id=e.handoff_id JOIN tasks t ON t.id=h.task_id WHERE e.id=? AND (?='legacy' OR t.project_id=?)`, id, r.project, r.project))
+}
+
+func (r coordination) ListHandoffLifecycleEvents(ctx context.Context, handoffID string) ([]coord.HandoffLifecycleEvent, error) {
+	rows, err := r.tx.QueryContext(ctx, `SELECT e.id FROM handoff_lifecycle_events e JOIN handoffs h ON h.id=e.handoff_id JOIN tasks t ON t.id=h.task_id WHERE e.handoff_id=? AND (?='legacy' OR t.project_id=?) ORDER BY e.created_at,e.rowid`, handoffID, r.project, r.project)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	events := []coord.HandoffLifecycleEvent{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		event, ok, err := r.GetHandoffLifecycleEventByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, fmt.Errorf("invalid stored handoff lifecycle event")
+		}
+		events = append(events, event)
+	}
+	return events, rows.Err()
+}
 func (r coordination) CreateAdoption(ctx context.Context, a coord.Adoption) error {
 	if !r.acceptsProject(a.ProjectID) {
 		return fmt.Errorf("project mismatch")

@@ -31,10 +31,10 @@ func sqliteFileURI(path string) string {
 func sqliteURI(path string, readOnly, existingOnly bool) string {
 	uri := sqliteFileURI(path)
 	if readOnly {
-		return uri + "?mode=ro&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+		return uri + "?mode=ro&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=mmap_size(0)"
 	}
 	if existingOnly {
-		return uri + "?mode=rw&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+		return uri + "?mode=rw&_txlock=immediate&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=mmap_size(0)&_pragma=synchronous(FULL)"
 	}
-	return uri + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)"
+	return uri + "?_txlock=immediate&_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=mmap_size(0)&_pragma=synchronous(FULL)"
 }

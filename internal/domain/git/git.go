@@ -76,6 +76,43 @@ func MergeBasePlan(base, head string) (CommandPlan, error) {
 	return plan("merge-base", base, head), nil
 }
 
+// ResolveCommitPlan resolves one already-selected ref to an exact commit.
+func ResolveCommitPlan(ref string) (CommandPlan, error) {
+	if err := safeRef(ref); err != nil {
+		return CommandPlan{}, err
+	}
+	return plan("rev-parse", "--verify", ref+"^{commit}"), nil
+}
+
+// ResolveTreePlan resolves one already-selected commit or ref to an exact tree.
+func ResolveTreePlan(ref string) (CommandPlan, error) {
+	if err := safeRef(ref); err != nil {
+		return CommandPlan{}, err
+	}
+	return plan("rev-parse", "--verify", ref+"^{tree}"), nil
+}
+
+// CherryPlan asks Git's patch-id comparison whether source changes already
+// occur in the selected integration history.
+func CherryPlan(integration, source string) (CommandPlan, error) {
+	if err := safeRef(integration); err != nil {
+		return CommandPlan{}, err
+	}
+	if err := safeRef(source); err != nil {
+		return CommandPlan{}, err
+	}
+	return plan("cherry", integration, source), nil
+}
+
+// ReflogPlan observes a ref's movement history without updating it. Its output
+// is hashed by the platform adapter and never persisted raw.
+func ReflogPlan(ref string) (CommandPlan, error) {
+	if err := safeRef(ref); err != nil {
+		return CommandPlan{}, err
+	}
+	return plan("reflog", "show", "--format=%H%x00%gs", "--", ref), nil
+}
+
 func safeRef(ref string) error {
 	if ref == "" || strings.HasPrefix(ref, "-") || strings.IndexByte(ref, 0) >= 0 {
 		return errors.New("invalid git ref")
@@ -87,7 +124,11 @@ func safeRef(ref string) error {
 func AllReadOnlyPlans() []CommandPlan {
 	ahead, _ := AheadBehindPlan("refs/remotes/origin/trunk", "refs/heads/topic")
 	merge, _ := MergeBasePlan("refs/heads/trunk", "refs/heads/topic")
-	return []CommandPlan{CommonDirPlan(), IsInsideWorkTreePlan(), IsBarePlan(), TopLevelPlan(), WorktreeListPlan(), WorktreeListFallbackPlan(), StatusPlan(), RefPlan(), ahead, merge}
+	commit, _ := ResolveCommitPlan("refs/heads/topic")
+	tree, _ := ResolveTreePlan("0123456789abcdef")
+	cherry, _ := CherryPlan("refs/heads/trunk", "refs/heads/topic")
+	reflog, _ := ReflogPlan("refs/heads/topic")
+	return []CommandPlan{CommonDirPlan(), IsInsideWorkTreePlan(), IsBarePlan(), TopLevelPlan(), WorktreeListPlan(), WorktreeListFallbackPlan(), StatusPlan(), RefPlan(), ahead, merge, commit, tree, cherry, reflog}
 }
 
 type Confidence string

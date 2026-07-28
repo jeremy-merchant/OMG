@@ -81,6 +81,9 @@ type CoordinationRepository interface {
 	CreateHandoffDecision(context.Context, coordination.HandoffDecision) error
 	GetHandoffDecision(context.Context, string) (coordination.HandoffDecision, bool, error)
 	GetHandoffDecisionByID(context.Context, string) (coordination.HandoffDecision, bool, error)
+	CreateHandoffLifecycleEvent(context.Context, coordination.HandoffLifecycleEvent) error
+	GetHandoffLifecycleEventByID(context.Context, string) (coordination.HandoffLifecycleEvent, bool, error)
+	ListHandoffLifecycleEvents(context.Context, string) ([]coordination.HandoffLifecycleEvent, error)
 	CreateAdoption(context.Context, coordination.Adoption) error
 	GetAdoptionByID(context.Context, string) (coordination.Adoption, bool, error)
 	LatestGitAdoption(context.Context, string, string) (coordination.Adoption, bool, error)
@@ -113,6 +116,13 @@ type GitRepository interface {
 // Scanner observes Git repositories without granting mutation authority.
 type Scanner interface {
 	Scan(context.Context, string) (git.Observation, error)
+}
+
+// GitVerifier resolves exact revisions and proves integration relationships
+// through fixed read-only Git commands. It never mutates refs or worktrees.
+type GitVerifier interface {
+	ResolveRevision(context.Context, string, string) (git.RevisionEvidence, error)
+	Reconcile(context.Context, string, string, string, string, string) (git.ReconcileEvidence, error)
 }
 
 type ReceiptRepository interface {

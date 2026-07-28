@@ -33,9 +33,10 @@ var allowedCommands = []string{
 	"task.create", "task.get", "task.claim", "task.transition", "task.run-create", "task.run-transition",
 	"progress.add", "progress.history", "dependency.add", "dependency.list",
 	"message.send", "message.inbox", "message.thread", "message.deliver", "message.read", "message.ack",
-	"handoff.create", "handoff.show", "handoff.history", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.adopt",
+	"handoff.create", "handoff.show", "handoff.history", "handoff.lifecycle", "handoff.advance", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.adopt",
 	"reserve.add", "reserve.list", "reserve.active", "reserve.history", "reserve.renew", "reserve.release", "reserve.override",
-	"git.inventory", "git.current", "git.latest", "git.history", "git.diff", "git.cleanup-plan", "git.adopt",
+	"git.inventory", "git.current", "git.latest", "git.history", "git.diff", "git.cleanup-plan", "git.reconcile", "git.adopt", "orphan.scan",
+	"canary.start", "canary.finish",
 	"board.query", "preflight.query", "receipt.get", "receipt.list",
 	"import.record",
 }
@@ -418,6 +419,7 @@ func toolsListResult() struct {
 										"type": "object", "additionalProperties": false,
 										"properties": map[string]any{
 											"session_id": map[string]any{"type": "string", "maxLength": maxArgSize},
+											"verbose":    map[string]any{"type": "boolean"},
 										},
 									},
 								}},

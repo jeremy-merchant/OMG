@@ -395,6 +395,15 @@ func allowedReadOnlyPlan(plan gitobs.CommandPlan) error {
 	if len(plan.Args) == 3 && plan.Args[0] == "merge-base" && validObservedRef(plan.Args[1]) && validObservedRef(plan.Args[2]) {
 		return nil
 	}
+	if len(plan.Args) == 3 && plan.Args[0] == "rev-parse" && plan.Args[1] == "--verify" && validObservedRef(plan.Args[2]) && (strings.HasSuffix(plan.Args[2], "^{commit}") || strings.HasSuffix(plan.Args[2], "^{tree}")) {
+		return nil
+	}
+	if len(plan.Args) == 3 && plan.Args[0] == "cherry" && validObservedRef(plan.Args[1]) && validObservedRef(plan.Args[2]) {
+		return nil
+	}
+	if len(plan.Args) == 5 && plan.Args[0] == "reflog" && plan.Args[1] == "show" && plan.Args[2] == "--format=%H%x00%gs" && plan.Args[3] == "--" && validObservedRef(plan.Args[4]) {
+		return nil
+	}
 	if len(plan.Args) == 4 && plan.Args[0] == "rev-list" && plan.Args[1] == "--left-right" && plan.Args[2] == "--count" {
 		left, right, found := strings.Cut(plan.Args[3], "...")
 		if found && validObservedRef(left) && validObservedRef(right) {

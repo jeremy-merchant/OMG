@@ -354,13 +354,13 @@ func TestRenderersExposeCanonicalSessionLiveness(t *testing.T) {
 }
 
 func TestHumanRenderersIncludeHandoffReservationAndGitDetails(t *testing.T) {
-	model := viewModel(t, `{"schema_version":1,"mode":"all","project_id":"project-1","snapshot_cursor":"cursor","sessions":[],"tasks":[],"runs":[],"progress":[],"dependencies":[{"id":"dep-1","dependent_task_id":"task-1","blocker_task_id":"task-2","type":"blocks","unblock_on":"complete","satisfied":true}],"inbox":[],"handoffs":[{"id":"handoff-1","task_id":"task-1","run_id":"run-1","source_session_id":"session-1","target_session_id":"session-2","target_task_id":"task-2","summary":"safe summary","final_output_policy":"hash_only","final_output_hash":"hash-1","changed_file_count":1,"verification_item_count":2,"status":"accepted","created_at":"2026-01-02T03:04:05Z"}],"reservations":[{"id":"reservation-1","session_id":"session-1","task_id":"task-1","run_id":"run-1","pattern_kind":"path","pattern_fingerprint":"fingerprint-1","case_sensitivity":"sensitive","mode":"exclusive","intent":"modify","lifecycle":"active","expires_at":"2026-01-02T04:04:05Z","conflict_ids":["reservation-2"]}],"git":{"observation_id":"git-1","observed_at":"2026-01-02T03:04:05Z","repository":"repo","confidence":"high","assets":[{"type":"worktree","head":"head-1","upstream":"upstream-1","ahead_default":2,"behind_default":3,"ahead_upstream":4,"behind_upstream":5,"tracked_dirty":6,"untracked_dirty":7,"classification":["owned"],"confidence":"high"}]},"warnings":["git warning"],"suggested_actions":[]}`)
+	model := viewModel(t, `{"schema_version":1,"mode":"all","project_id":"project-1","snapshot_cursor":"cursor","sessions":[],"tasks":[],"runs":[],"progress":[],"dependencies":[{"id":"dep-1","dependent_task_id":"task-1","blocker_task_id":"task-2","type":"blocks","unblock_on":"complete","satisfied":true}],"inbox":[],"handoffs":[{"id":"handoff-1","task_id":"task-1","run_id":"run-1","source_session_id":"session-1","target_session_id":"session-2","target_task_id":"task-2","summary":"safe summary","final_output_policy":"hash_only","final_output_hash":"hash-1","changed_file_count":1,"verification_item_count":2,"status":"accepted","integration_state":"INTEGRATED","created_at":"2026-01-02T03:04:05Z"}],"reservations":[{"id":"reservation-1","session_id":"session-1","task_id":"task-1","run_id":"run-1","pattern_kind":"path","pattern_fingerprint":"fingerprint-1","case_sensitivity":"sensitive","mode":"exclusive","intent":"modify","lifecycle":"active","expires_at":"2026-01-02T04:04:05Z","conflict_ids":["reservation-2"]}],"git":{"observation_id":"git-1","observed_at":"2026-01-02T03:04:05Z","repository":"repo","confidence":"high","assets":[{"type":"worktree","head":"head-1","upstream":"upstream-1","ahead_default":2,"behind_default":3,"ahead_upstream":4,"behind_upstream":5,"tracked_dirty":6,"untracked_dirty":7,"classification":["owned"],"confidence":"high"}]},"warnings":["git warning"],"suggested_actions":[]}`)
 	for _, format := range []Format{FormatTTY, FormatMarkdown, FormatHTML} {
 		var output bytes.Buffer
 		if err := Render(format, model, &output); err != nil {
 			t.Fatal(err)
 		}
-		for _, want := range []string{"satisfied=true", "session-2", "safe summary", "hash-1", "fingerprint-1", "reservation-2", "head-1", "upstream-1", "ahead_default=2", "behind_upstream=5", "git warning"} {
+		for _, want := range []string{"satisfied=true", "session-2", "safe summary", "hash-1", "integration_state=INTEGRATED", "fingerprint-1", "reservation-2", "head-1", "upstream-1", "ahead_default=2", "behind_upstream=5", "git warning"} {
 			if !strings.Contains(output.String(), want) {
 				t.Errorf("%s output missing canonical detail %q", format, want)
 			}
@@ -473,19 +473,21 @@ func TestHumanRenderersExposeBoardOwnershipAndSafeAssetFacts(t *testing.T) {
 func TestRenderPreflightTTYShowsSafeOperatorSections(t *testing.T) {
 	now := time.Date(2026, time.July, 23, 12, 0, 0, 0, time.UTC)
 	rendered := RenderPreflightTTY(app.PreflightView{
-		Initialized:       true,
+		Healthy:           true,
 		PendingMigrations: 0,
-		Identity:          &query.IdentityView{ID: "session-current", Kind: "agent", Role: "owner", Runtime: "native", StartedAt: now},
-		Sessions:          []query.IdentityView{{ID: "session-peer", Kind: "agent", Role: "worker", Runtime: "native", StartedAt: now}},
-		Tasks:             []query.TaskView{{ID: "task-7", DisplayNumber: 7, Title: "Safe \x1b[31mtitle", State: "active", CreatedAt: now, UpdatedAt: now}},
-		Inbox:             []query.InboxItemView{{MessageID: "inbox-2", Type: "NOTICE", Subject: "Read \x07 safely", SenderSessionID: "session-peer"}},
-		Dependencies:      []query.DependencyView{{ID: "dependency-3", DependentTaskID: "task-7", BlockerTaskID: "task-6", Type: "blocks"}},
-		Reservations:      []query.ReservationView{{ID: "reservation-6", SessionID: "session-current", TaskID: "task-7", PatternKind: "exact", Pattern: "internal/view/render.go", PatternFingerprint: "fingerprint", Mode: "exclusive", Lifecycle: "active"}},
-		Git:               &query.GitView{Assets: []query.GitAssetView{{Fingerprint: "asset-8", Type: "worktree", Branch: "main", OwnerState: "claimed"}}},
+		Details: &app.PreflightDetails{
+			Identity:     &query.IdentityView{ID: "session-current", Kind: "agent", Role: "owner", Runtime: "native", StartedAt: now},
+			Sessions:     []query.IdentityView{{ID: "session-peer", Kind: "agent", Role: "worker", Runtime: "native", StartedAt: now}},
+			Tasks:        []query.TaskView{{ID: "task-7", DisplayNumber: 7, Title: "Safe \x1b[31mtitle", State: "active", CreatedAt: now, UpdatedAt: now}},
+			Inbox:        []query.InboxItemView{{MessageID: "inbox-2", Type: "NOTICE", Subject: "Read \x07 safely", SenderSessionID: "session-peer"}},
+			Dependencies: []query.DependencyView{{ID: "dependency-3", DependentTaskID: "task-7", BlockerTaskID: "task-6", Type: "blocks"}},
+			Reservations: []query.ReservationView{{ID: "reservation-6", SessionID: "session-current", TaskID: "task-7", PatternKind: "exact", Pattern: "internal/view/render.go", PatternFingerprint: "fingerprint", Mode: "exclusive", Lifecycle: "active"}},
+			Git:          &query.GitView{Assets: []query.GitAssetView{{Fingerprint: "asset-8", Type: "worktree", Branch: "main", OwnerState: "claimed"}}},
+		},
 	})
 
 	for _, want := range []string{
-		"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Initialized: true", "schema_state=current",
+		"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Healthy: true",
 		"IDENTITY", "SESSIONS + TASKS", "INBOX", "DEPENDENCIES", "RESERVATIONS", "GIT",
 		"session-current", "session-peer", "task-7", "inbox-2", "dependency-3", "reservation-6", "asset-8",
 	} {

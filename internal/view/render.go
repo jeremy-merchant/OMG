@@ -205,7 +205,7 @@ func markdownHandoffs(b query.BoardSnapshot) []string { return handoffRows(b, ma
 func handoffRows(b query.BoardSnapshot, escape func(string) string) []string {
 	rows := make([]string, 0, len(b.Handoffs))
 	for _, v := range b.Handoffs {
-		row := "Handoff " + escape(v.ID) + " task=" + escape(v.TaskID) + " run=" + escape(v.RunID) + " run_state=" + escape(v.RunState) + " source=" + escape(v.SourceSessionID) + " target_session=" + escape(v.TargetSessionID) + " target_task=" + escape(v.TargetTaskID) + " summary=" + escape(v.Summary) + " policy=" + escape(v.FinalOutputPolicy) + " final_output_hash=" + escape(v.FinalOutputHash) + " status=" + escape(v.Status)
+		row := "Handoff " + escape(v.ID) + " task=" + escape(v.TaskID) + " run=" + escape(v.RunID) + " run_state=" + escape(v.RunState) + " source=" + escape(v.SourceSessionID) + " target_session=" + escape(v.TargetSessionID) + " target_task=" + escape(v.TargetTaskID) + " summary=" + escape(v.Summary) + " policy=" + escape(v.FinalOutputPolicy) + " final_output_hash=" + escape(v.FinalOutputHash) + " status=" + escape(v.Status) + " integration_state=" + escape(v.IntegrationState)
 		if v.Decision != nil {
 			row += " decision=" + escape(v.Decision.Decision)
 		}

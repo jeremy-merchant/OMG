@@ -55,6 +55,62 @@ func TestDispatchLineageHumanCreateAndGet(t *testing.T) {
 	}
 }
 
+func TestDispatchLineageSessionCreateRecoversCommonAgentPayload(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	createdHuman, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command:        "human.create",
+		IdempotencyKey: "session-recovery-human",
+		Payload:        []byte(`{"id":"session-recovery-human","display_name":"Operator","confidence":"verified"}`),
+	}, selection)
+	if !handled || createdHuman.Error.Code != "" {
+		t.Fatalf("human.create outcome=%+v handled=%t", createdHuman, handled)
+	}
+
+	createdSession, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command:        "session.create",
+		IdempotencyKey: "session-recovery",
+		Payload:        []byte(`{"id":"session-recovery","human_id":"session-recovery-human","runtime":"openai-codex","role":"diagnostic","instruction_source":"delegation_token","provenance_confidence":"unknown","native_access_state":"unsupported"}`),
+	}, selection)
+	if !handled || createdSession.Error.Code != "" {
+		t.Fatalf("session.create outcome=%+v handled=%t", createdSession, handled)
+	}
+	result, ok := createdSession.Data.(lineageSessionResult)
+	if !ok || result.Role != "diagnostic" || result.Source != string(lineagecore.SourceHuman) {
+		t.Fatalf("session.create result=%#v", createdSession.Data)
+	}
+
+	var stored lineagecore.AgentSession
+	readErr := dispatcher.service.WithCurrentStore(ctx, selection, func(_ ports.ResolvedStore, store ports.Store) error {
+		return store.Read(ctx, func(repositories ports.Repositories) error {
+			var found bool
+			var err error
+			stored, found, err = repositories.Coordination().GetSession(ctx, "session-recovery")
+			if err != nil {
+				return err
+			}
+			if !found {
+				return errors.New("created session not found")
+			}
+			return nil
+		})
+	})
+	if readErr.Code != "" || stored.SourceRef != "session.create" || stored.Source != lineagecore.SourceHuman {
+		t.Fatalf("stored session=%+v read error=%+v", stored, readErr)
+	}
+}
+
+func TestDispatchLineageSessionCreateStillRejectsUnknownFields(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	outcome, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command:        "session.create",
+		IdempotencyKey: "session-unknown-field",
+		Payload:        []byte(`{"id":"session-unknown-field","human_id":"human","runtime":"test","role":"reviewer","unexpected_authority":true,"native_access_state":"unsupported"}`),
+	}, selection)
+	if !handled || outcome.Error.Code != domain.CodeInvalidArgument {
+		t.Fatalf("session.create outcome=%+v handled=%t", outcome, handled)
+	}
+}
+
 func TestLineageResponsesSanitizePresentationFields(t *testing.T) {
 	sensitiveHuman := lineageHumanResponse(lineagecore.Human{ID: "human-1", DisplayName: "api_key=release"})
 	sensitiveSession := lineageSessionResponse(lineagecore.AgentSession{ID: "session-1", Runtime: `C:\Users\alice\private`, Role: "private_key=release"})

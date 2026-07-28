@@ -280,6 +280,21 @@ func TestDecodeRecordsEmptyPayloadTransportPresence(t *testing.T) {
 		})
 	}
 }
+func TestGitReadCommandsDefaultMissingPayloadToEmptyObject(t *testing.T) {
+	for _, subcommand := range []string{"current", "latest", "history", "diff", "cleanup-plan"} {
+		t.Run(subcommand, func(t *testing.T) {
+			payload, err := loadApplicationPayload(Request{Name: "git", Subcommand: subcommand}, strings.NewReader(""))
+			if err != nil || payload != "{}" {
+				t.Fatalf("payload=%q err=%v; want empty object", payload, err)
+			}
+		})
+	}
+
+	if payload, err := loadApplicationPayload(Request{Name: "task", Subcommand: "get"}, strings.NewReader("")); err == nil {
+		t.Fatalf("task.get payload=%q; want missing transport rejection", payload)
+	}
+}
+
 func currentPayloadService(t *testing.T) (string, *foundation.Service) {
 	t.Helper()
 	ctx := context.Background()

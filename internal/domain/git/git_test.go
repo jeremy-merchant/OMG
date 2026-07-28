@@ -10,6 +10,7 @@ func TestCommandPlansAreReadOnly(t *testing.T) {
 	allowed := map[string]bool{
 		"rev-parse": true, "worktree": true, "status": true,
 		"for-each-ref": true, "rev-list": true, "merge-base": true,
+		"cherry": true, "reflog": true,
 		"--no-optional-locks": true,
 	}
 	for _, plan := range AllReadOnlyPlans() {

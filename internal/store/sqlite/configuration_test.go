@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -182,10 +183,97 @@ func TestSQLiteRetriesTransientCallbackErrors(t *testing.T) {
 	}
 }
 
+func TestSQLiteImmediateTransactionsSerializeCrossProcessStyleWriters(t *testing.T) {
+	ctx := context.Background()
+	first := migratedStore(t, OpenOptions{WALEligible: func(string) bool { return true }})
+	defer first.Close()
+	second, _, err := Open(ctx, first.path, OpenOptions{ExistingOnly: true, WALEligible: func(string) bool { return true }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.Close()
+
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	firstDone := make(chan error, 1)
+	go func() {
+		_, _, writeErr := first.Write(ctx, "writer-first", "test.write", func(_ ports.Repositories) (domain.Result, error) {
+			close(entered)
+			<-release
+			return domain.Result{ID: "writer-first", Outcome: domain.OutcomeOK}, nil
+		})
+		firstDone <- writeErr
+	}()
+	<-entered
+
+	var secondCallbacks atomic.Int32
+	secondDone := make(chan error, 1)
+	go func() {
+		_, _, writeErr := second.Write(ctx, "writer-second", "test.write", func(_ ports.Repositories) (domain.Result, error) {
+			secondCallbacks.Add(1)
+			return domain.Result{ID: "writer-second", Outcome: domain.OutcomeOK}, nil
+		})
+		secondDone <- writeErr
+	}()
+	select {
+	case err := <-secondDone:
+		t.Fatalf("second writer completed before first released: %v", err)
+	case <-time.After(75 * time.Millisecond):
+	}
+	if secondCallbacks.Load() != 0 {
+		t.Fatal("queued writer callback ran before acquiring the SQLite writer slot")
+	}
+	close(release)
+	if err := <-firstDone; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-secondDone; err != nil {
+		t.Fatal(err)
+	}
+	if secondCallbacks.Load() != 1 {
+		t.Fatalf("second writer callbacks = %d; want 1", secondCallbacks.Load())
+	}
+}
+
+func TestSQLiteImmediateTransactionsDeduplicateConcurrentIdempotencyKeys(t *testing.T) {
+	ctx := context.Background()
+	first := migratedStore(t, OpenOptions{WALEligible: func(string) bool { return true }})
+	defer first.Close()
+	second, _, err := Open(ctx, first.path, OpenOptions{ExistingOnly: true, WALEligible: func(string) bool { return true }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.Close()
+
+	var callbacks atomic.Int32
+	start := make(chan struct{})
+	errors := make(chan error, 2)
+	for _, store := range []*SQLiteStore{first, second} {
+		go func(store *SQLiteStore) {
+			<-start
+			_, _, writeErr := store.Write(ctx, "shared-concurrent-key", "test.write", func(_ ports.Repositories) (domain.Result, error) {
+				callbacks.Add(1)
+				time.Sleep(40 * time.Millisecond)
+				return domain.Result{ID: "shared-result", Outcome: domain.OutcomeOK}, nil
+			})
+			errors <- writeErr
+		}(store)
+	}
+	close(start)
+	for range 2 {
+		if err := <-errors; err != nil {
+			t.Fatal(err)
+		}
+	}
+	if callbacks.Load() != 1 {
+		t.Fatalf("duplicate idempotent callbacks = %d; want 1", callbacks.Load())
+	}
+}
+
 func TestSQLiteRejectsNewerAndChecksumDivergentSchemaState(t *testing.T) {
 	t.Run("newer version", func(t *testing.T) {
 		store := migratedStore(t, OpenOptions{})
-		if _, err := store.db.Exec(`INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(9,'sha256:future','2026-07-23T00:00:00Z')`); err != nil {
+		if _, err := store.db.Exec(`INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(11,'sha256:future','2026-07-23T00:00:00Z')`); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := store.pending(context.Background()); !errors.Is(err, ErrMigrationState) {

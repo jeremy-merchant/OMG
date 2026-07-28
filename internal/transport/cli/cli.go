@@ -12,9 +12,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"unicode"
 
+	"github.com/jeremy-merchant/OMG/internal/agentinstall"
 	"github.com/jeremy-merchant/OMG/internal/app"
 	"github.com/jeremy-merchant/OMG/internal/app/foundation"
 	"github.com/jeremy-merchant/OMG/internal/app/query"
@@ -56,40 +58,63 @@ type ErrorEnvelope struct {
 	Warnings []string      `json:"warnings"`
 }
 type Request struct {
-	Name                   string
-	Subcommand             string
-	JSON                   bool
-	Integrity              bool
-	Status                 bool
-	Stdio                  bool
-	Runtime                string
-	Command                []string
-	Project                string
-	Workspace              string
-	Store                  string
-	projectProvided        bool
-	workspaceProvided      bool
-	storeProvided          bool
-	outputProvided         bool
-	planFileProvided       bool
-	approvalFileProvided   bool
-	idempotencyKeyProvided bool
-	formatProvided         bool
-	sessionProvided        bool
-	taskProvided           bool
-	runtimeProvided        bool
-	Output                 string
-	PlanFile               string
-	ApprovalFile           string
-	IdempotencyKey         string
-	Format                 string
-	SessionID              string
-	TaskID                 string
-	Payload                string
-	PayloadProvided        bool
-	PayloadFile            string
-	PayloadFileProvided    bool
-	PayloadStdin           bool
+	Name                           string
+	Subcommand                     string
+	JSON                           bool
+	Integrity                      bool
+	Status                         bool
+	Verbose                        bool
+	Stdio                          bool
+	Runtime                        string
+	IntegrationBranch              string
+	HandoffID                      string
+	CanaryRunID                    string
+	VerificationCommand            string
+	ExecutionKind                  string
+	EnvironmentFingerprint         string
+	EvidencePath                   string
+	ExitCode                       int
+	PassedCount                    int
+	FailedCount                    int
+	SkippedCount                   int
+	Command                        []string
+	Project                        string
+	Workspace                      string
+	Store                          string
+	projectProvided                bool
+	workspaceProvided              bool
+	storeProvided                  bool
+	outputProvided                 bool
+	planFileProvided               bool
+	approvalFileProvided           bool
+	idempotencyKeyProvided         bool
+	formatProvided                 bool
+	sessionProvided                bool
+	taskProvided                   bool
+	runtimeProvided                bool
+	integrationBranchProvided      bool
+	handoffProvided                bool
+	canaryProvided                 bool
+	verificationCommandProvided    bool
+	executionKindProvided          bool
+	environmentFingerprintProvided bool
+	evidencePathProvided           bool
+	exitCodeProvided               bool
+	passedCountProvided            bool
+	failedCountProvided            bool
+	skippedCountProvided           bool
+	Output                         string
+	PlanFile                       string
+	ApprovalFile                   string
+	IdempotencyKey                 string
+	Format                         string
+	SessionID                      string
+	TaskID                         string
+	Payload                        string
+	PayloadProvided                bool
+	PayloadFile                    string
+	PayloadFileProvided            bool
+	PayloadStdin                   bool
 }
 
 type taskCreatePayload struct {
@@ -134,6 +159,8 @@ type handoffCreatePayload struct {
 	FinalOutputHash      string            `json:"final_output_hash,omitempty"`
 	ChangedFiles         []string          `json:"changed_files,omitempty"`
 	Commits              []string          `json:"commits,omitempty"`
+	SourceCommit         string            `json:"source_commit,omitempty"`
+	SourceTree           string            `json:"source_tree,omitempty"`
 	VerificationEvidence []evidencePayload `json:"verification_evidence,omitempty"`
 	RemainingRisks       []string          `json:"remaining_risks,omitempty"`
 	SuggestedActions     []string          `json:"suggested_actions,omitempty"`
@@ -162,6 +189,8 @@ func Decode(args []string) (Request, domain.DomainError) {
 			request.Integrity = true
 		case arg == "--status":
 			request.Status = true
+		case arg == "--verbose":
+			request.Verbose = true
 		case arg == "--stdio":
 			request.Stdio = true
 		case arg == "--payload-stdin":
@@ -206,6 +235,45 @@ func Decode(args []string) (Request, domain.DomainError) {
 			case "--runtime":
 				request.Runtime = value
 				request.runtimeProvided = true
+			case "--integration-branch":
+				request.IntegrationBranch = value
+				request.integrationBranchProvided = true
+			case "--integration-ref":
+				request.IntegrationBranch = value
+				request.integrationBranchProvided = true
+			case "--handoff":
+				request.HandoffID = value
+				request.handoffProvided = true
+			case "--canary":
+				request.CanaryRunID = value
+				request.canaryProvided = true
+			case "--verification-command":
+				request.VerificationCommand = value
+				request.verificationCommandProvided = true
+			case "--execution-kind":
+				request.ExecutionKind = value
+				request.executionKindProvided = true
+			case "--environment-fingerprint":
+				request.EnvironmentFingerprint = value
+				request.environmentFingerprintProvided = true
+			case "--evidence-path":
+				request.EvidencePath = value
+				request.evidencePathProvided = true
+			case "--exit-code", "--passed", "--failed", "--skipped":
+				number, parseErr := parseNonnegativeInt(value)
+				if parseErr != nil {
+					return Request{}, invalid("a canary count or exit code is invalid")
+				}
+				switch arg {
+				case "--exit-code":
+					request.ExitCode, request.exitCodeProvided = number, true
+				case "--passed":
+					request.PassedCount, request.passedCountProvided = number, true
+				case "--failed":
+					request.FailedCount, request.failedCountProvided = number, true
+				case "--skipped":
+					request.SkippedCount, request.skippedCountProvided = number, true
+				}
 			case "--payload":
 				request.PayloadProvided = true
 				request.Payload = value
@@ -214,7 +282,7 @@ func Decode(args []string) (Request, domain.DomainError) {
 				request.PayloadFile = value
 			}
 		default:
-			return Request{}, invalid("unsupported command argument")
+			return Request{}, invalid(fmt.Sprintf("unsupported command argument %q", arg))
 		}
 		i++
 	}
@@ -223,9 +291,9 @@ func Decode(args []string) (Request, domain.DomainError) {
 
 func commandTakesSubcommand(name string) bool {
 	switch name {
-	case "migration", "backup", "release", "board", "export", "integration",
+	case "migration", "backup", "release", "agent", "board", "export", "integration",
 		"shell-init", "completion", "watch", "human", "session", "delegate", "checkpoint",
-		"task", "progress", "dependency", "message", "handoff", "reserve", "git", "import", "receipt", "mcp":
+		"task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt", "example", "mcp":
 		return true
 	default:
 		return false
@@ -234,11 +302,19 @@ func commandTakesSubcommand(name string) bool {
 
 func optionTakesValue(arg string) bool {
 	switch arg {
-	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--payload", "--payload-file":
+	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--integration-branch", "--integration-ref", "--handoff", "--canary", "--verification-command", "--execution-kind", "--environment-fingerprint", "--evidence-path", "--exit-code", "--passed", "--failed", "--skipped", "--payload", "--payload-file":
 		return true
 	default:
 		return false
 	}
+}
+
+func parseNonnegativeInt(value string) (int, error) {
+	number, err := strconv.Atoi(value)
+	if err != nil || number < 0 {
+		return 0, errors.New("invalid nonnegative integer")
+	}
+	return number, nil
 }
 
 // RunWithApplication executes the CLI against dependencies composed at the
@@ -294,9 +370,18 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		}
 		return ExitSuccess
 	}
+	if args[0] == "example" {
+		return runExample(output, args, version)
+	}
 	request, err := Decode(args)
 	if err.Code != "" {
-		return writeError(output, hasJSON(args), err)
+		return writeErrorWithContext(output, hasJSON(args), err, decodeRecoveryContext(args))
+	}
+	if request.Name != "canary" && hasCanaryOptions(request) || request.integrationBranchProvided && request.Name != "git" && request.Name != "orphan" && request.Name != "canary" {
+		return writeInvalidRequest(output, request, "command-specific Git or canary options are invalid here")
+	}
+	if request.Verbose && request.Name != "preflight" {
+		return writeInvalidRequest(output, request, "--verbose is supported only by preflight")
 	}
 	if !request.JSON && applicationCommandName(request.Name) {
 		if message, context, invalidPath := commandPathProblem(request.Name, request.Subcommand); invalidPath {
@@ -309,6 +394,8 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	}
 	selection := foundation.Selection{Project: request.Project, Workspace: request.Workspace, Store: request.Store}
 	switch request.Name {
+	case "agent":
+		return runAgent(output, request)
 	case "version":
 		if request.Subcommand != "" {
 			break
@@ -342,6 +429,8 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		}
 	case "preflight":
 		return runPreflight(ctx, output, request, application, selection)
+	case "status":
+		return runOperatorSummary(ctx, output, request, application, selection)
 	case "migration":
 		if request.Subcommand == "plan" {
 			return runPlan(output, request, application.Foundation, selection, ctx)
@@ -368,7 +457,7 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		return runShell(output, request, application)
 	case "watch":
 		return runWatch(ctx, output, request, application, selection)
-	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "import", "receipt":
+	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt":
 		return runApplicationCommand(ctx, output, stdin, request, application, selection)
 	case "mcp":
 		return runMCP(ctx, stdin, output, request, version, application)
@@ -384,6 +473,154 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	}
 	return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeCommandNotWired, "command is not supported", false), terminalErrorContext{Next: "omg " + request.Name + " --help"})
 }
+
+type exampleListResult struct {
+	Topics []string `json:"topics"`
+}
+
+type exampleShowResult struct {
+	Topic   string `json:"topic"`
+	Command string `json:"command"`
+	Usage   string `json:"usage"`
+}
+
+func runExample(output io.Writer, args []string, version string) int {
+	jsonOutput := hasJSON(args)
+	if len(args) < 2 {
+		return writeErrorWithContext(output, jsonOutput, invalid("an example subcommand is required"), terminalErrorContext{
+			Hint: "Use `list` to discover topics or `show` to open one copyable example.",
+			Next: "omg example --help",
+		})
+	}
+
+	operands := make([]string, 0, len(args)-2)
+	for _, argument := range args[2:] {
+		if argument == "--json" {
+			continue
+		}
+		if strings.HasPrefix(argument, "-") {
+			return writeErrorWithContext(output, jsonOutput, invalid(fmt.Sprintf("unsupported command argument %q", argument)), terminalErrorContext{
+				Hint: "Example discovery accepts only a topic and optional --json.",
+				Next: "omg example --help",
+			})
+		}
+		operands = append(operands, argument)
+	}
+
+	switch args[1] {
+	case "list":
+		if len(operands) != 0 {
+			return writeErrorWithContext(output, jsonOutput, invalid("example list does not accept a topic"), terminalErrorContext{Next: "omg example list --help"})
+		}
+		topics := exampleTopics()
+		if jsonOutput {
+			return writeSuccess(output, true, exampleListResult{Topics: topics})
+		}
+		_, _ = fmt.Fprintln(output, "Example topics:")
+		for _, topic := range topics {
+			_, _ = fmt.Fprintf(output, "  %s\n", topic)
+		}
+		return ExitSuccess
+	case "show":
+		if len(operands) != 1 {
+			return writeErrorWithContext(output, jsonOutput, invalid("example show requires exactly one topic"), terminalErrorContext{
+				Hint: "Run `omg example list` to discover valid topics.",
+				Next: "omg example show --help",
+			})
+		}
+		topic, target, found := resolveExampleTopic(operands[0])
+		if !found {
+			suggestion := closestExampleTopic(operands[0])
+			context := terminalErrorContext{Next: "omg example list"}
+			if suggestion != "" {
+				context.Hint = fmt.Sprintf("Did you mean %q?", suggestion)
+				context.Next = "omg example show " + suggestion
+			}
+			return writeErrorWithContext(output, jsonOutput, invalid(fmt.Sprintf("unknown example topic %q", operands[0])), context)
+		}
+		usage, rendered := renderHelpWithHeight(version, !jsonOutput && cliTerminalColorEnabled(output), cliTerminalWidth(output), cliTerminalHeight(output), target)
+		if !rendered {
+			return writeErrorWithContext(output, jsonOutput, invalid("example topic is unavailable"), terminalErrorContext{Next: "omg example list"})
+		}
+		if jsonOutput {
+			return writeSuccess(output, true, exampleShowResult{
+				Topic:   topic,
+				Command: "omg " + target.Command + " " + target.Subcommand,
+				Usage:   stripTerminalANSI(usage),
+			})
+		}
+		if _, err := io.WriteString(output, usage); err != nil {
+			return ExitInternal
+		}
+		return ExitSuccess
+	default:
+		return writeErrorWithContext(output, jsonOutput, invalid(fmt.Sprintf("unknown example subcommand %q", args[1])), terminalErrorContext{
+			Hint: "Use `list` or `show`.",
+			Next: "omg example --help",
+		})
+	}
+}
+
+func decodeRecoveryContext(args []string) terminalErrorContext {
+	if len(args) == 0 {
+		return terminalErrorContext{Next: "omg --help"}
+	}
+	if args[0] == "reserve" {
+		return terminalErrorContext{
+			Hint: "reservations require `reserve add` with a strict lineage payload",
+			Next: "omg reserve add --help",
+		}
+	}
+	if knownCommand(args[0]) {
+		return terminalErrorContext{
+			Hint: "Use only the options shown by contextual help.",
+			Next: "omg " + args[0] + " --help",
+		}
+	}
+	return terminalErrorContext{Next: "omg --help"}
+}
+
+func runAgent(output io.Writer, request Request) int {
+	if request.Integrity || request.Status || request.Stdio || request.Runtime != "" || len(request.Command) != 0 ||
+		request.Project != "" || request.Workspace != "" || request.Store != "" || request.Output != "" ||
+		request.PlanFile != "" || request.ApprovalFile != "" || request.IdempotencyKey != "" || request.Format != "" ||
+		request.SessionID != "" || request.TaskID != "" || request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin {
+		return writeInvalidRequest(output, request, "agent request is invalid")
+	}
+	service, err := agentinstall.FromEnvironment()
+	if err != nil {
+		return writeError(output, request.JSON, domain.NewError(domain.CodeUnavailable, "global agent home is unsafe or unavailable", false))
+	}
+	var report agentinstall.Report
+	switch request.Subcommand {
+	case "install":
+		report, err = service.Install()
+	case "status":
+		report, err = service.Status()
+	case "doctor":
+		report, err = service.Doctor()
+	case "uninstall":
+		report, err = service.Uninstall()
+	default:
+		return writeInvalidRequest(output, request, "agent subcommand is invalid")
+	}
+	if err != nil {
+		switch {
+		case errors.Is(err, agentinstall.ErrConflict):
+			return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeConflict, "global agent integration conflicts with existing or drifted content", false), terminalErrorContext{Next: "omg agent status"})
+		case errors.Is(err, agentinstall.ErrUnsafeHome):
+			return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeUnavailable, "global agent integration contains an unsafe filesystem component", false), terminalErrorContext{Next: "omg agent doctor"})
+		default:
+			return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeUnavailable, "global agent integration could not be updated", false), terminalErrorContext{Next: "omg agent doctor"})
+		}
+	}
+	if request.JSON {
+		return writeSuccess(output, true, report)
+	}
+	renderAgentReport(output, report)
+	return ExitSuccess
+}
+
 func runMCP(ctx context.Context, input io.Reader, output io.Writer, request Request, version string, application app.CLIService) int {
 	if request.Subcommand != "serve" || !request.Stdio || request.JSON || request.Integrity || request.Status ||
 		request.Runtime != "" || len(request.Command) != 0 || request.Project != "" || request.Workspace != "" ||
@@ -400,12 +637,47 @@ func runMCP(ctx context.Context, input io.Reader, output io.Writer, request Requ
 }
 
 func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reader, request Request, application app.CLIService, selection foundation.Selection) int {
+	directCanary := request.Name == "canary" && (request.Subcommand == "start" || request.Subcommand == "finish")
 	if len(request.Command) != 0 || request.Output != "" || request.PlanFile != "" ||
-		request.ApprovalFile != "" || request.Format != "" || request.SessionID != "" || request.TaskID != "" ||
+		request.ApprovalFile != "" || request.Format != "" || !directCanary && request.SessionID != "" || request.TaskID != "" ||
 		request.Runtime != "" || request.Integrity || request.Status || request.Stdio {
 		return writeInvalidRequest(output, request, "application request is invalid")
 	}
-	payload, err := loadApplicationPayload(request, input)
+	var payload []byte
+	var err error
+	directGitQuery := request.Name == "git" && request.Subcommand == "reconcile" || request.Name == "orphan" && request.Subcommand == "scan"
+	if directCanary {
+		if request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin || request.IdempotencyKey == "" || request.SessionID == "" {
+			return writeInvalidRequest(output, request, "exact-SHA canary request is invalid")
+		}
+		if request.Subcommand == "start" {
+			if request.HandoffID == "" || request.IntegrationBranch == "" || request.VerificationCommand == "" || request.ExecutionKind == "" || request.EnvironmentFingerprint == "" || request.canaryProvided || request.exitCodeProvided || request.passedCountProvided || request.failedCountProvided || request.skippedCountProvided || request.evidencePathProvided {
+				return writeInvalidRequest(output, request, "canary start request is invalid")
+			}
+			payload, err = json.Marshal(map[string]any{"handoff_id": request.HandoffID, "actor_session_id": request.SessionID, "integration_ref": request.IntegrationBranch, "verification_command": request.VerificationCommand, "execution_kind": request.ExecutionKind, "environment_fingerprint": request.EnvironmentFingerprint})
+		} else {
+			if request.CanaryRunID == "" || !request.exitCodeProvided || !request.passedCountProvided || !request.failedCountProvided || !request.skippedCountProvided || request.handoffProvided || request.integrationBranchProvided || request.verificationCommandProvided || request.executionKindProvided || request.environmentFingerprintProvided {
+				return writeInvalidRequest(output, request, "canary finish request is invalid")
+			}
+			payload, err = json.Marshal(map[string]any{"canary_run_id": request.CanaryRunID, "actor_session_id": request.SessionID, "exit_code": request.ExitCode, "passed_count": request.PassedCount, "failed_count": request.FailedCount, "skipped_count": request.SkippedCount, "evidence_path": request.EvidencePath})
+		}
+	} else if directGitQuery {
+		if request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin || request.IdempotencyKey != "" || request.Name == "git" && request.IntegrationBranch == "" {
+			return writeInvalidRequest(output, request, "Git reconciliation request is invalid")
+		}
+		integrationBranch := request.IntegrationBranch
+		if integrationBranch == "" {
+			integrationBranch = "HEAD"
+		}
+		payload, err = json.Marshal(map[string]string{"integration_branch": integrationBranch})
+	} else {
+		if request.integrationBranchProvided || request.IntegrationBranch != "" || hasCanaryOptions(request) {
+			return writeInvalidRequest(output, request, "direct Git and canary options are not supported by this command")
+		}
+		var loaded string
+		loaded, err = loadApplicationPayload(request, input)
+		payload = []byte(loaded)
+	}
 	if err != nil {
 		return writeError(output, request.JSON, invalid("application payload transport is invalid"))
 	}
@@ -426,11 +698,15 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 
 func applicationCommandName(name string) bool {
 	switch name {
-	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "import", "receipt":
+	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt":
 		return true
 	default:
 		return false
 	}
+}
+
+func hasCanaryOptions(request Request) bool {
+	return request.handoffProvided || request.canaryProvided || request.verificationCommandProvided || request.executionKindProvided || request.environmentFingerprintProvided || request.evidencePathProvided || request.exitCodeProvided || request.passedCountProvided || request.failedCountProvided || request.skippedCountProvided
 }
 
 func decodePayload(data string, target any) bool {
@@ -445,6 +721,9 @@ func decodePayload(data string, target any) bool {
 func runBoard(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
 	if !validBoardRequest(request) {
 		return writeInvalidRequest(output, request, "board request is invalid")
+	}
+	if request.Subcommand == string(query.BoardSummary) {
+		return runOperatorSummary(ctx, output, request, application, selection)
 	}
 	format, _ := boardFormat(request.Format)
 	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{
@@ -495,12 +774,42 @@ func validBoardRequest(request Request) bool {
 		if request.sessionProvided || request.taskProvided {
 			return false
 		}
+	case query.BoardSummary:
+		if request.sessionProvided || request.taskProvided || request.formatProvided {
+			return false
+		}
+		return true
 	}
 	return query.BoardRequest{
 		Mode:      query.BoardMode(request.Subcommand),
 		SessionID: request.SessionID,
 		TaskID:    request.TaskID,
 	}.Validate() == nil
+}
+
+func runOperatorSummary(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
+	if request.Name == "status" {
+		if request.Subcommand != "" || request.Integrity || request.Status || request.Stdio || request.Verbose || request.runtimeProvided || request.Runtime != "" || len(request.Command) != 0 || request.outputProvided || request.Output != "" || request.planFileProvided || request.PlanFile != "" || request.approvalFileProvided || request.ApprovalFile != "" || request.idempotencyKeyProvided || request.IdempotencyKey != "" || request.formatProvided || request.Format != "" || request.sessionProvided || request.SessionID != "" || request.taskProvided || request.TaskID != "" || request.PayloadProvided || request.Payload != "" || request.PayloadFileProvided || request.PayloadFile != "" || request.PayloadStdin {
+			return writeInvalidRequest(output, request, "status request is invalid")
+		}
+	}
+	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
+	if err.Code != "" {
+		return writeError(output, request.JSON, err)
+	}
+	var snapshot query.BoardSnapshot
+	if decodeErr := json.Unmarshal(model.Data(), &snapshot); decodeErr != nil {
+		return writeError(output, request.JSON, domain.NewError(domain.CodeInternal, "unable to decode operator summary", false))
+	}
+	summary := query.Summarize(snapshot)
+	if request.JSON {
+		return writeSuccess(output, true, summary)
+	}
+	_, _ = fmt.Fprintf(output, "OMG STATUS\nactive_sessions=%d stale_sessions=%d conflicts=%d integration_queue=%d\n", summary.ActiveSessions, summary.StaleSessions, summary.Conflicts, summary.IntegrationQueue)
+	for _, bottleneck := range summary.Bottlenecks {
+		_, _ = fmt.Fprintf(output, "%s %d → %s %d\n", bottleneck.From, bottleneck.Waiting, bottleneck.To, bottleneck.Done)
+	}
+	return ExitSuccess
 }
 
 func validExportRequest(request Request) bool {
@@ -718,6 +1027,9 @@ func writeRunResult(output io.Writer, result app.CLIRuntimeResult) {
 }
 
 func runIntegration(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
+	if request.Subcommand == "queue" {
+		return runIntegrationQueue(ctx, output, request, application, selection)
+	}
 	if request.workspaceProvided || request.storeProvided || request.Workspace != "" || request.Store != "" {
 		return writeError(output, request.JSON, invalid("integration request does not support --workspace or --store"))
 	}
@@ -749,6 +1061,47 @@ func validIntegrationRequest(request Request) bool {
 		len(request.Command) == 0 && !request.outputProvided && request.Output == "" &&
 		!request.planFileProvided && request.PlanFile == "" && !request.approvalFileProvided &&
 		request.ApprovalFile == "" && !request.idempotencyKeyProvided && request.IdempotencyKey == "" &&
+		!request.formatProvided && request.Format == "" && !request.sessionProvided && request.SessionID == "" &&
+		!request.taskProvided && request.TaskID == "" && !request.PayloadProvided && request.Payload == "" &&
+		!request.PayloadFileProvided && request.PayloadFile == "" && !request.PayloadStdin
+}
+
+func runIntegrationQueue(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
+	if !validIntegrationQueueRequest(request) {
+		return writeInvalidRequest(output, request, "integration queue request is invalid")
+	}
+	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
+	if err.Code != "" {
+		return writeError(output, request.JSON, err)
+	}
+	var snapshot query.BoardSnapshot
+	if decodeErr := json.Unmarshal(model.Data(), &snapshot); decodeErr != nil {
+		return writeError(output, request.JSON, domain.NewError(domain.CodeInternal, "unable to decode integration queue", false))
+	}
+	items := query.IntegrationQueue(snapshot)
+	result := struct {
+		Count int                              `json:"count"`
+		Items []query.IntegrationQueueItemView `json:"items"`
+	}{Count: len(items), Items: items}
+	if request.JSON {
+		return writeSuccess(output, true, result)
+	}
+	_, _ = fmt.Fprintf(output, "OMG INTEGRATION QUEUE  %d item(s)\n", len(items))
+	for _, item := range items {
+		missing := ""
+		if len(item.MissingEvidence) != 0 {
+			missing = " missing=" + strings.Join(item.MissingEvidence, ",")
+		}
+		_, _ = fmt.Fprintf(output, "%s  %s  task=%s%s\n", item.State, item.HandoffID, item.TaskID, missing)
+	}
+	return ExitSuccess
+}
+
+func validIntegrationQueueRequest(request Request) bool {
+	return request.Subcommand == "queue" && !request.Integrity && !request.Status && !request.Stdio && !request.Verbose &&
+		!request.runtimeProvided && request.Runtime == "" && len(request.Command) == 0 &&
+		!request.outputProvided && request.Output == "" && !request.planFileProvided && request.PlanFile == "" &&
+		!request.approvalFileProvided && request.ApprovalFile == "" && !request.idempotencyKeyProvided && request.IdempotencyKey == "" &&
 		!request.formatProvided && request.Format == "" && !request.sessionProvided && request.SessionID == "" &&
 		!request.taskProvided && request.TaskID == "" && !request.PayloadProvided && request.Payload == "" &&
 		!request.PayloadFileProvided && request.PayloadFile == "" && !request.PayloadStdin
@@ -924,7 +1277,14 @@ func writeErrorWithContext(output io.Writer, jsonOutput bool, err domain.DomainE
 		renderErrorWithContext(output, err, exit, context)
 		return exit
 	}
-	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{string(err.Code), err.Message, err.Retryable, exit}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: []string{}}, exit)
+	warnings := make([]string, 0, 2)
+	if context.Hint != "" {
+		warnings = append(warnings, "hint: "+neutralizeTerminalControls(context.Hint))
+	}
+	if context.Next != "" {
+		warnings = append(warnings, "next: "+neutralizeTerminalControls(context.Next))
+	}
+	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{string(err.Code), err.Message, err.Retryable, exit}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: warnings}, exit)
 }
 func writeJSON(output io.Writer, value any, exit int) int {
 	encoder := json.NewEncoder(output)

@@ -654,7 +654,7 @@ func stripTerminalANSI(value string) string {
 
 func commandUsesSelection(name string) bool {
 	switch name {
-	case "version", "release", "run", "shell-init", "completion", "mcp":
+	case "version", "release", "run", "example", "shell-init", "completion", "mcp":
 		return false
 	default:
 		return true

@@ -1,0 +1,143 @@
+#!/bin/sh
+set -eu
+
+repository="${OMG_REPOSITORY:-jeremy-merchant/OMG}"
+version="${OMG_VERSION:-latest}"
+install_dir="${OMG_INSTALL_DIR:-$HOME/.local/bin}"
+source_binary="${OMG_INSTALL_SOURCE:-}"
+expected_sha="${OMG_INSTALL_SHA256:-}"
+
+fail() {
+  printf 'OMG install: %s\n' "$1" >&2
+  exit 1
+}
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+sha256_file() {
+  if command_exists sha256sum; then
+    sha256sum "$1" | awk '{print $1}'
+    return
+  fi
+  if command_exists shasum; then
+    shasum -a 256 "$1" | awk '{print $1}'
+    return
+  fi
+  fail "sha256sum or shasum is required"
+}
+
+download() {
+  url="$1"
+  output="$2"
+  if command_exists curl; then
+    curl -fsSL --retry 3 --proto '=https' --tlsv1.2 "$url" -o "$output"
+    return
+  fi
+  if command_exists wget; then
+    wget -q --https-only "$url" -O "$output"
+    return
+  fi
+  fail "curl or wget is required"
+}
+
+canonical_os() {
+  case "$(uname -s)" in
+    Darwin) printf 'darwin' ;;
+    Linux) printf 'linux' ;;
+    *) fail "unsupported operating system: $(uname -s)" ;;
+  esac
+}
+
+canonical_arch() {
+  case "$(uname -m)" in
+    x86_64|amd64) printf 'amd64' ;;
+    arm64|aarch64) printf 'arm64' ;;
+    *) fail "unsupported architecture: $(uname -m)" ;;
+  esac
+}
+
+safe_profile_append() {
+  profile="$1"
+  line="$2"
+  begin='# >>> OMG PATH >>>'
+  end='# <<< OMG PATH <<<'
+  if [ -L "$profile" ]; then
+    fail "refusing to edit symlinked shell profile: $profile"
+  fi
+  if [ -f "$profile" ] && grep -F "$begin" "$profile" >/dev/null 2>&1; then
+    return
+  fi
+  mkdir -p "$(dirname "$profile")"
+  {
+    [ ! -f "$profile" ] || [ ! -s "$profile" ] || printf '\n'
+    printf '%s\n%s\n%s\n' "$begin" "$line" "$end"
+  } >> "$profile"
+}
+
+configure_path() {
+  case ":${PATH:-}:" in
+    *":$install_dir:"*) return ;;
+  esac
+  safe_profile_append "$HOME/.profile" "export PATH=\"$install_dir:\$PATH\""
+  shell_name=$(basename "${SHELL:-sh}")
+  case "$shell_name" in
+    zsh) safe_profile_append "$HOME/.zprofile" "export PATH=\"$install_dir:\$PATH\"" ;;
+    bash) safe_profile_append "$HOME/.bash_profile" "export PATH=\"$install_dir:\$PATH\"" ;;
+    fish) safe_profile_append "$HOME/.config/fish/config.fish" "fish_add_path \"$install_dir\"" ;;
+  esac
+}
+
+temporary_root="${TMPDIR:-/tmp}/omg-install-$$"
+trap 'rm -rf "$temporary_root"' EXIT HUP INT TERM
+mkdir -p "$temporary_root" "$install_dir"
+
+candidate="$temporary_root/omg"
+if [ -n "$source_binary" ]; then
+  [ -f "$source_binary" ] || fail "OMG_INSTALL_SOURCE is not a regular file"
+  [ ! -L "$source_binary" ] || fail "OMG_INSTALL_SOURCE must not be a symlink"
+  cp "$source_binary" "$candidate"
+  [ -n "$expected_sha" ] || fail "OMG_INSTALL_SHA256 is required with OMG_INSTALL_SOURCE"
+else
+  os_name=$(canonical_os)
+  arch_name=$(canonical_arch)
+  asset="omg_${os_name}_${arch_name}.tar.gz"
+  if [ "$version" = "latest" ]; then
+    base="https://github.com/$repository/releases/latest/download"
+  else
+    base="https://github.com/$repository/releases/download/$version"
+  fi
+  archive="$temporary_root/$asset"
+  checksums="$temporary_root/checksums.txt"
+  download "$base/$asset" "$archive"
+  download "$base/checksums.txt" "$checksums"
+  expected_sha=$(awk -v asset="$asset" '$2 == asset || $2 == "*" asset { print $1; exit }' "$checksums")
+  [ -n "$expected_sha" ] || fail "release checksum is missing for $asset"
+  actual_archive_sha=$(sha256_file "$archive")
+  [ "$actual_archive_sha" = "$expected_sha" ] || fail "release archive checksum mismatch"
+  tar -xzf "$archive" -C "$temporary_root"
+  [ -f "$candidate" ] || fail "release archive does not contain omg"
+  expected_sha=$(sha256_file "$candidate")
+fi
+
+actual_sha=$(sha256_file "$candidate")
+[ "$actual_sha" = "$expected_sha" ] || fail "binary checksum mismatch"
+chmod 0755 "$candidate"
+
+destination="$install_dir/omg"
+if [ -L "$destination" ]; then
+  fail "refusing to replace symlinked destination: $destination"
+fi
+staged="$install_dir/.omg-install-$$"
+cp "$candidate" "$staged"
+chmod 0755 "$staged"
+mv -f "$staged" "$destination"
+
+configure_path
+PATH="$install_dir:${PATH:-}" "$destination" agent install
+
+printf '\nOMG installed successfully.\n'
+printf '  binary  %s\n' "$destination"
+printf '  sha256  %s\n' "$actual_sha"
+printf '  agents  configured automatically\n'

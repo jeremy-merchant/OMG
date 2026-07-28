@@ -82,3 +82,23 @@ A light palette is supplied through `prefers-color-scheme: light`; print has a s
 - The stylesheet is authorized by a SHA-256 CSP source.
 - Canonical values are escaped before insertion; CSS classes are selected only from fixed semantic mappings.
 - Skip navigation, landmarks, visible focus, keyboard-operable disclosure elements, reduced motion, responsive layout, and print support remain mandatory.
+
+## Global-harness follow-up
+
+OMP's current product surface confirms that its strongest installation and discovery ideas are architectural rather than decorative:
+
+- one global install command instead of per-project bootstrap scripts;
+- automatic discovery of existing agent rules, skills, and MCP configuration;
+- one-level `skills/<name>/SKILL.md` capability packs with meaningful frontmatter;
+- terminal status rendered through semantic cards or trees while absolute home paths are shortened;
+- tool and edit output previewed or structurally bounded before mutation.
+
+OMG adopts the first four ideas through `omg agent install` and the global discovery surfaces documented in `GLOBAL_AGENT_INSTALL.md`. The agent harness report follows the existing OMG visual grammar: a semantic masthead, short facts, then a status-first tree whose path and detection metadata wrap on following lines. A 36-cell regression test prevents horizontal overflow.
+
+OMG does **not** copy OMP's complete interactive shell. OMP is an agent runtime and can own prompt cards, permission pickers, queued edits, animation, and streaming tool-call cards. OMG is a coordination ledger that must remain usable from TTY, JSON, MCP, scripts, and non-interactive agents. Therefore:
+
+- no animation or spinner is required for canonical status;
+- no card border is added around every discovery row;
+- human TTY never replaces stable JSON contracts;
+- install and uninstall remain bounded filesystem transactions rather than interactive approval UIs;
+- project schema migration and external authority remain separately human-gated.
