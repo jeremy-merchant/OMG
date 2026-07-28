@@ -267,6 +267,28 @@ const (
 	HandoffSuperseded HandoffStatus = "superseded"
 )
 
+// IntegrationState is the durable post-handoff lifecycle. It is deliberately
+// distinct from HandoffStatus: handoffs remain immutable submissions while
+// append-only lifecycle facts describe review, integration, canary, and source
+// cleanup.
+type IntegrationState string
+
+const (
+	IntegrationSubmitted     IntegrationState = "SUBMITTED"
+	IntegrationReviewing     IntegrationState = "REVIEWING"
+	IntegrationAccepted      IntegrationState = "ACCEPTED"
+	IntegrationIntegrated    IntegrationState = "INTEGRATED"
+	IntegrationCanaryRunning IntegrationState = "CANARY_RUNNING"
+	IntegrationCanaryPassed  IntegrationState = "CANARY_PASSED"
+	IntegrationCanaryMock    IntegrationState = "CANARY_MOCK_PASSED"
+	IntegrationCanaryFailed  IntegrationState = "CANARY_FAILED"
+	IntegrationCanarySkipped IntegrationState = "CANARY_SKIPPED"
+	IntegrationCanaryInvalid IntegrationState = "CANARY_INVALIDATED"
+	IntegrationSourceCleaned IntegrationState = "SOURCE_CLEANED"
+	IntegrationRejected      IntegrationState = "REJECTED"
+	IntegrationBlocked       IntegrationState = "BLOCKED"
+)
+
 // FinalOutputPolicy controls whether a handoff persists raw, redacted, hash-only, or no final output.
 type FinalOutputPolicy string
 
@@ -291,6 +313,7 @@ type Handoff struct {
 	Summary                            string
 	FinalOutput                        SensitiveText
 	ChangedFiles, Commits              []string
+	SourceCommit, SourceTree           string
 	VerificationEvidence               []SafeEvidence
 	RemainingRisks, SuggestedActions   []string
 	Status                             HandoffStatus
@@ -305,6 +328,9 @@ func (h Handoff) Validate(runState lineage.RunState) error {
 	if h.TargetSessionID != "" && !stableID(h.TargetSessionID) || h.TargetTaskID != "" && !stableID(h.TargetTaskID) || h.SupersedesID != "" && !stableID(h.SupersedesID) {
 		return ErrInvalid
 	}
+	if (h.SourceCommit == "") != (h.SourceTree == "") || h.SourceCommit != "" && (!stableID(h.SourceCommit) || !stableID(h.SourceTree)) {
+		return ErrInvalid
+	}
 	if runState == lineage.RunVerifiedDone && len(h.VerificationEvidence) == 0 {
 		return ErrInvalid
 	}
@@ -314,6 +340,164 @@ func (h Handoff) Validate(runState lineage.RunState) error {
 		}
 	}
 	return nil
+}
+
+// HandoffLifecycleEvent is an immutable integration fact. Evidence fields are
+// stage-specific so an operator can distinguish a state label from a verified
+// transition.
+type HandoffLifecycleEvent struct {
+	ID, HandoffID, ActorSessionID string
+	State                         IntegrationState
+	SourceCommit, SourceTree      string
+	IntegrationCommit             string
+	CanaryRunID                   string
+	CanaryIntegrationRef          string
+	CanaryTargetSHA               string
+	CanaryTargetTree              string
+	CanaryResult                  string
+	CanaryCommand                 string
+	CanaryExecutionKind           string
+	CanaryEnvironmentFingerprint  string
+	CanaryHeadBefore              string
+	CanaryHeadAfter               string
+	CanaryRefFingerprintBefore    string
+	CanaryRefFingerprintAfter     string
+	CanaryExitCode                *int
+	CanaryPassedCount             int
+	CanaryFailedCount             int
+	CanarySkippedCount            int
+	CanaryStartedAt               *time.Time
+	CanaryFinishedAt              *time.Time
+	CanaryEvidencePath            string
+	SourceWorktreeCleaned         bool
+	SourceBranchCleaned           bool
+	Note                          string
+	CreatedAt                     time.Time
+}
+
+func (e HandoffLifecycleEvent) Validate() error {
+	if !stableID(e.ID) || !stableID(e.HandoffID) || !stableID(e.ActorSessionID) || !validIntegrationState(e.State) || !utc(e.CreatedAt) || !optionalBoundedText(e.Note, maxSummaryLen) {
+		return ErrInvalid
+	}
+	for _, value := range []string{e.SourceCommit, e.SourceTree, e.IntegrationCommit, e.CanaryRunID, e.CanaryTargetSHA, e.CanaryTargetTree, e.CanaryEnvironmentFingerprint, e.CanaryHeadBefore, e.CanaryHeadAfter, e.CanaryRefFingerprintBefore, e.CanaryRefFingerprintAfter} {
+		if value != "" && !stableID(value) {
+			return ErrInvalid
+		}
+	}
+	if !optionalBoundedText(e.CanaryIntegrationRef, maxSubjectLen) || !optionalBoundedText(e.CanaryResult, maxSubjectLen) || !optionalBoundedText(e.CanaryCommand, maxSummaryLen) || !optionalBoundedText(e.CanaryEvidencePath, maxSummaryLen) || e.CanaryPassedCount < 0 || e.CanaryFailedCount < 0 || e.CanarySkippedCount < 0 || e.CanaryStartedAt != nil && !utc(*e.CanaryStartedAt) || e.CanaryFinishedAt != nil && !utc(*e.CanaryFinishedAt) {
+		return ErrInvalid
+	}
+	switch e.State {
+	case IntegrationSubmitted:
+		if e.SourceCommit == "" || e.SourceTree == "" {
+			return ErrInvalid
+		}
+	case IntegrationIntegrated:
+		if e.IntegrationCommit == "" {
+			return ErrInvalid
+		}
+	case IntegrationCanaryRunning:
+		if !e.validCanaryCommon() || e.CanaryStartedAt == nil || e.CanaryFinishedAt != nil || e.CanaryExitCode != nil || e.CanaryHeadAfter != "" || e.CanaryRefFingerprintAfter != "" || e.CanaryResult != "" {
+			return ErrInvalid
+		}
+	case IntegrationCanaryPassed, IntegrationCanaryMock, IntegrationCanaryFailed, IntegrationCanarySkipped, IntegrationCanaryInvalid:
+		if !e.validCanaryCommon() || e.CanaryStartedAt == nil || e.CanaryFinishedAt == nil || e.CanaryExitCode == nil || e.CanaryHeadAfter == "" || e.CanaryRefFingerprintAfter == "" {
+			return ErrInvalid
+		}
+		validResult := map[IntegrationState]string{IntegrationCanaryPassed: "PASS_REAL", IntegrationCanaryMock: "PASS_MOCK", IntegrationCanaryFailed: "FAIL", IntegrationCanarySkipped: "SKIPPED", IntegrationCanaryInvalid: "INCONCLUSIVE"}
+		if e.CanaryResult != validResult[e.State] || e.State == IntegrationCanaryPassed && (e.CanaryExecutionKind != "real" || *e.CanaryExitCode != 0 || e.CanaryFailedCount != 0) || e.State == IntegrationCanaryMock && (e.CanaryExecutionKind != "mock" || *e.CanaryExitCode != 0 || e.CanaryFailedCount != 0) {
+			return ErrInvalid
+		}
+	case IntegrationSourceCleaned:
+		if !e.SourceWorktreeCleaned || !e.SourceBranchCleaned {
+			return ErrInvalid
+		}
+	case IntegrationBlocked, IntegrationRejected:
+		if strings.TrimSpace(e.Note) == "" {
+			return ErrInvalid
+		}
+	}
+	return nil
+}
+
+func (e HandoffLifecycleEvent) validCanaryCommon() bool {
+	return e.CanaryRunID != "" && e.CanaryIntegrationRef != "" && e.CanaryTargetSHA != "" && e.CanaryTargetTree != "" && e.CanaryCommand != "" && (e.CanaryExecutionKind == "real" || e.CanaryExecutionKind == "mock") && e.CanaryEnvironmentFingerprint != "" && e.CanaryHeadBefore == e.CanaryTargetSHA && e.CanaryRefFingerprintBefore != ""
+}
+
+func CurrentIntegrationState(events []HandoffLifecycleEvent, decision *HandoffDecision) IntegrationState {
+	if len(events) != 0 {
+		state := events[len(events)-1].State
+		if decision != nil && (state == IntegrationSubmitted || state == IntegrationReviewing) {
+			if decision.Decision == HandoffAccepted {
+				return IntegrationAccepted
+			}
+			if decision.Decision == HandoffRejected {
+				return IntegrationRejected
+			}
+		}
+		return state
+	}
+	if decision != nil {
+		if decision.Decision == HandoffAccepted {
+			return IntegrationAccepted
+		}
+		if decision.Decision == HandoffRejected {
+			return IntegrationRejected
+		}
+	}
+	return IntegrationSubmitted
+}
+
+// ValidateIntegrationTransition rejects skipped lifecycle stages. A BLOCKED
+// event pauses the queue; the next transition resumes from the latest prior
+// non-blocked state.
+func ValidateIntegrationTransition(events []HandoffLifecycleEvent, decision *HandoffDecision, next IntegrationState) error {
+	if !validIntegrationState(next) {
+		return ErrInvalid
+	}
+	current := CurrentIntegrationState(events, decision)
+	if current == IntegrationBlocked {
+		current = IntegrationSubmitted
+		for i := len(events) - 2; i >= 0; i-- {
+			if events[i].State != IntegrationBlocked {
+				current = events[i].State
+				break
+			}
+		}
+	}
+	if next == IntegrationBlocked && current != IntegrationRejected && current != IntegrationSourceCleaned {
+		return nil
+	}
+	if next == IntegrationSubmitted && current == IntegrationSubmitted && len(events) == 0 {
+		return nil
+	}
+	allowed := map[IntegrationState][]IntegrationState{
+		IntegrationSubmitted:     {IntegrationReviewing, IntegrationAccepted, IntegrationRejected},
+		IntegrationReviewing:     {IntegrationAccepted, IntegrationRejected},
+		IntegrationAccepted:      {IntegrationIntegrated},
+		IntegrationIntegrated:    {IntegrationCanaryRunning},
+		IntegrationCanaryRunning: {IntegrationCanaryPassed, IntegrationCanaryMock, IntegrationCanaryFailed, IntegrationCanarySkipped, IntegrationCanaryInvalid},
+		IntegrationCanaryMock:    {IntegrationCanaryRunning},
+		IntegrationCanaryFailed:  {IntegrationCanaryRunning},
+		IntegrationCanarySkipped: {IntegrationCanaryRunning},
+		IntegrationCanaryInvalid: {IntegrationCanaryRunning},
+		IntegrationCanaryPassed:  {IntegrationSourceCleaned},
+	}
+	for _, candidate := range allowed[current] {
+		if candidate == next {
+			return nil
+		}
+	}
+	return ErrInvalid
+}
+
+func validIntegrationState(value IntegrationState) bool {
+	switch value {
+	case IntegrationSubmitted, IntegrationReviewing, IntegrationAccepted, IntegrationIntegrated, IntegrationCanaryRunning, IntegrationCanaryPassed, IntegrationCanaryMock, IntegrationCanaryFailed, IntegrationCanarySkipped, IntegrationCanaryInvalid, IntegrationSourceCleaned, IntegrationRejected, IntegrationBlocked:
+		return true
+	default:
+		return false
+	}
 }
 
 func validSensitiveText(value SensitiveText) bool {

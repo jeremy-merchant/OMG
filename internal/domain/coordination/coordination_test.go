@@ -149,6 +149,41 @@ func TestRestrictedActionsAreUnconditionallyDeniedForUntrustedOrigins(t *testing
 	}
 }
 
+func TestHandoffIntegrationLifecycleRequiresEvidenceAndOrderedTransitions(t *testing.T) {
+	now := utcTime()
+	submitted := HandoffLifecycleEvent{ID: "event-submitted", HandoffID: "handoff-1", ActorSessionID: "session-1", State: IntegrationSubmitted, SourceCommit: "abc123", SourceTree: "tree123", CreatedAt: now}
+	if err := submitted.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	events := []HandoffLifecycleEvent{submitted}
+	started := now.Add(4 * time.Second)
+	finished := now.Add(5 * time.Second)
+	exitCode := 0
+	for _, event := range []HandoffLifecycleEvent{
+		{ID: "event-reviewing", HandoffID: "handoff-1", ActorSessionID: "reviewer-1", State: IntegrationReviewing, CreatedAt: now.Add(time.Second)},
+		{ID: "event-accepted", HandoffID: "handoff-1", ActorSessionID: "reviewer-1", State: IntegrationAccepted, CreatedAt: now.Add(2 * time.Second)},
+		{ID: "event-integrated", HandoffID: "handoff-1", ActorSessionID: "integrator-1", State: IntegrationIntegrated, IntegrationCommit: "def456", CreatedAt: now.Add(3 * time.Second)},
+		{ID: "event-canary-running", HandoffID: "handoff-1", ActorSessionID: "integrator-1", State: IntegrationCanaryRunning, CanaryRunID: "canary-1", CanaryIntegrationRef: "refs/heads/main", CanaryTargetSHA: "def456", CanaryTargetTree: "tree456", CanaryCommand: "go test ./...", CanaryExecutionKind: "real", CanaryEnvironmentFingerprint: "env456", CanaryHeadBefore: "def456", CanaryRefFingerprintBefore: "reflog456", CanaryStartedAt: &started, CreatedAt: started},
+		{ID: "event-canary", HandoffID: "handoff-1", ActorSessionID: "integrator-1", State: IntegrationCanaryPassed, CanaryRunID: "canary-1", CanaryIntegrationRef: "refs/heads/main", CanaryTargetSHA: "def456", CanaryTargetTree: "tree456", CanaryResult: "PASS_REAL", CanaryCommand: "go test ./...", CanaryExecutionKind: "real", CanaryEnvironmentFingerprint: "env456", CanaryHeadBefore: "def456", CanaryHeadAfter: "def456", CanaryRefFingerprintBefore: "reflog456", CanaryRefFingerprintAfter: "reflog456", CanaryExitCode: &exitCode, CanaryPassedCount: 1, CanaryStartedAt: &started, CanaryFinishedAt: &finished, CreatedAt: finished},
+		{ID: "event-cleaned", HandoffID: "handoff-1", ActorSessionID: "integrator-1", State: IntegrationSourceCleaned, SourceWorktreeCleaned: true, SourceBranchCleaned: true, CreatedAt: now.Add(6 * time.Second)},
+	} {
+		if err := event.Validate(); err != nil {
+			t.Fatalf("%s validation: %v", event.State, err)
+		}
+		if err := ValidateIntegrationTransition(events, nil, event.State); err != nil {
+			t.Fatalf("%s transition: %v", event.State, err)
+		}
+		events = append(events, event)
+	}
+	invalidCanary := HandoffLifecycleEvent{ID: "bad-canary", HandoffID: "handoff-1", ActorSessionID: "integrator-1", State: IntegrationCanaryPassed, CanaryTargetSHA: "def456", CreatedAt: now}
+	if err := invalidCanary.Validate(); err == nil {
+		t.Fatal("canary without passed result accepted")
+	}
+	if err := ValidateIntegrationTransition([]HandoffLifecycleEvent{submitted}, nil, IntegrationIntegrated); err == nil {
+		t.Fatal("integration skipped review/acceptance")
+	}
+}
+
 func TestProgressStableIdentifiersRejectCredentialsWithoutRestrictingContent(t *testing.T) {
 	now := time.Date(2026, 7, 23, 12, 0, 0, 0, time.UTC)
 	valid := Progress{ID: "progress-42", TaskID: "task-42", SessionID: "session-42", Phase: PhasePlan, Done: []string{"password=release-secret"}, Doing: []string{"working"}, Next: []string{"testing"}, CreatedAt: now}

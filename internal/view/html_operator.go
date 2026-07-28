@@ -419,9 +419,11 @@ func writeHTMLHandoffs(out *strings.Builder, board query.BoardSnapshot) {
 	}
 	out.WriteString("<div class=\"handoff-flow\">")
 	for _, handoff := range board.Handoffs {
-		stateValue := handoff.Status
-		if handoff.Decision != nil && handoff.Decision.Decision != "" {
+		stateValue := handoff.IntegrationState
+		if stateValue == "" && handoff.Decision != nil && handoff.Decision.Decision != "" {
 			stateValue = handoff.Decision.Decision
+		} else if stateValue == "" {
+			stateValue = handoff.Status
 		}
 		out.WriteString("<article><div class=\"handoff\"><div class=\"handoff-party\"><strong>" + escapeHTML(shortID(handoff.SourceSessionID)) + "</strong><span>source · task " + escapeHTML(shortID(handoff.TaskID)) + "</span></div><span class=\"handoff-arrow\" aria-hidden=\"true\">→</span><div class=\"handoff-summary\"><strong>" + escapeHTML(firstNonEmpty(handoff.TargetSessionID, handoff.TargetTaskID, "unassigned")) + "</strong><span dir=\"auto\">" + escapeHTML(handoff.Summary) + "</span>" + htmlStatusBadge(presentStatus(stateValue)) + "</div></div>")
 		writeHTMLFacts(out, "Handoff metadata", handoffRows(query.BoardSnapshot{Handoffs: []query.HandoffView{handoff}}, text))

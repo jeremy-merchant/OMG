@@ -52,7 +52,8 @@ func Foundation() *foundation.Service {
 
 // Dispatcher composes the transport-neutral dispatcher with concrete adapters.
 func Dispatcher(service *foundation.Service) *app.ServiceDispatcher {
-	return app.NewDispatcherWithGitScanner(service, platform.NewGitScanner(platform.GitScannerDependencies{}), platform.NewPathInspector())
+	dependencies := platform.GitScannerDependencies{}
+	return app.NewDispatcherWithGitTools(service, platform.NewGitScanner(dependencies), platform.NewGitVerifier(dependencies), platform.NewPathInspector())
 }
 
 // CLIService composes the concrete platform capabilities consumed by the CLI

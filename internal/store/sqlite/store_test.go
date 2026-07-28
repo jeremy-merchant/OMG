@@ -24,7 +24,7 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer store.Close()
-	if len(status.Pending) != 8 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 {
+	if len(status.Pending) != 10 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 || status.Pending[8].Version != 9 || status.Pending[9].Version != 10 {
 		t.Fatalf("pending = %#v", status.Pending)
 	}
 	exists, err := tableExists(ctx, store.db, "schema_migrations")
@@ -49,6 +49,20 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 	}
 	if status.Pending[7].SQL != legacyHumanAssociationsSQL {
 		t.Fatal("embedded legacy human associations migration differs from source")
+	}
+	handoffLifecycleSource, err := os.ReadFile(filepath.Join("..", "..", "..", "migrations", "0009_handoff_lifecycle.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status.Pending[8].SQL != handoffLifecycleSQL || status.Pending[8].SQL != string(handoffLifecycleSource) {
+		t.Fatal("embedded handoff lifecycle migration differs from source")
+	}
+	exactSHACanarySource, err := os.ReadFile(filepath.Join("..", "..", "..", "migrations", "0010_exact_sha_canary.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status.Pending[9].SQL != exactSHACanarySQL || status.Pending[9].SQL != string(exactSHACanarySource) {
+		t.Fatal("embedded exact-SHA canary migration differs from source")
 	}
 	if exists {
 		t.Fatal("open applied schema migration")

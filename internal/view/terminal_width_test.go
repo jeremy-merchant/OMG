@@ -55,25 +55,23 @@ func TestTTYBoardRespectsNarrowVisibleWidths(t *testing.T) {
 func TestPreflightSharesWidthAndColorSemantics(t *testing.T) {
 	now := time.Date(2026, time.July, 24, 12, 0, 0, 0, time.UTC)
 	preflight := app.PreflightView{
-		Initialized:       true,
+		Healthy:           true,
 		PendingMigrations: 0,
-		Identity: &query.IdentityView{
+		Details: &app.PreflightDetails{Identity: &query.IdentityView{
 			ID:                "session-with-a-very-long-canonical-identifier-0123456789",
 			Kind:              "agent",
 			Role:              "검증 담당자",
 			Runtime:           "native",
 			NativeAccessState: "available",
 			StartedAt:         now,
-		},
-		Tasks: []query.TaskView{{
+		}, Tasks: []query.TaskView{{
 			ID:            "task-with-a-very-long-canonical-identifier-0123456789",
 			DisplayNumber: 18,
 			Title:         "좁은 터미널에서도 시작 준비 상태와 긴 식별자를 모두 확인",
 			State:         "active",
 			CreatedAt:     now,
 			UpdatedAt:     now,
-		}},
-		Warnings: []string{"long advisory warning that remains readable and does not overflow the terminal"},
+		}}, Warnings: []string{"long advisory warning that remains readable and does not overflow the terminal"}},
 	}
 
 	for _, width := range []int{40, 60, 80} {

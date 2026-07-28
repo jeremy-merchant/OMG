@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jeremy-merchant/OMG/internal/domain"
@@ -17,16 +18,21 @@ import (
 )
 
 type Service struct {
-	store   ports.Store
-	scanner ports.Scanner
-	now     func() time.Time
+	store    ports.Store
+	scanner  ports.Scanner
+	verifier ports.GitVerifier
+	now      func() time.Time
 }
 
 func New(store ports.Store, scanner ports.Scanner, now func() time.Time) *Service {
+	return NewWithVerifier(store, scanner, nil, now)
+}
+
+func NewWithVerifier(store ports.Store, scanner ports.Scanner, verifier ports.GitVerifier, now func() time.Time) *Service {
 	if now == nil {
 		now = time.Now
 	}
-	return &Service{store: store, scanner: scanner, now: now}
+	return &Service{store: store, scanner: scanner, verifier: verifier, now: now}
 }
 
 type ScanRequest struct {
@@ -40,6 +46,45 @@ type ScanSummary struct {
 	RepositoryState gitobs.RepoState  `json:"repository_state"`
 	Confidence      gitobs.Confidence `json:"confidence"`
 	AssetCount      int               `json:"asset_count"`
+}
+
+type HandoffReconcileItem struct {
+	HandoffID         string                    `json:"handoff_id"`
+	TaskID            string                    `json:"task_id"`
+	LifecycleState    coord.IntegrationState    `json:"lifecycle_state"`
+	SourceCommit      string                    `json:"source_commit,omitempty"`
+	SourceTree        string                    `json:"source_tree,omitempty"`
+	IntegrationCommit string                    `json:"integration_commit,omitempty"`
+	Evidence          *gitobs.ReconcileEvidence `json:"evidence,omitempty"`
+	Ready             bool                      `json:"ready"`
+	Blockers          []string                  `json:"blockers"`
+}
+
+type ReconcileReport struct {
+	IntegrationRef  string                  `json:"integration_ref"`
+	IntegrationHead gitobs.RevisionEvidence `json:"integration_head"`
+	Items           []HandoffReconcileItem  `json:"items"`
+	ReadyCount      int                     `json:"ready_count"`
+	BlockedCount    int                     `json:"blocked_count"`
+}
+
+type OrphanRisk struct {
+	Code              string `json:"code"`
+	Severity          string `json:"severity"`
+	HandoffID         string `json:"handoff_id,omitempty"`
+	Fingerprint       string `json:"fingerprint,omitempty"`
+	Worktree          string `json:"worktree,omitempty"`
+	Branch            string `json:"branch,omitempty"`
+	Head              string `json:"head,omitempty"`
+	RelatedTask       string `json:"related_task,omitempty"`
+	LastOwner         string `json:"last_owner,omitempty"`
+	RecommendedAction string `json:"recommended_action"`
+	Reason            string `json:"reason"`
+}
+
+type OrphanReport struct {
+	Count int          `json:"count"`
+	Risks []OrphanRisk `json:"risks"`
 }
 
 func invalid() error {
@@ -303,4 +348,143 @@ func (s *Service) Diff(ctx context.Context, project domain.ProjectID, before, af
 		return gitobs.Diff{}, err
 	}
 	return gitobs.ExactDiff(left.Observation, right.Observation), nil
+}
+
+// Reconcile verifies canonical handoff evidence against the actual selected
+// repository. It is read-only and treats failures as per-handoff blockers so
+// one stale branch cannot hide the rest of the queue.
+func (s *Service) Reconcile(ctx context.Context, project domain.ProjectID, directory, integrationRef string) (ReconcileReport, error) {
+	if s == nil || s.store == nil || s.verifier == nil || project == "" || directory == "" || integrationRef == "" {
+		return ReconcileReport{}, invalid()
+	}
+	head, err := s.verifier.ResolveRevision(ctx, directory, integrationRef)
+	if err != nil {
+		return ReconcileReport{}, unavailable()
+	}
+	type record struct {
+		handoff  coord.Handoff
+		events   []coord.HandoffLifecycleEvent
+		decision *coord.HandoffDecision
+	}
+	records := []record{}
+	err = s.store.Read(ctx, func(r ports.Repositories) error {
+		tasks, readErr := r.Coordination().ListTasks(ctx, project)
+		if readErr != nil {
+			return readErr
+		}
+		for _, task := range tasks {
+			handoffs, readErr := r.Coordination().ListHandoffs(ctx, string(task.ID))
+			if readErr != nil {
+				return readErr
+			}
+			for _, handoff := range handoffs {
+				events, readErr := r.Coordination().ListHandoffLifecycleEvents(ctx, handoff.ID)
+				if readErr != nil {
+					return readErr
+				}
+				decision, ok, readErr := r.Coordination().GetHandoffDecision(ctx, handoff.ID)
+				if readErr != nil {
+					return readErr
+				}
+				var decisionPtr *coord.HandoffDecision
+				if ok {
+					copy := decision
+					decisionPtr = &copy
+				}
+				records = append(records, record{handoff: handoff, events: events, decision: decisionPtr})
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return ReconcileReport{}, mapErr(err)
+	}
+	report := ReconcileReport{IntegrationRef: integrationRef, IntegrationHead: head, Items: make([]HandoffReconcileItem, 0, len(records))}
+	for _, record := range records {
+		handoff := record.handoff
+		item := HandoffReconcileItem{HandoffID: handoff.ID, TaskID: handoff.TaskID, SourceCommit: handoff.SourceCommit, SourceTree: handoff.SourceTree, LifecycleState: coord.CurrentIntegrationState(record.events, record.decision), Blockers: []string{}}
+		for _, event := range record.events {
+			if event.IntegrationCommit != "" {
+				item.IntegrationCommit = event.IntegrationCommit
+			}
+		}
+		if handoff.SourceCommit == "" || handoff.SourceTree == "" {
+			item.Blockers = append(item.Blockers, "missing_source_commit_or_tree")
+		}
+		if item.IntegrationCommit == "" {
+			item.Blockers = append(item.Blockers, "missing_integration_commit")
+		}
+		if len(item.Blockers) == 0 {
+			evidence, verifyErr := s.verifier.Reconcile(ctx, directory, handoff.SourceCommit, handoff.SourceTree, item.IntegrationCommit, integrationRef)
+			if verifyErr != nil {
+				item.Blockers = append(item.Blockers, "git_object_or_relationship_unavailable")
+			} else {
+				item.Evidence = &evidence
+				if !evidence.SourceTreeMatches {
+					item.Blockers = append(item.Blockers, "source_tree_mismatch")
+				}
+				if !evidence.Reflected {
+					item.Blockers = append(item.Blockers, "source_not_reflected")
+				}
+				if !evidence.IntegrationRetained {
+					item.Blockers = append(item.Blockers, "integration_commit_not_in_current_head")
+				}
+			}
+		}
+		item.Ready = len(item.Blockers) == 0
+		if item.Ready {
+			report.ReadyCount++
+		} else {
+			report.BlockedCount++
+		}
+		report.Items = append(report.Items, item)
+	}
+	return report, nil
+}
+
+// OrphanScan combines a fresh read-only Git scan with reconciliation results.
+// It never deletes a branch or worktree.
+func (s *Service) OrphanScan(ctx context.Context, project domain.ProjectID, directory, integrationRef string) (OrphanReport, error) {
+	if s == nil || s.scanner == nil {
+		return OrphanReport{}, unavailable()
+	}
+	observation, err := s.scanner.Scan(ctx, directory)
+	if err != nil {
+		return OrphanReport{}, unavailable()
+	}
+	reconcile, err := s.Reconcile(ctx, project, directory, integrationRef)
+	if err != nil {
+		return OrphanReport{}, err
+	}
+	risks := []OrphanRisk{}
+	owners := map[string]gitobs.AssetRecord{}
+	if snapshot, snapshotErr := s.Current(ctx, project); snapshotErr == nil {
+		for _, record := range snapshot.Assets {
+			owners[record.Fingerprint] = record
+		}
+	}
+	knownSources := map[string]bool{}
+	for _, item := range reconcile.Items {
+		if item.SourceCommit != "" {
+			knownSources[item.SourceCommit] = true
+		}
+		if !item.Ready && item.SourceCommit != "" {
+			risks = append(risks, OrphanRisk{Code: "handoff_not_reconciled", Severity: "high", HandoffID: item.HandoffID, Head: item.SourceCommit, RelatedTask: item.TaskID, RecommendedAction: "inspect", Reason: strings.Join(item.Blockers, ",")})
+		}
+	}
+	for _, asset := range observation.Assets {
+		fingerprint := asset.StableFingerprint()
+		owner := owners[fingerprint]
+		branch, head := asset.Facts.Branch, asset.Facts.Status.Head
+		if head == "" {
+			head = asset.Worktree.Head
+		}
+		if asset.Facts.Status.TrackedDirty+asset.Facts.Status.Untracked > 0 && asset.Facts.Owner.State == gitobs.OwnerUnknown {
+			risks = append(risks, OrphanRisk{Code: "dirty_unowned", Severity: "high", Fingerprint: fingerprint, Worktree: asset.Facts.WorktreePath, Branch: branch, Head: head, RelatedTask: string(owner.OwnerTaskID), LastOwner: string(owner.OwnerSessionID), RecommendedAction: "inspect", Reason: "dirty worktree has no canonical owner"})
+		}
+		if !asset.Facts.DefaultBranch && asset.Facts.Fingerprint.DefaultCountsKnown && asset.Facts.DefaultAhead > 0 && !knownSources[head] {
+			risks = append(risks, OrphanRisk{Code: "untracked_completed_branch", Severity: "medium", Fingerprint: fingerprint, Worktree: asset.Facts.WorktreePath, Branch: branch, Head: head, RelatedTask: string(owner.OwnerTaskID), LastOwner: string(owner.OwnerSessionID), RecommendedAction: "reconcile", Reason: "branch is ahead of default without matching handoff source evidence"})
+		}
+	}
+	return OrphanReport{Count: len(risks), Risks: risks}, nil
 }

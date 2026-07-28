@@ -67,6 +67,8 @@ For every opened connection, before domain SQL:
 
 - enable and verify `PRAGMA foreign_keys = ON`; opening fails if it cannot be verified;
 - set a documented, bounded `PRAGMA busy_timeout` (initial value: 5,000 ms); and
+- acquire the SQLite writer slot with `BEGIN IMMEDIATE` before invoking a mutation callback, so competing processes serialize before domain side effects begin;
+- disable SQLite memory-mapped I/O and use `synchronous=FULL`; and
 - set connection-local settings through the driver rather than assuming process-global state.
 
 Transactions MUST be short: validate and parse input before entering a transaction; do no network, subprocess, long rendering, or interactive work inside one; commit or roll back before returning from the service. Write paths use a deterministic retry policy only for transient `SQLITE_BUSY`/`SQLITE_LOCKED`: a bounded number of attempts, bounded exponential backoff with deterministic jitter derived from the command receipt key, and context cancellation support. Exhaustion returns a stable retryable error; it MUST NOT replay a mutation without its idempotency key.

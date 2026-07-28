@@ -74,10 +74,29 @@ func main() {
 		fatal(errors.New("integration remove did not delete the target it created"))
 	}
 
+	callFrame, err := json.Marshal(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      "call",
+		"method":  "tools/call",
+		"params": map[string]any{
+			"name": "omg",
+			"arguments": map[string]any{
+				"request": map[string]any{
+					"version": 1,
+					"command": "preflight.query",
+					"project": project,
+					"payload": map[string]any{},
+				},
+			},
+		},
+	})
+	if err != nil {
+		fatal(fmt.Errorf("encode MCP call: %w", err))
+	}
 	frames := strings.Join([]string{
 		`{"jsonrpc":"2.0","id":"init","method":"initialize","params":{}}`,
 		`{"jsonrpc":"2.0","id":"list","method":"tools/list","params":{}}`,
-		`{"jsonrpc":"2.0","id":"call","method":"tools/call","params":{"name":"omg","arguments":{"args":["version","--json"]}}}`,
+		string(callFrame),
 	}, "\n") + "\n"
 	mcpOutput, err := run(absolute, strings.NewReader(frames), "mcp", "serve", "--stdio")
 	if err != nil {

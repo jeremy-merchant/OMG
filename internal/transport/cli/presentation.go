@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jeremy-merchant/OMG/internal/agentinstall"
 	"github.com/jeremy-merchant/OMG/internal/app"
 	"github.com/jeremy-merchant/OMG/internal/domain"
 	"github.com/jeremy-merchant/OMG/internal/terminalstyle"
@@ -132,6 +133,77 @@ func renderRuntimeResult(output io.Writer, result app.CLIRuntimeResult) {
 		{Label: "exit", Value: fmt.Sprint(result.ExitCode)},
 	})
 	_, _ = io.WriteString(output, rendered.String())
+}
+
+func renderAgentReport(output io.Writer, report agentinstall.Report) {
+	theme := newTerminalTheme(cliTerminalColorEnabled(output))
+	width := cliTerminalWidth(output)
+	var rendered strings.Builder
+	glyph, heading := theme.success("✔"), theme.success("  AGENT HARNESS")
+	if report.Summary.Unsafe > 0 || report.Summary.Drifted > 0 {
+		glyph, heading = theme.warn("⚠"), theme.warn("  AGENT HARNESS NEEDS ATTENTION")
+	} else if report.Summary.Missing > 0 && report.Status != "uninstalled" {
+		glyph, heading = theme.info("○"), theme.info("  AGENT HARNESS")
+	}
+	rendered.WriteString(glyph + " " + theme.bold("OMG") + heading + "\n")
+	writePresentationFacts(&rendered, theme, width, []presentationFact{
+		{Label: "status", Value: report.Status},
+		{Label: "detected", Value: fmt.Sprint(report.Summary.Detected)},
+		{Label: "installed", Value: fmt.Sprint(report.Summary.Installed)},
+		{Label: "attention", Value: fmt.Sprint(report.Summary.Drifted + report.Summary.Unsafe)},
+	})
+	if len(report.Surfaces) > 0 {
+		rendered.WriteString("\n  " + theme.bold("Discovery surfaces") + "\n")
+	}
+	for index, surface := range report.Surfaces {
+		branch := "├─"
+		if index == len(report.Surfaces)-1 {
+			branch = "└─"
+		}
+		stateGlyph, stateText := agentSurfaceStyle(theme, surface.State)
+		statusLine := fmt.Sprintf("  %s %s %s %s", branch, stateGlyph, theme.bold(surface.Provider), theme.dim(surface.Kind))
+		rendered.WriteString(statusLine + "\n")
+
+		metadata := neutralizeTerminalControls(surface.Path)
+		if surface.Detected {
+			metadata += " · detected"
+		}
+		writeAgentMetadata(&rendered, theme, width, metadata)
+		if surface.Action != "" && surface.Action != "none" {
+			writeAgentMetadata(&rendered, theme, width, "action · "+stateText+" · "+neutralizeTerminalControls(surface.Action))
+		}
+	}
+	_, _ = io.WriteString(output, rendered.String())
+}
+
+func writeAgentMetadata(output *strings.Builder, theme terminalTheme, width int, value string) {
+	const prefix = "     "
+	available := width - terminalDisplayWidth(prefix)
+	if available < 1 {
+		available = 1
+	}
+	lines := wrapTerminalText(value, available)
+	if len(lines) == 0 {
+		lines = []string{"—"}
+	}
+	for _, line := range lines {
+		output.WriteString(prefix + theme.dim(line) + "\n")
+	}
+}
+
+func agentSurfaceStyle(theme terminalTheme, state agentinstall.State) (string, string) {
+	switch state {
+	case agentinstall.StateInstalled:
+		return theme.success("✔"), theme.success(string(state))
+	case agentinstall.StateMissing:
+		return theme.dim("○"), theme.dim(string(state))
+	case agentinstall.StateDrifted:
+		return theme.warn("⚠"), theme.warn(string(state))
+	case agentinstall.StateUnsafe:
+		return theme.danger("✘"), theme.danger(string(state))
+	default:
+		return theme.dim("○"), theme.dim(string(state))
+	}
 }
 
 func writePresentationFacts(output *strings.Builder, theme terminalTheme, width int, facts []presentationFact) {

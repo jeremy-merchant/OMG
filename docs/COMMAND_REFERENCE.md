@@ -27,6 +27,17 @@ This reference describes the v0.1 CLI contract implemented by this checkout. Pla
 
 Project, workspace, and store selectors are mutually resolved by the platform resolver. Do not let untrusted text choose them.
 
+## Global agent harness
+
+```text
+omg agent install [--json]
+omg agent status [--json]
+omg agent doctor [--json]
+omg agent uninstall [--json]
+```
+
+The agent command family is global and therefore rejects project, workspace, store, payload, output, runtime, task, and session selectors. `install` creates or updates only OMG-managed user-level instruction blocks and exact managed skills. `status` classifies each surface as `installed`, `missing`, `drifted`, or `unsafe`; `doctor` reports `healthy` only when every surface is installed and safe; `uninstall` removes only exact OMG-managed content. Human output uses semantic status glyphs and a width-bounded discovery tree. JSON uses the stable envelope and renders user-home paths with `~`. Set `OMG_AGENT_HOME` only for isolated tests or managed portable installations.
+
 ## Foundation
 
 ```text
@@ -34,10 +45,11 @@ omg version [--json]
 omg release status [--json]
 omg init [--project P | --workspace W | --store DB] [--json]
 omg doctor [selection] [--integrity] [--json]
-omg preflight [selection] [--json]
+omg preflight [selection] [--verbose] [--json]
+omg status [selection] [--json]
 ```
 
-`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` reports initialization and pending-schema status before coordinated work.
+`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. Default `preflight` returns only `healthy`, `pending_migrations`, `active_sessions`, `stale_sessions`, `conflicts`, and `integration_queue`; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
 
 ## Schema and backup
 
@@ -57,10 +69,12 @@ See `docs/OPERATIONS.md` for the approval schema and recovery rules.
 
 ```text
 omg board me   [selection] --session ID [--format tty|markdown|html|json | --json]
+omg board summary [selection] [--json]
 omg board tree [selection] [--format tty|markdown|html|json | --json]
 omg board task [selection] --task ID [--format tty|markdown|html|json | --json]
 omg board all  [selection] [--format tty|markdown|html|json | --json]
 omg board git  [selection] [--format tty|markdown|html|json | --json]
+omg integration queue [selection] [--json]
 
 omg export [selection] --json
 omg export html     [selection] --output NEW_FILE
@@ -69,7 +83,7 @@ omg export tty      [selection] --output NEW_FILE
 omg export json     [selection] --output NEW_FILE
 ```
 
-The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. Exports are created atomically with mode `0600` and never overwrite an existing path.
+The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. `board summary` emits state counts and bottlenecks without the full board. `integration queue` excludes terminal `SOURCE_CLEANED` and `REJECTED` handoffs and reports missing lifecycle evidence per item. Exports are created atomically with mode `0600` and never overwrite an existing path.
 
 ## Typed coordination commands
 
@@ -81,6 +95,25 @@ These commands require exactly one payload source (`--payload JSON`, `--payload-
 printf '%s' "$REGISTER_JSON" | omg delegate register [selection] --idempotency-key KEY --payload-stdin --json
 omg delegate register [selection] --idempotency-key KEY --payload-file /absolute/private/register.json --json
 ```
+
+### Create a human-direct session
+
+```text
+omg session create [selection] --idempotency-key KEY --payload JSON [--json]
+```
+
+```json
+{
+  "id": "agt-reviewer",
+  "human_id": "human-owner",
+  "runtime": "openai-codex",
+  "role": "reviewer",
+  "source_ref": "human:task-summary",
+  "native_access_state": "unsupported"
+}
+```
+
+`instruction_source` and `provenance_confidence` are derived from canonical lineage and the linked human. Callers should omit them; `session create` tolerates and ignores them for compatibility. If `source_ref` is omitted, it defaults to the fixed value `session.create`. Truly unknown fields remain rejected. Use `omg example show session-create --json` instead of reconstructing the payload.
 
 ### Create task
 
@@ -119,6 +152,8 @@ omg message send [selection] --idempotency-key KEY --payload JSON [--json]
 
 Message types: `NOTICE`, `QUESTION`, `DEPENDENCY`, `CONFLICT`, `HANDOFF`, `DONE`, `BLOCKED`, `CANCEL`, and `ACK`. Every recipient object must specify exactly one of `session_id`, `human_id`, `task_id`, or `role`. Content cannot establish authority.
 
+Agents should use messages for questions, dependencies, conflicts, and shared-path coordination, then record delivery, read, and acknowledgement state. `omg example show message-send --json` prints the live copyable payload.
+
 ### Create handoff
 
 ```text
@@ -135,6 +170,8 @@ omg handoff create [selection] --idempotency-key KEY --payload JSON [--json]
   "summary": "Implementation complete; review requested.",
   "final_output_policy": "hash_only",
   "final_output_hash": "sha256:...",
+  "source_commit": "SOURCE_COMMIT_SHA",
+  "source_tree": "SOURCE_TREE_SHA",
   "changed_files": ["internal/example.go"],
   "commits": [],
   "verification_evidence": [
@@ -163,7 +200,8 @@ Every command takes exactly one payload source as described above; mutations als
 |---|---|
 | `human create` | `id?`, `display_name`, `confidence`, `supersedes_id?` |
 | `human get` | `id` |
-| `session create\|resume\|adopt\|import` | `id?`, `human_id?`, `runtime`, `role`, `source_ref`, `parent_session_id?`, `continuation_of_id?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
+| `session create` | `id?`, `human_id`, `runtime`, `role`, `source_ref?`, inert compatibility fields `instruction_source?` and `provenance_confidence?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
+| `session resume\|adopt\|import` | `id?`, `human_id?`, `runtime`, `role`, `source_ref`, `parent_session_id?`, `continuation_of_id?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
 | `delegate issue` | `task_id?`, `parent_session_id`, `ttl_seconds` |
 | `delegate register` | `raw_token`, `task_id?`, `parent_session_id`, `session` |
 | `delegate revoke` | `token_id` |
@@ -182,7 +220,7 @@ Every command takes exactly one payload source as described above; mutations als
 omg progress add|history
 omg dependency add|list
 omg message send|inbox|thread|deliver|read|ack
-omg handoff create|show|history|supersede|accept|reject|adopt
+omg handoff create|show|history|lifecycle|advance|supersede|accept|reject|adopt
 ```
 
 Mutation/query status and payloads:
@@ -200,9 +238,13 @@ Mutation/query status and payloads:
 | `handoff create` | yes | payload shown above |
 | `handoff show` | no | `handoff_id` |
 | `handoff history` | no | `task_id` |
+| `handoff lifecycle` | no | `handoff_id` |
+| `handoff advance` | yes | `id`, `handoff_id`, `actor_session_id`, `state`, and state-specific evidence |
 | `handoff supersede` | yes | `handoff_id`, `new_id`, `summary` |
 | `handoff accept\|reject` | yes | `handoff_id`, `decision_id?`, `actor_session_id` |
 | `handoff adopt` | yes | `id`, `entity_kind`, `entity_id`, `new_owner_session_id`, `reason` |
+
+The append-only success path is `SUBMITTED → REVIEWING → ACCEPTED → INTEGRATED → CANARY_RUNNING → CANARY_PASSED → SOURCE_CLEANED`. A canary may instead finish as `CANARY_MOCK_PASSED`, `CANARY_FAILED`, `CANARY_SKIPPED`, or `CANARY_INVALIDATED`; those states may start a new canary, but none permits source cleanup. `CANARY_PASSED` means `PASS_REAL` against the exact recorded SHA/tree with an unchanged ref-history fingerprint. Acceptance and rejection continue through `handoff accept|reject`.
 
 Recipient objects contain exactly one of `session_id`, `human_id`, `task_id`, or `role`. Adoption entity kinds are `session`, `task`, `handoff`, and `git_asset`.
 
@@ -210,24 +252,49 @@ Recipient objects contain exactly one of `session_id`, `human_id`, `task_id`, or
 
 ```text
 omg reserve add|list|active|history|renew|release|override
-omg git inventory|current|latest|history|diff|cleanup-plan|adopt
+omg git inventory|current|latest|history|diff|cleanup-plan|reconcile|adopt
+omg orphan scan
+omg canary start|finish
 ```
 
 | Command | Mutation | Strict payload fields |
 |---|:---:|---|
-| `reserve add` | yes | `id`, `pattern_kind`, `pattern`, `case_sensitivity`, `mode`, owner IDs, `intent`, `ttl_seconds` |
+| `reserve add` | yes | `id`, `pattern_kind`, `pattern`, `case_sensitivity`, `mode`, `human_id`, `session_id`, `task_id`, `run_id`, `intent`, `ttl_seconds` |
 | `reserve list\|active` | no | `{}` |
 | `reserve history` | no | `reservation_id` |
 | `reserve renew` | yes | `reservation_id`, `checkpoint_id`, `ttl_seconds` |
 | `reserve release` | yes | `reservation_id`, `reason` |
 | `reserve override` | yes | `reservation_id`, `human_id`, `reason` |
 | `git inventory` | yes | `directory`; `session_id`, `task_id`, and `run_id` must be supplied together or all omitted |
-| `git current\|latest\|history` | no | `{}` |
-| `git diff` | no | `before`, `after` observation IDs |
-| `git cleanup-plan` | no | `fingerprint` |
+| `git current\|latest\|history` | no | payload omitted; optional `session_id` is accepted only as a compatibility hint |
+| `git diff` | no | payload omitted for the latest pair; optional `before` and/or `after` observation IDs select bounds |
+| `git cleanup-plan` | no | payload omitted for all assets; optional `fingerprint` selects one asset |
+| `git reconcile` | no | direct `--integration-branch REF`; verifies actual source SHA/tree and merge, cherry-pick/squash patch equivalence, or exact-tree inclusion |
+| `orphan scan` | no | optional direct `--integration-branch REF`; defaults to `HEAD` |
 | `git adopt` | yes | `id`, `git_asset_id`, `new_owner_session_id`, `reason` |
 
+Git observation and reconciliation are bounded to the selected project repository and its linked worktrees. They do not scan unrelated repositories elsewhere on the machine.
+
+`canary start` takes `--handoff`, `--session`, `--integration-ref`, `--verification-command`, `--execution-kind real|mock`, `--environment-fingerprint`, and an idempotency key. It resolves the latest recorded integration commit and refuses to start if the selected ref is at another SHA. `canary finish` takes `--canary`, `--session`, `--exit-code`, `--passed`, `--failed`, `--skipped`, optional `--evidence-path`, and an idempotency key. OMG records the command and receipt; it does not execute the verification command. A changed SHA, tree, or ref-history fingerprint produces `CANARY_INVALIDATED` even when the supplied test counts otherwise pass.
+
+Git reads are project-scoped. Prefer the payload-free forms below; do not invent a `session_id` filter. `git diff` reports the selected `before` and `after` IDs with its counts.
+
+```text
+omg git latest --project /project --json
+omg git history --project /project --json
+omg git diff --project /project --json
+```
+
 Git commands are observational. `cleanup-plan` is advisory and does not delete, reset, clean, merge, commit, push, or otherwise mutate Git. `git adopt` changes only canonical OMG ownership metadata.
+
+Reservations require complete execution lineage. Create a task run before reserving a path, then supply the same human, session, task, and run IDs:
+
+```text
+omg task run-create --project /project --idempotency-key run-1 \
+  --payload '{"id":"run-1","task_id":"TASK_ID","session_id":"SESSION_ID"}' --json
+omg reserve add --project /project --idempotency-key reserve-1 \
+  --payload '{"id":"reservation-1","pattern_kind":"exact","pattern":"TODO.md","case_sensitivity":"sensitive","mode":"exclusive","human_id":"HUMAN_ID","session_id":"SESSION_ID","task_id":"TASK_ID","run_id":"run-1","intent":"edit TODO","ttl_seconds":3600}' --json
+```
 
 ### Generic import
 
@@ -263,6 +330,15 @@ omg mcp serve --stdio
 
 `watch` remains in the foreground until cancellation. Shell commands print generated scripts and never edit startup files. `shell-init` emits explicit preflight/board/checkpoint helpers, and `completion` limits suggestions to the selected command family while sharing one vocabulary across Bash, Zsh, Fish, and PowerShell. MCP uses protocol-only stdout.
 
+## Example discovery
+
+```text
+omg example list [--json]
+omg example show TOPIC [--json]
+```
+
+Example topics are generated from the live help contract, so displayed commands and payloads stay synchronized with contextual help. Topics use command-subcommand names such as `reserve-add` and `task-run-create`; `reservation-add` is accepted as a compatibility alias for `reserve-add`.
+
 ## JSON envelopes
 
 A successful `--json` command emits exactly one object:
@@ -276,7 +352,7 @@ A successful `--json` command emits exactly one object:
 }
 ```
 
-A failed `--json` command emits:
+A failed `--json` command emits the same stable envelope shape. When a safe recovery is known, `warnings` carries bounded `hint:` and `next:` entries:
 
 ```json
 {
@@ -286,11 +362,16 @@ A failed `--json` command emits:
     "message": "safe bounded message",
     "retryable": false,
     "exit_code": 2
-  }
+  },
+  "meta": {"schema_version": 1, "command_version": 1},
+  "warnings": [
+    "hint: use the current strict payload contract",
+    "next: omg reserve add --help"
+  ]
 }
 ```
 
-Consumers must branch on `ok`, treat unknown additive fields as forward-compatible unless their own policy forbids them, and use `meta.schema_version`/`command_version` when pinning parsers. Error messages are bounded and must not be interpreted as approval or executable text.
+Consumers must branch on `ok`, treat unknown additive fields as forward-compatible unless their own policy forbids them, and use `meta.schema_version`/`command_version` when pinning parsers. Error messages and recovery warnings are bounded and must not be interpreted as approval or executable text.
 
 ## Stable exit codes
 

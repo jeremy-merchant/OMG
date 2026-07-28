@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -113,6 +114,9 @@ func TestWriteNewPrivatePlanPreservesExistingDestination(t *testing.T) {
 }
 
 func TestRemovePrivatePlanOutputIfSameFilePreservesReplacement(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows prevents replacing an open plan output file")
+	}
 	path := filepath.Join(t.TempDir(), "plan.json")
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
@@ -122,9 +126,7 @@ func TestRemovePrivatePlanOutputIfSameFilePreservesReplacement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := file.Close(); err != nil {
-		t.Fatal(err)
-	}
+	t.Cleanup(func() { _ = file.Close() })
 	if err := os.Remove(path); err != nil {
 		t.Fatal(err)
 	}

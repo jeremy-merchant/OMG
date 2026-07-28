@@ -41,9 +41,27 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test with race detector
+        if: runner.os != 'Windows'
         env:
           CGO_ENABLED: "1"
         run: go test -race -count=1 ./...
+      - name: Test portable and Windows security packages with race detector
+        if: runner.os == 'Windows'
+        env:
+          CGO_ENABLED: "1"
+        run: >-
+          go test -race -count=1
+          ./internal/domain
+          ./internal/domain/coordination
+          ./internal/domain/lineage
+          ./internal/domain/reservation
+          ./internal/safety
+          ./internal/shell
+          ./internal/terminalstyle
+          ./internal/terminaltext
+          ./internal/view
+          ./internal/watch
+          ./internal/windowsacl
       - name: Build native smoke binary
         shell: bash
         run: |
@@ -155,7 +173,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Build OMG for the adapter example
+        run: go build -trimpath -o "${RUNNER_TEMP}/omg" ./cmd/omg
       - name: Run daemonless adapter example
-        run: go run ./examples/adapter-roundtrip
+        run: go run ./examples/adapter-roundtrip --omg "${RUNNER_TEMP}/omg"
       - name: Build deterministic board example
         run: go build -trimpath ./examples/board-preview

@@ -207,6 +207,50 @@ func (d *ServiceDispatcher) dispatchCoordination(ctx context.Context, request Re
 			return err
 		})
 		return outcome(result, err), true
+	case "handoff.advance":
+		var payload coordinationLifecyclePayload
+		if !decodePayload(request.Payload, &payload) {
+			return Outcome{Error: invalidRequest()}, true
+		}
+		var result coordinationLifecycleResult
+		err := d.service.WithCurrentStore(ctx, selection, func(_ ports.ResolvedStore, store ports.Store) error {
+			item, err := handoffapp.New(store, nil).Advance(ctx, domain.IdempotencyKey(request.IdempotencyKey), coord.HandoffLifecycleEvent{
+				ID: payload.ID, HandoffID: payload.HandoffID, ActorSessionID: payload.ActorSessionID,
+				State: coord.IntegrationState(payload.State), SourceCommit: payload.SourceCommit,
+				SourceTree: payload.SourceTree, IntegrationCommit: payload.IntegrationCommit,
+				CanaryRunID: payload.CanaryRunID, CanaryIntegrationRef: payload.CanaryIntegrationRef,
+				CanaryTargetSHA: payload.CanaryTargetSHA, CanaryTargetTree: payload.CanaryTargetTree, CanaryResult: payload.CanaryResult,
+				CanaryCommand: payload.CanaryCommand, CanaryExecutionKind: payload.CanaryExecutionKind, CanaryEnvironmentFingerprint: payload.CanaryEnvironmentFingerprint,
+				CanaryHeadBefore: payload.CanaryHeadBefore, CanaryHeadAfter: payload.CanaryHeadAfter,
+				CanaryRefFingerprintBefore: payload.CanaryRefFingerprintBefore, CanaryRefFingerprintAfter: payload.CanaryRefFingerprintAfter,
+				CanaryExitCode: payload.CanaryExitCode, CanaryPassedCount: payload.CanaryPassedCount, CanaryFailedCount: payload.CanaryFailedCount, CanarySkippedCount: payload.CanarySkippedCount,
+				CanaryStartedAt: payload.CanaryStartedAt, CanaryFinishedAt: payload.CanaryFinishedAt, CanaryEvidencePath: payload.CanaryEvidencePath,
+				SourceWorktreeCleaned: payload.SourceWorktreeCleaned, SourceBranchCleaned: payload.SourceBranchCleaned,
+				Note: payload.Note,
+			})
+			if err == nil {
+				result = safeCoordinationLifecycle(item)
+			}
+			return err
+		})
+		return outcome(result, err), true
+	case "handoff.lifecycle":
+		var payload coordinationHandoffIDPayload
+		if !decodePayload(request.Payload, &payload) || payload.HandoffID == "" {
+			return Outcome{Error: invalidRequest()}, true
+		}
+		var result []coordinationLifecycleResult
+		err := d.service.WithReadOnlyCurrentStore(ctx, selection, func(_ ports.ResolvedStore, store ports.Store) error {
+			items, err := handoffapp.New(store, nil).Lifecycle(ctx, payload.HandoffID)
+			if err == nil {
+				result = make([]coordinationLifecycleResult, len(items))
+				for i := range items {
+					result[i] = safeCoordinationLifecycle(items[i])
+				}
+			}
+			return err
+		})
+		return outcome(result, err), true
 	case "handoff.adopt":
 		var payload coordinationAdoptionPayload
 		if !decodePayload(request.Payload, &payload) {
@@ -231,14 +275,14 @@ func (d *ServiceDispatcher) dispatchCoordination(ctx context.Context, request Re
 
 func coordinationCommand(command string) bool {
 	switch command {
-	case "progress.add", "progress.history", "dependency.add", "dependency.list", "message.inbox", "message.thread", "message.deliver", "message.read", "message.ack", "handoff.show", "handoff.history", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.adopt":
+	case "progress.add", "progress.history", "dependency.add", "dependency.list", "message.inbox", "message.thread", "message.deliver", "message.read", "message.ack", "handoff.show", "handoff.history", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.advance", "handoff.lifecycle", "handoff.adopt":
 		return true
 	}
 	return false
 }
 func coordinationMutation(command string) bool {
 	switch command {
-	case "progress.add", "dependency.add", "message.deliver", "message.read", "message.ack", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.adopt":
+	case "progress.add", "dependency.add", "message.deliver", "message.read", "message.ack", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.advance", "handoff.adopt":
 		return true
 	}
 	return false
@@ -297,6 +341,37 @@ type coordinationDecisionPayload struct {
 	HandoffID      string `json:"handoff_id"`
 	DecisionID     string `json:"decision_id,omitempty"`
 	ActorSessionID string `json:"actor_session_id"`
+}
+type coordinationLifecyclePayload struct {
+	ID                           string     `json:"id"`
+	HandoffID                    string     `json:"handoff_id"`
+	ActorSessionID               string     `json:"actor_session_id"`
+	State                        string     `json:"state"`
+	SourceCommit                 string     `json:"source_commit,omitempty"`
+	SourceTree                   string     `json:"source_tree,omitempty"`
+	IntegrationCommit            string     `json:"integration_commit,omitempty"`
+	CanaryTargetSHA              string     `json:"canary_target_sha,omitempty"`
+	CanaryRunID                  string     `json:"canary_run_id,omitempty"`
+	CanaryIntegrationRef         string     `json:"canary_integration_ref,omitempty"`
+	CanaryTargetTree             string     `json:"canary_target_tree,omitempty"`
+	CanaryResult                 string     `json:"canary_result,omitempty"`
+	CanaryCommand                string     `json:"canary_command,omitempty"`
+	CanaryExecutionKind          string     `json:"canary_execution_kind,omitempty"`
+	CanaryEnvironmentFingerprint string     `json:"canary_environment_fingerprint,omitempty"`
+	CanaryHeadBefore             string     `json:"canary_head_before,omitempty"`
+	CanaryHeadAfter              string     `json:"canary_head_after,omitempty"`
+	CanaryRefFingerprintBefore   string     `json:"canary_ref_fingerprint_before,omitempty"`
+	CanaryRefFingerprintAfter    string     `json:"canary_ref_fingerprint_after,omitempty"`
+	CanaryExitCode               *int       `json:"canary_exit_code,omitempty"`
+	CanaryPassedCount            int        `json:"canary_passed_count,omitempty"`
+	CanaryFailedCount            int        `json:"canary_failed_count,omitempty"`
+	CanarySkippedCount           int        `json:"canary_skipped_count,omitempty"`
+	CanaryStartedAt              *time.Time `json:"canary_started_at,omitempty"`
+	CanaryFinishedAt             *time.Time `json:"canary_finished_at,omitempty"`
+	CanaryEvidencePath           string     `json:"canary_evidence_path,omitempty"`
+	SourceWorktreeCleaned        bool       `json:"source_worktree_cleaned,omitempty"`
+	SourceBranchCleaned          bool       `json:"source_branch_cleaned,omitempty"`
+	Note                         string     `json:"note,omitempty"`
 }
 type coordinationAdoptionPayload struct {
 	ID                string `json:"id"`
@@ -367,6 +442,8 @@ type coordinationHandoffResult struct {
 	RemainingRisks       []string                                 `json:"remaining_risks"`
 	SuggestedActions     []string                                 `json:"suggested_actions"`
 	Status               string                                   `json:"status"`
+	IntegrationState     string                                   `json:"integration_state"`
+	Lifecycle            []coordinationLifecycleResult            `json:"lifecycle"`
 	Decision             *coordinationHandoffDecisionResult       `json:"decision,omitempty"`
 	SupersedesID         string                                   `json:"supersedes_id,omitempty"`
 }
@@ -375,6 +452,38 @@ type coordinationDecisionResult struct {
 	HandoffID      string `json:"handoff_id"`
 	Decision       string `json:"decision"`
 	ActorSessionID string `json:"actor_session_id"`
+}
+type coordinationLifecycleResult struct {
+	ID                           string     `json:"id"`
+	HandoffID                    string     `json:"handoff_id"`
+	ActorSessionID               string     `json:"actor_session_id"`
+	State                        string     `json:"state"`
+	SourceCommit                 string     `json:"source_commit,omitempty"`
+	SourceTree                   string     `json:"source_tree,omitempty"`
+	IntegrationCommit            string     `json:"integration_commit,omitempty"`
+	CanaryTargetSHA              string     `json:"canary_target_sha,omitempty"`
+	CanaryRunID                  string     `json:"canary_run_id,omitempty"`
+	CanaryIntegrationRef         string     `json:"canary_integration_ref,omitempty"`
+	CanaryTargetTree             string     `json:"canary_target_tree,omitempty"`
+	CanaryResult                 string     `json:"canary_result,omitempty"`
+	CanaryCommand                string     `json:"canary_command,omitempty"`
+	CanaryExecutionKind          string     `json:"canary_execution_kind,omitempty"`
+	CanaryEnvironmentFingerprint string     `json:"canary_environment_fingerprint,omitempty"`
+	CanaryHeadBefore             string     `json:"canary_head_before,omitempty"`
+	CanaryHeadAfter              string     `json:"canary_head_after,omitempty"`
+	CanaryRefFingerprintBefore   string     `json:"canary_ref_fingerprint_before,omitempty"`
+	CanaryRefFingerprintAfter    string     `json:"canary_ref_fingerprint_after,omitempty"`
+	CanaryExitCode               *int       `json:"canary_exit_code,omitempty"`
+	CanaryPassedCount            int        `json:"canary_passed_count,omitempty"`
+	CanaryFailedCount            int        `json:"canary_failed_count,omitempty"`
+	CanarySkippedCount           int        `json:"canary_skipped_count,omitempty"`
+	CanaryStartedAt              *time.Time `json:"canary_started_at,omitempty"`
+	CanaryFinishedAt             *time.Time `json:"canary_finished_at,omitempty"`
+	CanaryEvidencePath           string     `json:"canary_evidence_path,omitempty"`
+	SourceWorktreeCleaned        bool       `json:"source_worktree_cleaned"`
+	SourceBranchCleaned          bool       `json:"source_branch_cleaned"`
+	Note                         string     `json:"note,omitempty"`
+	CreatedAt                    time.Time  `json:"created_at"`
 }
 type coordinationAdoptionResult struct {
 	ID                string `json:"id"`
@@ -465,7 +574,7 @@ func safeCoordinationHandoff(v coord.Handoff) coordinationHandoffResult {
 		Summary: safety.SafeText(v.Summary), FinalOutputPolicy: string(v.FinalOutput.Policy), FinalOutputHash: safety.SafeText(v.FinalOutput.Hash),
 		ChangedFiles: safeCoordinationTexts(v.ChangedFiles), Commits: safeCoordinationTexts(v.Commits), VerificationEvidence: evidence,
 		RemainingRisks: safeCoordinationTexts(v.RemainingRisks), SuggestedActions: safeCoordinationTexts(v.SuggestedActions),
-		Status: string(v.Status), SupersedesID: v.SupersedesID,
+		Status: string(v.Status), IntegrationState: string(coord.IntegrationSubmitted), Lifecycle: []coordinationLifecycleResult{}, SupersedesID: v.SupersedesID,
 	}
 }
 func safeCoordinationHandoffWithDecision(ctx context.Context, store ports.Store, handoff coord.Handoff) (coordinationHandoffResult, error) {
@@ -485,12 +594,28 @@ func safeCoordinationHandoffWithDecision(ctx context.Context, store ports.Store,
 		if ok {
 			result.Decision = &coordinationHandoffDecisionResult{ID: decision.ID, Decision: string(decision.Decision), ActorSessionID: decision.DecidedBySessionID, CreatedAt: decision.CreatedAt}
 		}
+		events, err := r.Coordination().ListHandoffLifecycleEvents(ctx, handoff.ID)
+		if err != nil {
+			return err
+		}
+		result.Lifecycle = make([]coordinationLifecycleResult, len(events))
+		for i := range events {
+			result.Lifecycle[i] = safeCoordinationLifecycle(events[i])
+		}
+		var decisionPtr *coord.HandoffDecision
+		if ok {
+			decisionPtr = &decision
+		}
+		result.IntegrationState = string(coord.CurrentIntegrationState(events, decisionPtr))
 		return nil
 	})
 	return result, err
 }
 func safeCoordinationDecision(v coord.HandoffDecision) coordinationDecisionResult {
 	return coordinationDecisionResult{ID: v.ID, HandoffID: v.HandoffID, Decision: string(v.Decision), ActorSessionID: v.DecidedBySessionID}
+}
+func safeCoordinationLifecycle(v coord.HandoffLifecycleEvent) coordinationLifecycleResult {
+	return coordinationLifecycleResult{ID: v.ID, HandoffID: v.HandoffID, ActorSessionID: v.ActorSessionID, State: string(v.State), SourceCommit: safety.SafeText(v.SourceCommit), SourceTree: safety.SafeText(v.SourceTree), IntegrationCommit: safety.SafeText(v.IntegrationCommit), CanaryRunID: safety.SafeText(v.CanaryRunID), CanaryIntegrationRef: safety.SafeText(v.CanaryIntegrationRef), CanaryTargetSHA: safety.SafeText(v.CanaryTargetSHA), CanaryTargetTree: safety.SafeText(v.CanaryTargetTree), CanaryResult: safety.SafeText(v.CanaryResult), CanaryCommand: safety.SafeText(v.CanaryCommand), CanaryExecutionKind: safety.SafeText(v.CanaryExecutionKind), CanaryEnvironmentFingerprint: safety.SafeText(v.CanaryEnvironmentFingerprint), CanaryHeadBefore: safety.SafeText(v.CanaryHeadBefore), CanaryHeadAfter: safety.SafeText(v.CanaryHeadAfter), CanaryRefFingerprintBefore: safety.SafeText(v.CanaryRefFingerprintBefore), CanaryRefFingerprintAfter: safety.SafeText(v.CanaryRefFingerprintAfter), CanaryExitCode: v.CanaryExitCode, CanaryPassedCount: v.CanaryPassedCount, CanaryFailedCount: v.CanaryFailedCount, CanarySkippedCount: v.CanarySkippedCount, CanaryStartedAt: v.CanaryStartedAt, CanaryFinishedAt: v.CanaryFinishedAt, CanaryEvidencePath: safety.SafeText(v.CanaryEvidencePath), SourceWorktreeCleaned: v.SourceWorktreeCleaned, SourceBranchCleaned: v.SourceBranchCleaned, Note: safety.SafeText(v.Note), CreatedAt: v.CreatedAt}
 }
 func safeCoordinationAdoption(v coord.Adoption, kind, entityID string) coordinationAdoptionResult {
 	return coordinationAdoptionResult{ID: v.ID, EntityKind: kind, EntityID: entityID, NewOwnerSessionID: v.NewOwnerSessionID}

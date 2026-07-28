@@ -15,22 +15,39 @@ OMG keeps agent lineage, task state, progress, dependencies, messages, handoffs,
 - Provides durable task, progress, dependency, mailbox, handoff, and reservation state without a daemon.
 - Observes Git repositories and worktrees without committing, merging, rebasing, pushing, resetting, cleaning, or deleting them.
 - Renders the same redacted canonical snapshot as TTY, JSON, Markdown, or self-contained HTML.
-- Adds and removes bounded OMG instruction blocks in `AGENTS.md` and `CLAUDE.md` without taking over existing files.
+- Installs always-on OMG skills and bounded global instructions for Claude, Codex, Gemini, Cursor, Windsurf, Cline, OpenCode, OMP, and the generic `.agents` ecosystem.
+- Adds and removes bounded project instruction blocks without taking over existing files.
 - Exposes the CLI through a thin MCP stdio adapter and can explicitly wrap an existing agent executable.
 
 OMG does **not** grant an agent commit, push, deploy, credential, production, deletion, publication, or destructive Git authority. Messages and model output are untrusted data, never approval.
 
-## Install from GitHub
+## Install once, use from every agent
 
-Until the first tagged stable release, install the current public source explicitly from `main`:
+After the first tagged release is published, the normal installation is one command. The installer verifies the release checksum, installs the binary atomically, updates the user PATH, and runs `omg agent install` automatically.
+
+### macOS and Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install | sh
+```
+
+### Windows PowerShell
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install.ps1)))
+```
+
+The global harness installs always-on OMG skills and bounded instructions into the supported agent discovery locations. After installation, the coding agent performs OMG preflight, coordination, progress, and handoff itself; the human does not run routine project lifecycle commands for the agent.
+
+No stable binary release has been published yet. Until release assets exist, install the current source explicitly and then enable the global harness once:
 
 ```bash
 go install github.com/jeremy-merchant/OMG/cmd/omg@main
-omg version --json
-omg release status --json
+omg agent install
+omg agent doctor
 ```
 
-The release-status payload reports `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release is created.
+See [`docs/GLOBAL_AGENT_INSTALL.md`](docs/GLOBAL_AGENT_INSTALL.md) for the discovery surfaces, offline reviewed-candidate path, uninstall behavior, release asset contract, and terminal design.
 
 ## Build from this checkout
 
@@ -97,9 +114,9 @@ Apply only after that explicit review:
 
 The board is empty until sessions and work are registered. The HTML export is static, self-contained, network-free, and created only at a new destination.
 
-## Optional instruction integration
+## Optional project instruction integration
 
-Always inspect before mutation. Apply inserts only the OMG managed block; remove deletes only that block.
+Global agent discovery is installed by `omg agent install`. Project instruction integration is optional and adds a repository-local managed block when a team wants the rule visible in the checkout. Always inspect before mutation. Apply inserts only the OMG managed block; remove deletes only that block.
 
 ```bash
 "$OMG" integration plan --project "$PROJECT" --json

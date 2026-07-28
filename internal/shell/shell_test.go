@@ -79,7 +79,7 @@ var requiredCommands = []string{
 	"me", "tree", "all", "plan", "apply", "status", "remove", "create", "restore", "record", "get",
 	"resume", "adopt", "issue", "register", "revoke", "claim", "transition", "run-create", "run-transition",
 	"add", "history", "list", "active", "renew", "release", "override", "inbox", "thread", "send",
-	"deliver", "read", "ack", "show", "supersede", "accept", "reject", "inventory", "current", "latest", "diff", "cleanup-plan",
+	"deliver", "read", "ack", "show", "lifecycle", "advance", "summary", "queue", "supersede", "accept", "reject", "inventory", "current", "latest", "diff", "cleanup-plan",
 	"html", "json", "markdown", "tty", "serve", "bash", "zsh", "fish", "powershell",
 }
 

@@ -199,7 +199,11 @@ func (s Service) Query(ctx context.Context, actor domain.ActorContext, request B
 					if ok {
 						decisionView = handoffDecisionView(decision)
 					}
-					snapshot.Handoffs = append(snapshot.Handoffs, handoffView(handoff, string(allRuns[handoff.RunID].State), decisionView))
+					lifecycle, err := c.ListHandoffLifecycleEvents(ctx, handoff.ID)
+					if err != nil {
+						return err
+					}
+					snapshot.Handoffs = append(snapshot.Handoffs, handoffView(handoff, string(allRuns[handoff.RunID].State), decisionView, lifecycle))
 				}
 			}
 			for _, target := range boardRecipientTargets(selectedSessions, selectedTasks, sessions) {
@@ -658,8 +662,16 @@ func recipientViewKey(v coordination.RecipientTarget) string {
 func handoffDecisionView(v coordination.HandoffDecision) *HandoffDecisionView {
 	return &HandoffDecisionView{ID: v.ID, Decision: string(v.Decision), ActorSessionID: v.DecidedBySessionID, CreatedAt: v.CreatedAt}
 }
-func handoffView(v coordination.Handoff, runState string, decision *HandoffDecisionView) HandoffView {
-	return HandoffView{ID: v.ID, TaskID: v.TaskID, RunID: v.RunID, RunState: runState, SourceSessionID: v.SourceSessionID, TargetSessionID: v.TargetSessionID, TargetTaskID: v.TargetTaskID, Summary: safeText(v.Summary), FinalOutputPolicy: string(v.FinalOutput.Policy), FinalOutputHash: safeText(v.FinalOutput.Hash), ChangedFileCount: len(v.ChangedFiles), VerificationItemCount: len(v.VerificationEvidence), Status: string(v.Status), Decision: decision, CreatedAt: v.CreatedAt}
+func handoffView(v coordination.Handoff, runState string, decision *HandoffDecisionView, lifecycle []coordination.HandoffLifecycleEvent) HandoffView {
+	events := make([]HandoffLifecycleView, 0, len(lifecycle))
+	for _, event := range lifecycle {
+		events = append(events, HandoffLifecycleView{ID: event.ID, State: string(event.State), ActorSessionID: event.ActorSessionID, SourceCommit: safeText(event.SourceCommit), SourceTree: safeText(event.SourceTree), IntegrationCommit: safeText(event.IntegrationCommit), CanaryRunID: safeText(event.CanaryRunID), CanaryIntegrationRef: safeText(event.CanaryIntegrationRef), CanaryTargetSHA: safeText(event.CanaryTargetSHA), CanaryTargetTree: safeText(event.CanaryTargetTree), CanaryResult: safeText(event.CanaryResult), CanaryCommand: safeText(event.CanaryCommand), CanaryExecutionKind: safeText(event.CanaryExecutionKind), CanaryEnvironmentFingerprint: safeText(event.CanaryEnvironmentFingerprint), CanaryHeadBefore: safeText(event.CanaryHeadBefore), CanaryHeadAfter: safeText(event.CanaryHeadAfter), CanaryRefFingerprintBefore: safeText(event.CanaryRefFingerprintBefore), CanaryRefFingerprintAfter: safeText(event.CanaryRefFingerprintAfter), CanaryExitCode: event.CanaryExitCode, CanaryPassedCount: event.CanaryPassedCount, CanaryFailedCount: event.CanaryFailedCount, CanarySkippedCount: event.CanarySkippedCount, CanaryStartedAt: event.CanaryStartedAt, CanaryFinishedAt: event.CanaryFinishedAt, CanaryEvidencePath: safeText(event.CanaryEvidencePath), SourceWorktreeCleaned: event.SourceWorktreeCleaned, SourceBranchCleaned: event.SourceBranchCleaned, Note: safeText(event.Note), CreatedAt: event.CreatedAt})
+	}
+	var domainDecision *coordination.HandoffDecision
+	if decision != nil {
+		domainDecision = &coordination.HandoffDecision{Decision: coordination.HandoffStatus(decision.Decision)}
+	}
+	return HandoffView{ID: v.ID, TaskID: v.TaskID, RunID: v.RunID, RunState: runState, SourceSessionID: v.SourceSessionID, TargetSessionID: v.TargetSessionID, TargetTaskID: v.TargetTaskID, Summary: safeText(v.Summary), FinalOutputPolicy: string(v.FinalOutput.Policy), FinalOutputHash: safeText(v.FinalOutput.Hash), ChangedFileCount: len(v.ChangedFiles), VerificationItemCount: len(v.VerificationEvidence), Status: string(v.Status), IntegrationState: string(coordination.CurrentIntegrationState(lifecycle, domainDecision)), Lifecycle: events, Decision: decision, CreatedAt: v.CreatedAt}
 }
 func reservationRelevant(v reservation.Reservation, tasks map[string]lineage.Task, sessions map[string]lineage.AgentSession, mode BoardMode) bool {
 	return mode != BoardMe && mode != BoardTask || tasks[v.Owner.TaskID].ID != "" || sessions[v.Owner.SessionID].ID != ""

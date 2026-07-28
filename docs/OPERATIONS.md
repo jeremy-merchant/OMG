@@ -4,6 +4,8 @@
 
 OMG is a foreground CLI over one local canonical SQLite store. Core reads and writes do not require `omg watch`, MCP, tmux, an IDE, or a network service. Every invocation resolves a project/workspace/store, opens a bounded transaction when needed, emits an append-only event and command receipt for mutations, then exits.
 
+Writable connections acquire SQLite's writer slot before a mutation callback runs (`BEGIN IMMEDIATE`). Together with the bounded busy timeout, deterministic retry, and idempotency receipt, this forms a transparent cross-process single-writer queue: operators do not need a daemon for small tasks, and concurrent CLI processes cannot both execute the same idempotent callback. Memory-mapped I/O is disabled and synchronous durability remains `FULL` to avoid trading coordination safety for throughput.
+
 The human operator remains the ultimate authority. Delegation tokens establish lineage only. They do not authorize Git mutation, credentials, deploys, production operations, deletion, migration, restart, or publication.
 
 ## Project and store selection

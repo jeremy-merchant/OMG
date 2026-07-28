@@ -15,28 +15,51 @@ import (
 // a current session.
 type PreflightRequest struct {
 	SessionID string `json:"session_id,omitempty"`
+	Verbose   bool   `json:"verbose,omitempty"`
 }
 
-// PreflightView is the canonical read-only startup projection shared by all
-// public transports.
+// PreflightView is intentionally small by default. Details are returned only
+// when the caller explicitly asks for a verbose startup projection.
 type PreflightView struct {
-	Initialized       bool                        `json:"initialized"`
-	PendingMigrations int                         `json:"pending_migrations"`
-	Identity          *query.IdentityView         `json:"identity,omitempty"`
-	Sessions          []query.IdentityView        `json:"sessions"`
-	Tasks             []query.TaskView            `json:"tasks"`
-	Inbox             []query.InboxItemView       `json:"inbox"`
-	Dependencies      []query.DependencyView      `json:"dependencies"`
-	Reservations      []query.ReservationView     `json:"reservations"`
-	Git               *query.GitView              `json:"git,omitempty"`
-	Warnings          []string                    `json:"warnings"`
-	SuggestedActions  []query.SuggestedActionView `json:"suggested_actions"`
+	Healthy           bool              `json:"healthy"`
+	PendingMigrations int               `json:"pending_migrations"`
+	ActiveSessions    int               `json:"active_sessions"`
+	StaleSessions     int               `json:"stale_sessions"`
+	Conflicts         int               `json:"conflicts"`
+	IntegrationQueue  int               `json:"integration_queue"`
+	Details           *PreflightDetails `json:"details,omitempty"`
+
+	// Deprecated in-process compatibility fields. Public transports omit them;
+	// callers request Details with verbose instead.
+	Initialized      bool                        `json:"-"`
+	Identity         *query.IdentityView         `json:"-"`
+	Sessions         []query.IdentityView        `json:"-"`
+	Tasks            []query.TaskView            `json:"-"`
+	Inbox            []query.InboxItemView       `json:"-"`
+	Dependencies     []query.DependencyView      `json:"-"`
+	Reservations     []query.ReservationView     `json:"-"`
+	Git              *query.GitView              `json:"-"`
+	Warnings         []string                    `json:"-"`
+	SuggestedActions []query.SuggestedActionView `json:"-"`
+}
+
+type PreflightDetails struct {
+	Identity         *query.IdentityView         `json:"identity,omitempty"`
+	Sessions         []query.IdentityView        `json:"sessions"`
+	Tasks            []query.TaskView            `json:"tasks"`
+	Inbox            []query.InboxItemView       `json:"inbox"`
+	Dependencies     []query.DependencyView      `json:"dependencies"`
+	Reservations     []query.ReservationView     `json:"reservations"`
+	Git              *query.GitView              `json:"git,omitempty"`
+	Warnings         []string                    `json:"warnings"`
+	SuggestedActions []query.SuggestedActionView `json:"suggested_actions"`
 }
 
 func emptyPreflight(status foundation.Status) PreflightView {
 	return PreflightView{
-		Initialized:       status.Initialized,
+		Healthy:           status.Initialized && status.Pending == 0,
 		PendingMigrations: status.Pending,
+		Initialized:       status.Initialized,
 		Sessions:          []query.IdentityView{},
 		Tasks:             []query.TaskView{},
 		Inbox:             []query.InboxItemView{},
@@ -45,6 +68,10 @@ func emptyPreflight(status foundation.Status) PreflightView {
 		Warnings:          []string{},
 		SuggestedActions:  []query.SuggestedActionView{},
 	}
+}
+
+func preflightDetails(snapshot query.BoardSnapshot) *PreflightDetails {
+	return &PreflightDetails{Identity: snapshot.Identity, Sessions: snapshot.Sessions, Tasks: snapshot.Tasks, Inbox: snapshot.Inbox, Dependencies: snapshot.Dependencies, Reservations: snapshot.Reservations, Git: snapshot.Git, Warnings: snapshot.Warnings, SuggestedActions: snapshot.SuggestedActions}
 }
 
 func (d *ServiceDispatcher) dispatchPreflight(ctx context.Context, request Request, selection foundation.Selection) Outcome {
@@ -78,6 +105,11 @@ func (d *ServiceDispatcher) dispatchPreflight(ctx context.Context, request Reque
 	if err.Code != "" {
 		return Outcome{Error: err}
 	}
+	summary := query.Summarize(snapshot)
+	result.ActiveSessions = summary.ActiveSessions
+	result.StaleSessions = summary.StaleSessions
+	result.Conflicts = summary.Conflicts
+	result.IntegrationQueue = summary.IntegrationQueue
 	result.Identity = snapshot.Identity
 	result.Sessions = snapshot.Sessions
 	result.Tasks = snapshot.Tasks
@@ -87,6 +119,9 @@ func (d *ServiceDispatcher) dispatchPreflight(ctx context.Context, request Reque
 	result.Git = snapshot.Git
 	result.Warnings = snapshot.Warnings
 	result.SuggestedActions = snapshot.SuggestedActions
+	if payload.Verbose {
+		result.Details = preflightDetails(snapshot)
+	}
 	return Outcome{Data: result}
 }
 func decodePreflightSnapshot(model query.ViewModel, snapshot *query.BoardSnapshot) error {

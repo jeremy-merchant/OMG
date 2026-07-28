@@ -16,8 +16,32 @@ import (
 var coordinationFS embed.FS
 var coordinationSQL = mustCoordinationSQL()
 
+//go:embed migrations/0009_handoff_lifecycle.sql
+var handoffLifecycleFS embed.FS
+var handoffLifecycleSQL = mustHandoffLifecycleSQL()
+
+//go:embed migrations/0010_exact_sha_canary.sql
+var exactSHACanaryFS embed.FS
+var exactSHACanarySQL = mustExactSHACanarySQL()
+
 func mustCoordinationSQL() string {
 	b, err := coordinationFS.ReadFile("migrations/0002_coordination.sql")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
+func mustHandoffLifecycleSQL() string {
+	b, err := handoffLifecycleFS.ReadFile("migrations/0009_handoff_lifecycle.sql")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
+func mustExactSHACanarySQL() string {
+	b, err := exactSHACanaryFS.ReadFile("migrations/0010_exact_sha_canary.sql")
 	if err != nil {
 		panic(err)
 	}
@@ -56,6 +80,12 @@ func nullTime(v *time.Time) any {
 		return nil
 	}
 	return stamp(*v)
+}
+func nullInt(v *int) any {
+	if v == nil {
+		return nil
+	}
+	return *v
 }
 func nullString(v string) any {
 	if v == "" {

@@ -22,30 +22,33 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 	var out strings.Builder
 	state := presentStatus("verified")
 	headline := "Ready to coordinate"
-	if !preflight.Initialized {
-		state = presentStatus("error")
-		headline = "Ledger is not initialized"
-	} else if preflight.PendingMigrations != 0 {
+	if !preflight.Healthy {
 		state = presentStatus("warning")
-		headline = "Schema migration required"
+		headline = "Startup attention required"
 	}
 	out.WriteString(theme.bold("OMG") + theme.accent("  OPERATOR LEDGER") + theme.dim(" / PREFLIGHT") + "\n")
 	writeTTYStatusLine(&out, theme, "", "", state, headline, "startup readiness snapshot")
 	out.WriteString(theme.dim(strings.Repeat("━", theme.terminalWidth())) + "\n")
 
-	writeTTYHeading(&out, theme, "State", "startup gates")
-	writeTTYStatusLine(&out, theme, "  ", "", presentStatus(map[bool]string{true: "verified", false: "error"}[preflight.Initialized]), "Initialized: "+fmt.Sprint(preflight.Initialized), "schema_state="+preflightSchemaState(preflight))
+	writeTTYHeading(&out, theme, "State", "operator summary")
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus(map[bool]string{true: "verified", false: "warning"}[preflight.Healthy]), "Healthy: "+fmt.Sprint(preflight.Healthy), "")
 	migrationState := presentStatus("verified")
 	if preflight.PendingMigrations != 0 {
 		migrationState = presentStatus("warning")
 	}
-	writeTTYStatusLine(&out, theme, "  ", "", migrationState, "Pending migrations: "+fmt.Sprint(preflight.PendingMigrations), "schema_state="+preflightSchemaState(preflight))
-	writePreflightSection(&out, theme, "Identity", preflightIdentityRows(preflight.Identity))
-	writePreflightSection(&out, theme, "Sessions + tasks", preflightSessionsTasksRows(preflight))
-	writePreflightSection(&out, theme, "Inbox", inboxRows(query.BoardSnapshot{Inbox: preflight.Inbox}, text))
-	writePreflightSection(&out, theme, "Dependencies", dependenciesRows(query.BoardSnapshot{Dependencies: preflight.Dependencies}, text))
-	writePreflightSection(&out, theme, "Reservations", reservationRows(query.BoardSnapshot{Reservations: preflight.Reservations}, text))
-	writePreflightSection(&out, theme, "Git", gitRows(query.BoardSnapshot{Git: preflight.Git, Warnings: preflight.Warnings}, text))
+	writeTTYStatusLine(&out, theme, "  ", "", migrationState, "Pending migrations: "+fmt.Sprint(preflight.PendingMigrations), "")
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Active sessions: "+fmt.Sprint(preflight.ActiveSessions), "stale="+fmt.Sprint(preflight.StaleSessions))
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Conflicts: "+fmt.Sprint(preflight.Conflicts), "integration_queue="+fmt.Sprint(preflight.IntegrationQueue))
+	if preflight.Details == nil {
+		return out.String()
+	}
+	details := preflight.Details
+	writePreflightSection(&out, theme, "Identity", preflightIdentityRows(details.Identity))
+	writePreflightSection(&out, theme, "Sessions + tasks", preflightSessionsTasksRows(details))
+	writePreflightSection(&out, theme, "Inbox", inboxRows(query.BoardSnapshot{Inbox: details.Inbox}, text))
+	writePreflightSection(&out, theme, "Dependencies", dependenciesRows(query.BoardSnapshot{Dependencies: details.Dependencies}, text))
+	writePreflightSection(&out, theme, "Reservations", reservationRows(query.BoardSnapshot{Reservations: details.Reservations}, text))
+	writePreflightSection(&out, theme, "Git", gitRows(query.BoardSnapshot{Git: details.Git, Warnings: details.Warnings}, text))
 	return out.String()
 }
 
@@ -64,16 +67,6 @@ func writePreflightSection(out *strings.Builder, theme terminalTheme, title stri
 	}
 }
 
-func preflightSchemaState(preflight app.PreflightView) string {
-	if !preflight.Initialized {
-		return "uninitialized"
-	}
-	if preflight.PendingMigrations != 0 {
-		return "migration required"
-	}
-	return "current"
-}
-
 func preflightIdentityRows(identityView *query.IdentityView) []string {
 	if identityView == nil {
 		return nil
@@ -81,7 +74,7 @@ func preflightIdentityRows(identityView *query.IdentityView) []string {
 	return []string{"Current: " + identity(identityView, text)}
 }
 
-func preflightSessionsTasksRows(preflight app.PreflightView) []string {
+func preflightSessionsTasksRows(preflight *app.PreflightDetails) []string {
 	rows := make([]string, 0, len(preflight.Sessions)+len(preflight.Tasks))
 	for i := range preflight.Sessions {
 		rows = append(rows, "Session: "+identity(&preflight.Sessions[i], text))

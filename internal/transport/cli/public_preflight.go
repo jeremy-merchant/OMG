@@ -29,7 +29,7 @@ func runPreflight(ctx context.Context, output io.Writer, request Request, applic
 	if !validPreflightRequest(request) {
 		return writeInvalidRequest(output, request, "preflight request is invalid")
 	}
-	payload, err := json.Marshal(app.PreflightRequest{SessionID: request.SessionID})
+	payload, err := json.Marshal(app.PreflightRequest{SessionID: request.SessionID, Verbose: request.Verbose})
 	if err != nil {
 		return writeError(output, request.JSON, domain.NewError(domain.CodeInternal, "unable to encode preflight query", false))
 	}

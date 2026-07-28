@@ -223,6 +223,52 @@ func TestHandoffReplayReturnsCanonicalRecords(t *testing.T) {
 	}
 }
 
+func TestHandoffLifecyclePersistsIntegrationCanaryAndCleanupEvidence(t *testing.T) {
+	ctx := context.Background()
+	now := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	store, db := testsupport.Store(t, now)
+	testsupport.Seed(t, store, now)
+	clock := now
+	svc := New(store, func() time.Time { return clock })
+	handoff := coord.Handoff{ID: "lifecycle-handoff", TaskID: "a", RunID: "run", SourceSessionID: "source", TargetSessionID: "target", Summary: "ready", FinalOutput: coord.SensitiveText{Policy: coord.FinalOutputNone}, SourceCommit: "source-commit", SourceTree: "source-tree"}
+	if _, err := svc.Submit(ctx, "lifecycle-submit", testsupport.Project, handoff); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	if _, err := svc.Advance(ctx, "lifecycle-review", coord.HandoffLifecycleEvent{ID: "lifecycle-review", HandoffID: handoff.ID, ActorSessionID: "target", State: coord.IntegrationReviewing}); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	if _, err := svc.Decide(ctx, "lifecycle-accept", handoff.ID, string(coord.HandoffAccepted), "lifecycle-decision", "target"); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	if _, err := svc.Advance(ctx, "lifecycle-integrated", coord.HandoffLifecycleEvent{ID: "lifecycle-integrated", HandoffID: handoff.ID, ActorSessionID: "target", State: coord.IntegrationIntegrated, IntegrationCommit: "integration-commit"}); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	started := clock
+	if _, err := svc.Advance(ctx, "lifecycle-canary-start", coord.HandoffLifecycleEvent{ID: "lifecycle-canary-start", HandoffID: handoff.ID, ActorSessionID: "target", State: coord.IntegrationCanaryRunning, CanaryRunID: "canary-run", CanaryIntegrationRef: "refs/heads/main", CanaryTargetSHA: "integration-commit", CanaryTargetTree: "integration-tree", CanaryCommand: "go test ./...", CanaryExecutionKind: "real", CanaryEnvironmentFingerprint: "env-fingerprint", CanaryHeadBefore: "integration-commit", CanaryRefFingerprintBefore: "ref-fingerprint", CanaryStartedAt: &started}); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	finished, exitCode := clock, 0
+	if _, err := svc.Advance(ctx, "lifecycle-canary", coord.HandoffLifecycleEvent{ID: "lifecycle-canary", HandoffID: handoff.ID, ActorSessionID: "target", State: coord.IntegrationCanaryPassed, CanaryRunID: "canary-run", CanaryIntegrationRef: "refs/heads/main", CanaryTargetSHA: "integration-commit", CanaryTargetTree: "integration-tree", CanaryResult: "PASS_REAL", CanaryCommand: "go test ./...", CanaryExecutionKind: "real", CanaryEnvironmentFingerprint: "env-fingerprint", CanaryHeadBefore: "integration-commit", CanaryHeadAfter: "integration-commit", CanaryRefFingerprintBefore: "ref-fingerprint", CanaryRefFingerprintAfter: "ref-fingerprint", CanaryExitCode: &exitCode, CanaryPassedCount: 1, CanaryStartedAt: &started, CanaryFinishedAt: &finished}); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(time.Second)
+	if _, err := svc.Advance(ctx, "lifecycle-cleaned", coord.HandoffLifecycleEvent{ID: "lifecycle-cleaned", HandoffID: handoff.ID, ActorSessionID: "target", State: coord.IntegrationSourceCleaned, SourceWorktreeCleaned: true, SourceBranchCleaned: true}); err != nil {
+		t.Fatal(err)
+	}
+	events, err := svc.Lifecycle(ctx, handoff.ID)
+	if err != nil || len(events) != 7 || coord.CurrentIntegrationState(events, nil) != coord.IntegrationSourceCleaned {
+		t.Fatalf("lifecycle=%+v err=%v", events, err)
+	}
+	if _, err := db.Exec(`UPDATE handoff_lifecycle_events SET state='BLOCKED' WHERE id='lifecycle-integrated'`); err == nil {
+		t.Fatal("append-only lifecycle event was updated")
+	}
+}
+
 func TestLatestGitAdoptionUsesParsedTimestampOrdering(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)

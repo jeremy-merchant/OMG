@@ -50,10 +50,10 @@ func writeNewPrivatePlan(path string, data []byte) error {
 	}
 	complete := false
 	defer func() {
-		_ = file.Close()
 		if !complete {
 			removePrivatePlanOutputIfSameFile(absolute, created)
 		}
+		_ = file.Close()
 	}()
 	if err := file.Chmod(0o600); err != nil {
 		return err

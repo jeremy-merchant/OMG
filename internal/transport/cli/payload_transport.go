@@ -20,6 +20,9 @@ func loadApplicationPayload(request Request, input io.Reader) (string, error) {
 	if request.PayloadStdin {
 		sources++
 	}
+	if sources == 0 && implicitEmptyApplicationPayload(request) {
+		return "{}", nil
+	}
 	if sources != 1 {
 		return "", errors.New("exactly one application payload source is required")
 	}
@@ -50,6 +53,18 @@ func loadApplicationPayload(request Request, input io.Reader) (string, error) {
 		return "", errors.New("application payload could not be read safely")
 	}
 	return string(payload), nil
+}
+
+func implicitEmptyApplicationPayload(request Request) bool {
+	if request.Name != "git" {
+		return false
+	}
+	switch request.Subcommand {
+	case "current", "latest", "history", "diff", "cleanup-plan":
+		return true
+	default:
+		return false
+	}
 }
 
 func readBoundedPayload(input io.Reader) ([]byte, error) {
