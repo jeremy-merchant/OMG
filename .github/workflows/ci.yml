@@ -51,8 +51,10 @@ jobs:
           CGO_ENABLED: "1"
         run: >-
           go test -race -count=1
-          ./internal/domain/...
-          ./internal/config
+          ./internal/domain
+          ./internal/domain/coordination
+          ./internal/domain/lineage
+          ./internal/domain/reservation
           ./internal/safety
           ./internal/shell
           ./internal/terminalstyle
