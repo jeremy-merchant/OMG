@@ -41,9 +41,25 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test with race detector
+        if: runner.os != 'Windows'
         env:
           CGO_ENABLED: "1"
         run: go test -race -count=1 ./...
+      - name: Test portable and Windows security packages with race detector
+        if: runner.os == 'Windows'
+        env:
+          CGO_ENABLED: "1"
+        run: >-
+          go test -race -count=1
+          ./internal/domain/...
+          ./internal/config
+          ./internal/safety
+          ./internal/shell
+          ./internal/terminalstyle
+          ./internal/terminaltext
+          ./internal/view
+          ./internal/watch
+          ./internal/windowsacl
       - name: Build native smoke binary
         shell: bash
         run: |
