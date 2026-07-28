@@ -155,7 +155,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Build OMG for the adapter example
+        run: go build -trimpath -o "${RUNNER_TEMP}/omg" ./cmd/omg
       - name: Run daemonless adapter example
-        run: go run ./examples/adapter-roundtrip
+        run: go run ./examples/adapter-roundtrip --omg "${RUNNER_TEMP}/omg"
       - name: Build deterministic board example
         run: go build -trimpath ./examples/board-preview
