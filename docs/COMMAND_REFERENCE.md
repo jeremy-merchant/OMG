@@ -49,7 +49,7 @@ omg preflight [selection] [--verbose] [--json]
 omg status [selection] [--json]
 ```
 
-`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. Default `preflight` returns only `healthy`, `pending_migrations`, `active_sessions`, `stale_sessions`, `conflicts`, and `integration_queue`; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
+`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. On an initialized store, `preflight` automatically applies an incremental plan only when every pending migration is compiled as `auto-safe`; it creates and verifies the exact backup, records a machine-policy authorization, applies atomically, and verifies integrity. Otherwise it remains read-only and reports the pending plan for human approval. Default `preflight` returns the compact operator counts and includes `automatic_migration` only when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
 
 ## Worker bootstrap
 
@@ -72,7 +72,7 @@ omg worker bootstrap \
   --json
 ```
 
-Matching flags (`--project`, `--session`, `--task`, `--controller-session`, and `--human`) override omitted environment values. Bootstrap performs compact preflight, stops on pending migrations, ensures the session exists, verifies its human/controller/task bindings, claims a ready task, reads `message inbox`, and returns a worker-scoped board plus one structured next action. If the controller did not pre-register the session, bootstrap creates a human-direct task-bound fallback; use delegation registration beforehand when exact delegated lineage is required.
+Matching flags (`--project`, `--session`, `--task`, `--controller-session`, and `--human`) override omitted environment values. Bootstrap performs compact preflight, safely applies an eligible `auto-safe` incremental upgrade, stops if migrations still remain pending, ensures the session exists, verifies its human/controller/task bindings, claims a ready task, reads `message inbox`, and returns a worker-scoped board plus one structured next action. If the controller did not pre-register the session, bootstrap creates a human-direct task-bound fallback; use delegation registration beforehand when exact delegated lineage is required.
 
 `--output` creates a new shell environment file with mode `0600` and never overwrites. Its parent must be a new or existing owner-only directory. Source only this generated file; never source message bodies or model output.
 
@@ -86,7 +86,7 @@ omg backup create [selection] [--plan-file PLAN.json] [--json]
 omg migration apply [selection] --plan-file PLAN.json --approval-file APPROVAL.json [--json]
 ```
 
-- `migration plan` does not change schema. `--output` writes the complete plan with mode `0600`; default JSON output intentionally omits its private backup path.
+- `migration plan` does not change schema. It reports `automatic_eligible`; this is true only for a non-fresh incremental chain whose every step is compiled as `auto-safe`. `--output` writes the complete plan with mode `0600`; default JSON output intentionally omits its private backup path.
 - `backup create` accepts the exact saved plan or computes the current plan when omitted. It returns the verified SHA-256 checksum.
 - `migration apply` requires exact plan and human-approval files. It fails closed on stale or mismatched state.
 

@@ -1233,12 +1233,13 @@ func runApply(output io.Writer, request Request, service app.Foundation, selecti
 }
 func safePlan(plan foundation.Plan) any {
 	return struct {
-		ID          string   `json:"id"`
-		Project     string   `json:"project"`
-		FromVersion int      `json:"from_version"`
-		ToVersion   int      `json:"to_version"`
-		Checksums   []string `json:"checksums"`
-	}{plan.ID, plan.Project, plan.FromVersion, plan.ToVersion, plan.Checksums}
+		ID                string   `json:"id"`
+		Project           string   `json:"project"`
+		FromVersion       int      `json:"from_version"`
+		ToVersion         int      `json:"to_version"`
+		Checksums         []string `json:"checksums"`
+		AutomaticEligible bool     `json:"automatic_eligible"`
+	}{plan.ID, plan.Project, plan.FromVersion, plan.ToVersion, plan.Checksums, plan.AutomaticEligible}
 }
 func statusResult(output io.Writer, request Request, result foundation.Status, err domain.DomainError) int {
 	if err.Code != "" {

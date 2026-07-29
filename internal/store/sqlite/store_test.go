@@ -24,7 +24,7 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer store.Close()
-	if len(status.Pending) != 10 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 || status.Pending[8].Version != 9 || status.Pending[9].Version != 10 {
+	if len(status.Pending) != 11 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 || status.Pending[8].Version != 9 || status.Pending[9].Version != 10 || status.Pending[10].Version != 11 {
 		t.Fatalf("pending = %#v", status.Pending)
 	}
 	exists, err := tableExists(ctx, store.db, "schema_migrations")
@@ -63,6 +63,13 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 	}
 	if status.Pending[9].SQL != exactSHACanarySQL || status.Pending[9].SQL != string(exactSHACanarySource) {
 		t.Fatal("embedded exact-SHA canary migration differs from source")
+	}
+	automaticAuthorizationSource, err := os.ReadFile(filepath.Join("..", "..", "..", "migrations", "0011_automatic_migration_authorization.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status.Pending[10].SQL != automaticMigrationAuthorizationSQL || status.Pending[10].SQL != string(automaticAuthorizationSource) || !status.Pending[10].AutomaticSafe {
+		t.Fatal("embedded automatic migration authorization differs from source or is not declared safe")
 	}
 	if exists {
 		t.Fatal("open applied schema migration")
@@ -225,6 +232,88 @@ func TestApprovedMigrationAndFailurePreserveBackup(t *testing.T) {
 	}
 }
 
+func TestAutomaticSafeMigrationRequiresIncrementalAllSafePlanAndRecordsEvidence(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "state.db")
+	seedSchemaThrough(t, path, 10)
+	store, status, err := Open(ctx, path, OpenOptions{ExistingOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if len(status.Pending) != 1 || status.Pending[0].Version != 11 || !status.Pending[0].AutomaticSafe {
+		t.Fatalf("pending = %#v; want only auto-safe v11", status.Pending)
+	}
+	plan, err := store.PlanMigrations(ctx, "auto-safe-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !plan.AutomaticEligible || plan.FromVersion != 10 || plan.ToVersion != 11 {
+		t.Fatalf("plan = %#v; want eligible v10 to v11", plan)
+	}
+	backup, err := store.CreateMigrationBackup(ctx, plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now().UTC()
+	approval := Approval{
+		ApprovalID: "auto-safe-" + plan.ID, ApprovedBy: automaticMigrationPolicyActor, EvidenceReference: automaticMigrationPolicyEvidence,
+		PlanID: plan.ID, Project: plan.Project, FromVersion: plan.FromVersion, ToVersion: plan.ToVersion, Checksums: plan.Checksums,
+		BackupLocation: backup.Location, BackupChecksum: backup.Checksum, Command: automaticMigrationApplyCommand,
+		Timestamp: now, ExpiresAt: now.Add(5 * time.Minute), AuthorizationKind: ports.MigrationAuthorizationAutomaticSafe,
+	}
+	if err := store.ApplyMigrations(ctx, plan, approval); err != nil {
+		t.Fatal(err)
+	}
+	var kind, operation, eventType string
+	if err := store.db.QueryRowContext(ctx, `SELECT authorization_kind FROM migration_approvals WHERE approval_id=?`, approval.ApprovalID).Scan(&kind); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.db.QueryRowContext(ctx, `SELECT operation FROM command_receipts WHERE idempotency_key=?`, "migration-auto-apply:"+approval.ApprovalID).Scan(&operation); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.db.QueryRowContext(ctx, `SELECT event_type FROM audit_events WHERE receipt_id=(SELECT id FROM command_receipts WHERE idempotency_key=?)`, "migration-auto-apply:"+approval.ApprovalID).Scan(&eventType); err != nil {
+		t.Fatal(err)
+	}
+	if kind != string(ports.MigrationAuthorizationAutomaticSafe) || operation != "migration.auto_apply" || eventType != "migration_auto_applied" {
+		t.Fatalf("automatic evidence kind=%q operation=%q event=%q", kind, operation, eventType)
+	}
+	if healthy, err := integrityPath(ctx, backup.Location); err != nil || !healthy {
+		t.Fatalf("backup integrity = %t, %v", healthy, err)
+	}
+}
+
+func TestAutomaticSafeMigrationRejectsFreshAndMixedRiskPlans(t *testing.T) {
+	ctx := context.Background()
+	fresh, _, err := Open(ctx, filepath.Join(t.TempDir(), "fresh.db"), OpenOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fresh.Close()
+	freshPlan, err := fresh.PlanMigrations(ctx, "fresh-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if freshPlan.AutomaticEligible {
+		t.Fatal("fresh initialization was marked automatic eligible")
+	}
+
+	path := filepath.Join(t.TempDir(), "mixed.db")
+	seedSchemaThrough(t, path, 9)
+	mixed, _, err := Open(ctx, path, OpenOptions{ExistingOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mixed.Close()
+	mixedPlan, err := mixed.PlanMigrations(ctx, "mixed-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mixedPlan.AutomaticEligible || mixedPlan.FromVersion != 9 || mixedPlan.ToVersion != 11 {
+		t.Fatalf("mixed plan = %#v; want ineligible v9 to v11", mixedPlan)
+	}
+}
+
 func TestConcurrentShortWritesRemainConsistent(t *testing.T) {
 	store := migratedStore(t, OpenOptions{})
 	ctx := context.Background()
@@ -264,6 +353,32 @@ func migratedStore(t *testing.T, options OpenOptions) *SQLiteStore {
 		t.Fatal(err)
 	}
 	return store
+}
+
+func seedSchemaThrough(t *testing.T, path string, version int) {
+	t.Helper()
+	ctx := context.Background()
+	store, _, err := Open(ctx, path, OpenOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	migrations := append([]Migration(nil), store.migrations...)
+	for _, migration := range migrations {
+		if migration.Version > version {
+			break
+		}
+		if _, err := store.db.ExecContext(ctx, migration.SQL); err != nil {
+			_ = store.Close()
+			t.Fatalf("apply fixture migration %d: %v", migration.Version, err)
+		}
+		if _, err := store.db.ExecContext(ctx, `INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(?,?,?)`, migration.Version, migration.Checksum, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			_ = store.Close()
+			t.Fatalf("record fixture migration %d: %v", migration.Version, err)
+		}
+	}
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func migrationApproval(t *testing.T, store *SQLiteStore, project string) (MigrationPlan, ports.BackupMetadata, Approval) {

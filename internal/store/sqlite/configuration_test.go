@@ -273,7 +273,7 @@ func TestSQLiteImmediateTransactionsDeduplicateConcurrentIdempotencyKeys(t *test
 func TestSQLiteRejectsNewerAndChecksumDivergentSchemaState(t *testing.T) {
 	t.Run("newer version", func(t *testing.T) {
 		store := migratedStore(t, OpenOptions{})
-		if _, err := store.db.Exec(`INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(11,'sha256:future','2026-07-23T00:00:00Z')`); err != nil {
+		if _, err := store.db.Exec(`INSERT INTO schema_migrations(version,checksum,applied_at) VALUES(12,'sha256:future','2026-07-23T00:00:00Z')`); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := store.pending(context.Background()); !errors.Is(err, ErrMigrationState) {

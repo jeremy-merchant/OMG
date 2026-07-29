@@ -71,7 +71,7 @@ The expected source status is `SOURCE PUBLISHED`; `stable_release` remains `fals
 
 ## Fresh-project quickstart
 
-Schema changes are never implicit. Initialization creates the local project configuration and state location, then reports pending schema migrations. Review the exact plan and verified backup before creating the separate approval file.
+Fresh initialization remains explicit: it creates the local project configuration and state location, then reports pending schema migrations. Review the exact plan and verified backup before creating the separate approval file. On an already initialized store, `preflight` may automatically upgrade only when every pending migration is compiled as `auto-safe`; OMG first creates and verifies an exact backup, applies the migration atomically, and checks integrity. Mixed, unknown, and risky plans remain human-gated.
 
 ```bash
 PROJECT=/absolute/path/to/your/project

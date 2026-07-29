@@ -18,7 +18,7 @@ import (
 	"github.com/jeremy-merchant/OMG/internal/ports"
 )
 
-func TestV4ToV10ScopedReceiptsAuditHumansAndLifecycleUpgradePreservesReferencedRows(t *testing.T) {
+func TestV4ToV11ScopedReceiptsAuditHumansAndLifecycleUpgradePreservesReferencedRows(t *testing.T) {
 	ctx := context.Background()
 	stateDir, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {
@@ -77,11 +77,11 @@ func TestV4ToV10ScopedReceiptsAuditHumansAndLifecycleUpgradePreservesReferencedR
 	}
 
 	plan, _, approval := migrationApproval(t, store, "upgrade-project")
-	if plan.FromVersion != 4 || plan.ToVersion != 10 {
-		t.Fatalf("upgrade plan = v%d to v%d; want v4 to v10", plan.FromVersion, plan.ToVersion)
+	if plan.FromVersion != 4 || plan.ToVersion != 11 {
+		t.Fatalf("upgrade plan = v%d to v%d; want v4 to v11", plan.FromVersion, plan.ToVersion)
 	}
 	if err := store.ApplyMigrations(ctx, plan, approval); err != nil {
-		t.Fatalf("upgrade to v10: %v", err)
+		t.Fatalf("upgrade to v11: %v", err)
 	}
 
 	var receiptProject string

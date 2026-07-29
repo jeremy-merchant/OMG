@@ -22,8 +22,11 @@ import (
 )
 
 const (
-	busyTimeoutMS         = 5000
-	migrationApplyCommand = "omg migration apply"
+	busyTimeoutMS                    = 5000
+	migrationApplyCommand            = "omg migration apply"
+	automaticMigrationApplyCommand   = "omg preflight auto-migrate"
+	automaticMigrationPolicyActor    = "omg-auto-safe-policy-v1"
+	automaticMigrationPolicyEvidence = "all-pending-migrations-declared-auto-safe"
 )
 
 var (
@@ -403,12 +406,16 @@ func (s *SQLiteStore) PlanMigrations(ctx context.Context, project string) (Migra
 	}
 	checksums := make([]string, len(pending))
 	to := from
+	automaticEligible := from > 0 && len(pending) > 0
 	for i, migration := range pending {
 		checksums[i] = migration.Checksum
 		to = migration.Version
+		if !migration.AutomaticSafe {
+			automaticEligible = false
+		}
 	}
 	backup := filepath.Join(filepath.Dir(s.path), "backups", "migration-"+planHash(project, from, to, checksums)+".db")
-	return MigrationPlan{ID: planHash(project, from, to, checksums), Project: project, FromVersion: from, ToVersion: to, Checksums: checksums, BackupLocation: backup}, nil
+	return MigrationPlan{ID: planHash(project, from, to, checksums), Project: project, FromVersion: from, ToVersion: to, Checksums: checksums, BackupLocation: backup, AutomaticEligible: automaticEligible}, nil
 }
 
 // CreateMigrationBackup creates and verifies the backup bound to a plan. It
@@ -452,6 +459,9 @@ func (s *SQLiteStore) ApplyMigrations(ctx context.Context, plan MigrationPlan, a
 		if migration.Version <= plan.FromVersion {
 			continue
 		}
+		if migration.Version > plan.ToVersion {
+			break
+		}
 		if _, err := tx.ExecContext(ctx, migration.SQL); err != nil {
 			return fmt.Errorf("sqlite: apply migration %d: %w", migration.Version, err)
 		}
@@ -467,22 +477,41 @@ func (s *SQLiteStore) ApplyMigrations(ctx context.Context, plan MigrationPlan, a
 	if err != nil {
 		return ErrMigrationApproval
 	}
-	if _, err := tx.ExecContext(ctx, `INSERT INTO migration_approvals(approval_id,plan_id,project_id,approved_by,evidence_reference,from_version,to_version,checksums_json,backup_location,backup_checksum,command,approved_at,expires_at,consumed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, approval.ApprovalID, approval.PlanID, approval.Project, approval.ApprovedBy, approval.EvidenceReference, approval.FromVersion, approval.ToVersion, checksums, approval.BackupLocation, approval.BackupChecksum, approval.Command, approval.Timestamp.Format(time.RFC3339Nano), approval.ExpiresAt.Format(time.RFC3339Nano), now.Format(time.RFC3339Nano)); err != nil {
+	authorizationKind := approval.AuthorizationKind
+	if authorizationKind == "" {
+		authorizationKind = ports.MigrationAuthorizationHuman
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO migration_approvals(approval_id,plan_id,project_id,approved_by,evidence_reference,from_version,to_version,checksums_json,backup_location,backup_checksum,command,approved_at,expires_at,consumed_at,authorization_kind) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, approval.ApprovalID, approval.PlanID, approval.Project, approval.ApprovedBy, approval.EvidenceReference, approval.FromVersion, approval.ToVersion, checksums, approval.BackupLocation, approval.BackupChecksum, approval.Command, approval.Timestamp.Format(time.RFC3339Nano), approval.ExpiresAt.Format(time.RFC3339Nano), now.Format(time.RFC3339Nano), authorizationKind); err != nil {
 		return ErrMigrationApproval
 	}
-	receiptID := newID("receipt", "migration-apply\x00"+approval.ApprovalID, now)
-	receiptJSON, _ := json.Marshal(map[string]string{"approval_id": approval.ApprovalID, "plan_id": approval.PlanID, "outcome": "applied"})
-	if _, err := tx.ExecContext(ctx, `INSERT INTO command_receipts(id,project_id,idempotency_key,operation,outcome,result_json,created_at) VALUES(?,?,?,?,?,?,?)`, receiptID, approval.Project, "migration-apply:"+approval.ApprovalID, "migration.apply", domain.OutcomeOK, receiptJSON, now.Format(time.RFC3339Nano)); err != nil {
+	operation := "migration.apply"
+	eventType := "migration_applied"
+	idempotencyPrefix := "migration-apply"
+	if authorizationKind == ports.MigrationAuthorizationAutomaticSafe {
+		operation = "migration.auto_apply"
+		eventType = "migration_auto_applied"
+		idempotencyPrefix = "migration-auto-apply"
+	}
+	receiptID := newID("receipt", idempotencyPrefix+"\x00"+approval.ApprovalID, now)
+	receiptJSON, _ := json.Marshal(map[string]string{"approval_id": approval.ApprovalID, "authorization_kind": string(authorizationKind), "plan_id": approval.PlanID, "outcome": "applied"})
+	if _, err := tx.ExecContext(ctx, `INSERT INTO command_receipts(id,project_id,idempotency_key,operation,outcome,result_json,created_at) VALUES(?,?,?,?,?,?,?)`, receiptID, approval.Project, idempotencyPrefix+":"+approval.ApprovalID, operation, domain.OutcomeOK, receiptJSON, now.Format(time.RFC3339Nano)); err != nil {
 		return ErrMigrationApproval
 	}
-	auditJSON, _ := json.Marshal(map[string]string{"approval_id": approval.ApprovalID, "plan_id": approval.PlanID, "from_version": fmt.Sprint(approval.FromVersion), "to_version": fmt.Sprint(approval.ToVersion)})
-	if _, err := tx.ExecContext(ctx, `INSERT INTO audit_events(id,project_id,receipt_id,event_type,payload_json,occurred_at) VALUES(?,?,?,?,?,?)`, newID("event", approval.ApprovalID, now), approval.Project, receiptID, "migration_applied", auditJSON, now.Format(time.RFC3339Nano)); err != nil {
+	auditJSON, _ := json.Marshal(map[string]string{"approval_id": approval.ApprovalID, "authorization_kind": string(authorizationKind), "plan_id": approval.PlanID, "from_version": fmt.Sprint(approval.FromVersion), "to_version": fmt.Sprint(approval.ToVersion)})
+	if _, err := tx.ExecContext(ctx, `INSERT INTO audit_events(id,project_id,receipt_id,event_type,payload_json,occurred_at) VALUES(?,?,?,?,?,?)`, newID("event", approval.ApprovalID, now), approval.Project, receiptID, eventType, auditJSON, now.Format(time.RFC3339Nano)); err != nil {
 		return ErrMigrationApproval
 	}
 	if s.journalFallback != "" {
 		if err := appendJournalFallback(ctx, tx, s.journalFallback, s.now); err != nil {
 			return fmt.Errorf("sqlite: record journal fallback: %w", err)
 		}
+	}
+	healthy, err = integrityDB(ctx, tx)
+	if err != nil {
+		return fmt.Errorf("sqlite: post-migration integrity check failed: %w", err)
+	}
+	if !healthy {
+		return errors.New("sqlite: post-migration integrity check failed")
 	}
 	return tx.Commit()
 }
@@ -491,7 +520,15 @@ func approvalMatches(plan MigrationPlan, a Approval) bool {
 	if a.ApprovalID == "" || a.ApprovedBy == "" || a.EvidenceReference == "" || a.ExpiresAt.IsZero() || a.ExpiresAt.Location() != time.UTC || !a.ExpiresAt.After(a.Timestamp) || a.ExpiresAt.Sub(a.Timestamp) > 15*time.Minute || !saneApprovalTime(a.Timestamp, a.ExpiresAt) {
 		return false
 	}
-	return a.PlanID == plan.ID && a.Project == plan.Project && a.FromVersion == plan.FromVersion && a.ToVersion == plan.ToVersion && strings.Join(a.Checksums, ",") == strings.Join(plan.Checksums, ",") && a.BackupLocation == plan.BackupLocation && a.BackupChecksum != "" && a.Command == migrationApplyCommand
+	kind := a.AuthorizationKind
+	if kind == "" {
+		kind = ports.MigrationAuthorizationHuman
+	}
+	authorized := kind == ports.MigrationAuthorizationHuman && a.Command == migrationApplyCommand
+	if kind == ports.MigrationAuthorizationAutomaticSafe {
+		authorized = plan.AutomaticEligible && plan.FromVersion > 0 && a.Command == automaticMigrationApplyCommand && a.ApprovedBy == automaticMigrationPolicyActor && a.EvidenceReference == automaticMigrationPolicyEvidence
+	}
+	return authorized && a.PlanID == plan.ID && a.Project == plan.Project && a.FromVersion == plan.FromVersion && a.ToVersion == plan.ToVersion && strings.Join(a.Checksums, ",") == strings.Join(plan.Checksums, ",") && a.BackupLocation == plan.BackupLocation && a.BackupChecksum != ""
 }
 
 func saneApprovalTime(issued, expires time.Time) bool {
@@ -683,7 +720,11 @@ func (r audits) LatestCursor(ctx context.Context) (ports.AuditCursor, error) {
 	return cursor, nil
 }
 
-func integrityDB(ctx context.Context, db *sql.DB) (bool, error) {
+type integrityQuerier interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func integrityDB(ctx context.Context, db integrityQuerier) (bool, error) {
 	var result string
 	if err := db.QueryRowContext(ctx, "PRAGMA integrity_check").Scan(&result); err != nil {
 		return false, err
@@ -724,11 +765,12 @@ func samePlan(left, right MigrationPlan) bool {
 		left.FromVersion == right.FromVersion &&
 		left.ToVersion == right.ToVersion &&
 		left.BackupLocation == right.BackupLocation &&
+		left.AutomaticEligible == right.AutomaticEligible &&
 		slices.Equal(left.Checksums, right.Checksums)
 }
 func normalizeMigrations(input []Migration) ([]Migration, error) {
 	if len(input) == 0 {
-		input = []Migration{{Version: 1, SQL: foundationSQL}, {Version: 2, SQL: coordinationSQL}, {Version: 3, SQL: reservationSQL}, {Version: 4, SQL: gitInventorySQL}, {Version: 5, SQL: scopedAuditSQL}, {Version: 6, SQL: scopedHumansSQL}, {Version: 7, SQL: receiptOperationSQL}, {Version: 8, SQL: legacyHumanAssociationsSQL}, {Version: 9, SQL: handoffLifecycleSQL}, {Version: 10, SQL: exactSHACanarySQL}}
+		input = []Migration{{Version: 1, SQL: foundationSQL}, {Version: 2, SQL: coordinationSQL}, {Version: 3, SQL: reservationSQL}, {Version: 4, SQL: gitInventorySQL}, {Version: 5, SQL: scopedAuditSQL}, {Version: 6, SQL: scopedHumansSQL}, {Version: 7, SQL: receiptOperationSQL}, {Version: 8, SQL: legacyHumanAssociationsSQL}, {Version: 9, SQL: handoffLifecycleSQL}, {Version: 10, SQL: exactSHACanarySQL}, {Version: 11, SQL: automaticMigrationAuthorizationSQL, AutomaticSafe: true}}
 	}
 	output := append([]Migration(nil), input...)
 	previous := 0

@@ -21,13 +21,14 @@ type PreflightRequest struct {
 // PreflightView is intentionally small by default. Details are returned only
 // when the caller explicitly asks for a verbose startup projection.
 type PreflightView struct {
-	Healthy           bool              `json:"healthy"`
-	PendingMigrations int               `json:"pending_migrations"`
-	ActiveSessions    int               `json:"active_sessions"`
-	StaleSessions     int               `json:"stale_sessions"`
-	Conflicts         int               `json:"conflicts"`
-	IntegrationQueue  int               `json:"integration_queue"`
-	Details           *PreflightDetails `json:"details,omitempty"`
+	Healthy            bool                           `json:"healthy"`
+	PendingMigrations  int                            `json:"pending_migrations"`
+	ActiveSessions     int                            `json:"active_sessions"`
+	StaleSessions      int                            `json:"stale_sessions"`
+	Conflicts          int                            `json:"conflicts"`
+	IntegrationQueue   int                            `json:"integration_queue"`
+	AutomaticMigration *foundation.AutomaticMigration `json:"automatic_migration,omitempty"`
+	Details            *PreflightDetails              `json:"details,omitempty"`
 
 	// Deprecated in-process compatibility fields. Public transports omit them;
 	// callers request Details with verbose instead.
@@ -83,7 +84,22 @@ func (d *ServiceDispatcher) dispatchPreflight(ctx context.Context, request Reque
 	if statusErr.Code != "" {
 		return Outcome{Error: statusErr}
 	}
+	var automaticMigration *foundation.AutomaticMigration
+	if status.Initialized && status.Pending != 0 {
+		automatic, automaticErr := d.service.AutoMigrate(ctx, selection)
+		if automaticErr.Code != "" {
+			return Outcome{Error: automaticErr}
+		}
+		automaticMigration = &automatic
+		if automatic.Applied {
+			status, statusErr = d.service.Status(ctx, selection, false)
+			if statusErr.Code != "" {
+				return Outcome{Error: statusErr}
+			}
+		}
+	}
 	result := emptyPreflight(status)
+	result.AutomaticMigration = automaticMigration
 	if !status.Initialized || status.Pending != 0 {
 		return Outcome{Data: result}
 	}

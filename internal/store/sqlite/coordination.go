@@ -24,6 +24,10 @@ var handoffLifecycleSQL = mustHandoffLifecycleSQL()
 var exactSHACanaryFS embed.FS
 var exactSHACanarySQL = mustExactSHACanarySQL()
 
+//go:embed migrations/0011_automatic_migration_authorization.sql
+var automaticMigrationAuthorizationFS embed.FS
+var automaticMigrationAuthorizationSQL = mustAutomaticMigrationAuthorizationSQL()
+
 func mustCoordinationSQL() string {
 	b, err := coordinationFS.ReadFile("migrations/0002_coordination.sql")
 	if err != nil {
@@ -42,6 +46,14 @@ func mustHandoffLifecycleSQL() string {
 
 func mustExactSHACanarySQL() string {
 	b, err := exactSHACanaryFS.ReadFile("migrations/0010_exact_sha_canary.sql")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
+func mustAutomaticMigrationAuthorizationSQL() string {
+	b, err := automaticMigrationAuthorizationFS.ReadFile("migrations/0011_automatic_migration_authorization.sql")
 	if err != nil {
 		panic(err)
 	}

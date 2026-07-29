@@ -70,6 +70,18 @@ func runWorkerBootstrap(ctx context.Context, output io.Writer, request Request, 
 		return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeUninitialized, "project is not initialized", false), terminalErrorContext{Next: "omg init --project " + shellQuote(request.Project) + " --json"})
 	}
 	if status.Pending != 0 {
+		automatic, automaticErr := application.Foundation.AutoMigrate(ctx, selection)
+		if automaticErr.Code != "" {
+			return writeError(output, request.JSON, automaticErr)
+		}
+		if automatic.Applied {
+			status, statusErr = application.Foundation.Status(ctx, selection, false)
+			if statusErr.Code != "" {
+				return writeError(output, request.JSON, statusErr)
+			}
+		}
+	}
+	if status.Pending != 0 {
 		return writeErrorWithContext(output, request.JSON, domain.NewError(domain.CodeUnavailable, "worker bootstrap stopped because schema migrations are pending", false), terminalErrorContext{Next: "omg migration plan --project " + shellQuote(request.Project) + " --json"})
 	}
 

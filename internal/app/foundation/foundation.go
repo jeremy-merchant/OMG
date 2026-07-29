@@ -48,6 +48,16 @@ type Status struct {
 type Plan = ports.MigrationPlan
 type Backup = ports.BackupMetadata
 
+type AutomaticMigration struct {
+	Eligible       bool   `json:"eligible"`
+	Applied        bool   `json:"applied"`
+	PlanID         string `json:"plan_id,omitempty"`
+	FromVersion    int    `json:"from_version,omitempty"`
+	ToVersion      int    `json:"to_version,omitempty"`
+	BackupChecksum string `json:"backup_checksum,omitempty"`
+	Integrity      bool   `json:"integrity,omitempty"`
+}
+
 type ApprovalFile struct {
 	ApprovalID        string    `json:"approval_id"`
 	ApprovedBy        string    `json:"approved_by"`
@@ -175,6 +185,66 @@ func (s *Service) Apply(ctx context.Context, selection Selection, plan Plan, fil
 	return domain.DomainError{}
 }
 
+// AutoMigrate applies only an incremental plan whose every pending migration
+// is explicitly declared safe by the compiled adapter. It creates and verifies
+// an exact pre-migration backup, records the machine policy authorization, and
+// verifies integrity before returning. Fresh initialization and mixed/risky
+// plans remain human-gated.
+func (s *Service) AutoMigrate(ctx context.Context, selection Selection) (AutomaticMigration, domain.DomainError) {
+	if s == nil || s.resolver == nil || s.open == nil {
+		return AutomaticMigration{}, unavailable()
+	}
+	resolved, resolveErr := s.resolver.Resolve(ctx, ports.ResolveRequest{ProjectPath: selection.Project, WorkspacePath: selection.Workspace, StorePath: selection.Store})
+	if resolveErr != nil {
+		return AutomaticMigration{}, unavailable()
+	}
+	store, status, openErr := s.open(ctx, resolved.Path, ports.OpenOptions{ExistingOnly: true})
+	if openErr != nil || !status.Exists || store == nil {
+		return AutomaticMigration{}, domain.NewError(domain.CodeUninitialized, "project is not initialized", false)
+	}
+	defer store.Close()
+	plan, planErr := store.PlanMigrations(ctx, string(resolved.Project))
+	if planErr != nil {
+		return AutomaticMigration{}, unavailable()
+	}
+	result := AutomaticMigration{Eligible: plan.AutomaticEligible, PlanID: plan.ID, FromVersion: plan.FromVersion, ToVersion: plan.ToVersion}
+	if len(plan.Checksums) == 0 || !plan.AutomaticEligible {
+		return result, domain.DomainError{}
+	}
+	backup, backupErr := store.CreateMigrationBackup(ctx, plan)
+	if backupErr != nil {
+		return result, unavailable()
+	}
+	result.BackupChecksum = backup.Checksum
+	now := time.Now().UTC()
+	approval := ports.MigrationApproval{
+		ApprovalID:        "auto-safe-" + plan.ID,
+		ApprovedBy:        "omg-auto-safe-policy-v1",
+		EvidenceReference: "all-pending-migrations-declared-auto-safe",
+		PlanID:            plan.ID,
+		Project:           plan.Project,
+		FromVersion:       plan.FromVersion,
+		ToVersion:         plan.ToVersion,
+		Checksums:         append([]string(nil), plan.Checksums...),
+		BackupLocation:    backup.Location,
+		BackupChecksum:    backup.Checksum,
+		Command:           "omg preflight auto-migrate",
+		Timestamp:         now,
+		ExpiresAt:         now.Add(5 * time.Minute),
+		AuthorizationKind: ports.MigrationAuthorizationAutomaticSafe,
+	}
+	if applyErr := store.ApplyMigrations(ctx, plan, approval); applyErr != nil {
+		return result, unavailable()
+	}
+	report, integrityErr := store.CheckIntegrity(ctx)
+	if integrityErr != nil || !report.Healthy {
+		return result, unavailable()
+	}
+	result.Applied = true
+	result.Integrity = true
+	return result, domain.DomainError{}
+}
+
 func validateApproval(plan Plan, target domain.ProjectID, file ApprovalFile, now time.Time) (ports.MigrationApproval, bool) {
 	if safety.Reject(file) != nil ||
 		!domain.IsSecretFreeStableMetadata(file.ApprovalID) ||
@@ -220,6 +290,7 @@ func validateApproval(plan Plan, target domain.ProjectID, file ApprovalFile, now
 		Command:           file.Command,
 		Timestamp:         timestamp,
 		ExpiresAt:         expiresAt,
+		AuthorizationKind: ports.MigrationAuthorizationHuman,
 	}, true
 }
 
