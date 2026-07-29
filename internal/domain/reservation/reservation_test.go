@@ -89,6 +89,13 @@ func TestReservationLifecycleAndConflict(t *testing.T) {
 	if decision := Decide(base, shared, now); !decision.Conflict || decision.Overlap != OverlapCertain {
 		t.Fatalf("exclusive conflict = %#v", decision)
 	}
+	self, err := New(ReservationInput{ID: "r-self", Pattern: mustPattern(t, Glob, "src/**", CaseSensitive), Mode: Exclusive, Owner: owner, Intent: "same run follow-up", ExpiresAt: now.Add(time.Hour)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decision := Decide(base, self, now); decision.Conflict || decision.Overlap != OverlapCertain {
+		t.Fatalf("same-lineage reservation conflict = %#v", decision)
+	}
 	if decision := Decide(shared, shared, now); decision.Conflict {
 		t.Fatalf("shared conflict = %#v", decision)
 	}

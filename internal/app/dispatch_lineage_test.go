@@ -111,6 +111,21 @@ func TestDispatchLineageSessionCreateStillRejectsUnknownFields(t *testing.T) {
 	}
 }
 
+func TestDispatchLineageSessionCreateReportsUnknownHumanWithoutStoreFailure(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	outcome, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command:        "session.create",
+		IdempotencyKey: "session-unknown-human",
+		Payload:        []byte(`{"id":"session-unknown-human","human_id":"missing-human","runtime":"test","role":"reviewer","native_access_state":"unsupported"}`),
+	}, selection)
+	if !handled || outcome.Error.Code != domain.CodeNotFound || outcome.Error.Retryable {
+		t.Fatalf("session.create outcome=%+v handled=%t", outcome, handled)
+	}
+	if outcome.Error.Message != "human_id is not registered in the selected project" {
+		t.Fatalf("session.create message=%q", outcome.Error.Message)
+	}
+}
+
 func TestDispatchLineageSessionArchiveRequiresKnownActorAndTerminalRuns(t *testing.T) {
 	ctx, dispatcher, selection := lineageDispatcher(t)
 	if outcome, handled := dispatcher.dispatchLineage(ctx, Request{

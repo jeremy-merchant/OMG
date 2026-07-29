@@ -287,6 +287,9 @@ func Decide(a, b Reservation, at time.Time) Decision {
 		return Decision{Overlap: OverlapNone, Advisory: true}
 	}
 	overlap := ClassifyOverlap(a.Pattern, b.Pattern)
+	if a.Owner == b.Owner {
+		return Decision{Overlap: overlap, Advisory: true}
+	}
 	return Decision{Overlap: overlap, Conflict: overlap != OverlapNone && (a.Mode == Exclusive || b.Mode == Exclusive), Advisory: true}
 }
 

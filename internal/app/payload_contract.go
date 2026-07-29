@@ -58,9 +58,25 @@ func publicPayloadContracts() map[string]publicPayloadContract {
 			prototype: func() any { return &TaskCreate{} },
 			required:  map[string]string{"title": "string", "created_by_session_id": "string"},
 		},
+		"task.get": {
+			prototype: func() any { return &lineageTaskGetPayload{} },
+			required:  map[string]string{"task_id": "string"},
+		},
 		"task.claim": {
 			prototype: func() any { return &lineageTaskClaimPayload{} },
 			required:  map[string]string{"task_id": "string", "session_id": "string"},
+		},
+		"task.transition": {
+			prototype: func() any { return &lineageTaskTransitionPayload{} },
+			required:  map[string]string{"task_id": "string", "state": "string"},
+		},
+		"task.run-create": {
+			prototype: func() any { return &lineageRunCreatePayload{} },
+			required:  map[string]string{"task_id": "string", "session_id": "string"},
+		},
+		"task.run-transition": {
+			prototype: func() any { return &lineageRunTransitionPayload{} },
+			required:  map[string]string{"run_id": "string", "state": "string"},
 		},
 		"message.inbox": {
 			prototype: func() any { return &coordinationInboxPayload{} },

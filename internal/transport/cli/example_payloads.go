@@ -42,6 +42,42 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 			}),
 			map[string]any{"id": "ARCHIVE_EVENT_ID", "session_id": "FINISHED_SESSION_ID", "actor_session_id": "CONTROLLER_SESSION_ID", "reason": "all owned runs are terminal"},
 		},
+		"task-create": {
+			objectSchema([]string{"title", "created_by_session_id"}, map[string]any{
+				"title": stringProperty("Concise task title."), "created_by_session_id": stringProperty("Controller session creating the task."),
+				"parent_task_id": stringProperty("Optional parent task ID."),
+			}),
+			map[string]any{"title": "Implement bounded change", "created_by_session_id": "CONTROLLER_SESSION_ID"},
+		},
+		"task-get": {
+			objectSchema([]string{"task_id"}, map[string]any{"task_id": stringProperty("Task ID.")}),
+			map[string]any{"task_id": "TASK_ID"},
+		},
+		"task-claim": {
+			objectSchema([]string{"task_id", "session_id"}, map[string]any{
+				"task_id": stringProperty("Ready task ID."), "session_id": stringProperty("Session claiming the task."),
+			}),
+			map[string]any{"task_id": "TASK_ID", "session_id": "WORKER_SESSION_ID"},
+		},
+		"task-transition": {
+			objectSchema([]string{"task_id", "state"}, map[string]any{
+				"task_id": stringProperty("Task ID."), "state": stringProperty("Target task state."),
+				"evidence": stringProperty("Optional safe transition evidence."), "actor_session_id": stringProperty("Optional actor session for dependency reconciliation."),
+			}),
+			map[string]any{"task_id": "TASK_ID", "state": "WORK_COMPLETE", "evidence": "verification passed", "actor_session_id": "WORKER_SESSION_ID"},
+		},
+		"task-run-create": {
+			objectSchema([]string{"task_id", "session_id"}, map[string]any{
+				"id": stringProperty("Optional stable run ID."), "task_id": stringProperty("Claimed task ID."), "session_id": stringProperty("Executing session ID."),
+			}),
+			map[string]any{"id": "RUN_ID", "task_id": "TASK_ID", "session_id": "WORKER_SESSION_ID"},
+		},
+		"task-run-transition": {
+			objectSchema([]string{"run_id", "state"}, map[string]any{
+				"run_id": stringProperty("Run ID."), "state": stringProperty("Target run state."), "evidence": stringProperty("Optional safe transition evidence."),
+			}),
+			map[string]any{"run_id": "RUN_ID", "state": "WORK_COMPLETE", "evidence": "verification passed"},
+		},
 		"message-inbox": {
 			objectSchema([]string{"recipient"}, map[string]any{"recipient": recipient}),
 			map[string]any{"recipient": map[string]any{"session_id": "WORKER_SESSION_ID"}},

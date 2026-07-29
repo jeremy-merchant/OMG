@@ -329,6 +329,8 @@ Git commands are observational. `cleanup-plan` is advisory and does not delete, 
 
 Reservations require complete execution lineage. Create a task run before reserving a path, then supply the same human, session, task, and run IDs:
 
+Reservations owned by the exact same `human_id` / `session_id` / `task_id` / `run_id` lineage may overlap without producing a conflict. They describe one execution unit's bounded work, not competing ownership. Overlap with a different lineage remains advisory or strict according to the selected policy.
+
 ```text
 omg task run-create --project /project --idempotency-key run-1 \
   --payload '{"id":"run-1","task_id":"TASK_ID","session_id":"SESSION_ID"}' --json
@@ -378,6 +380,27 @@ omg example show TOPIC [--json]
 ```
 
 Example topics are generated from the live help contract, so displayed commands and payloads stay synchronized with contextual help. In JSON mode, payload-bearing topics expose separate `payload_schema` and `example_payload` fields in addition to human `usage`. The required worker lifecycle topics include `message-inbox`, `progress-add`, `handoff-create`, `handoff-accept`, `checkpoint-record`, `reserve-add`, `session-create`, and `session-archive`. Topics use command-subcommand names such as `reserve-add` and `task-run-create`; `reservation-add` is accepted as a compatibility alias for `reserve-add`.
+
+The complete task lifecycle is also copyable without reconstructing payloads from prose: `task-create`, `task-get`, `task-claim`, `task-transition`, `task-run-create`, and `task-run-transition` all expose `payload_schema` and `example_payload`.
+
+JSON errors retain the compatibility `warnings` array and additionally expose machine-readable recovery under `error.recovery`:
+
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "human_id is not registered in the selected project",
+    "retryable": false,
+    "exit_code": 3,
+    "recovery": {
+      "hint": "Use the controller-provided OMG_HUMAN_ID; create a human only when establishing a new owner.",
+      "next_command": "omg example show session-create --json"
+    }
+  }
+}
+```
+
+Reference lookup failures are not reported as transient store failures. In particular, an unknown `human_id` during `session create` is a non-retryable `not_found`; retryable `unavailable` remains reserved for actual store or runtime availability failures.
 
 Legacy discovery is explicit: `omg inbox` points to `omg message inbox`, payload-free `omg git inventory` points read-only users to `omg git current`, `omg schema` points to `omg migration`, and `omg --version` is accepted as an alias for `omg version`. These hints do not silently convert mutating requests.
 

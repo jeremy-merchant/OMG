@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync/atomic"
@@ -13,6 +14,11 @@ import (
 	"github.com/jeremy-merchant/OMG/internal/domain"
 	"github.com/jeremy-merchant/OMG/internal/ports"
 )
+
+type sqliteCodedTestError struct{ code int }
+
+func (e sqliteCodedTestError) Error() string { return "opaque sqlite failure" }
+func (e sqliteCodedTestError) Code() int     { return e.code }
 
 func TestSQLiteConfiguresForeignKeysBusyTimeoutAndJournalPolicy(t *testing.T) {
 	root := canonicalTempDir(t)
@@ -167,6 +173,14 @@ func TestSQLiteRetryPolicyIsDeterministicBoundedAndCancelable(t *testing.T) {
 		if !transient(errors.New(message)) {
 			t.Fatalf("transient busy error rejected: %q", message)
 		}
+	}
+	for _, code := range []int{sqlitePrimaryBusy, sqlitePrimaryLocked, sqlitePrimaryBusy | 1<<8, sqlitePrimaryLocked | 1<<8} {
+		if !transient(fmt.Errorf("wrapped: %w", sqliteCodedTestError{code: code})) {
+			t.Fatalf("typed transient sqlite code rejected: %d", code)
+		}
+	}
+	if transient(sqliteCodedTestError{code: 10}) {
+		t.Fatal("typed SQLITE_IOERR was marked retryable")
 	}
 	if transient(errors.New("disk I/O error")) {
 		t.Fatal("non-transient storage error was marked retryable")

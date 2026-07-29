@@ -244,6 +244,9 @@ func TestJSONErrorsCarryHumanRecoveryContext(t *testing.T) {
 		t.Fatalf("decode JSON typo error: %v; output=%s", err, output)
 	}
 	warnings := strings.Join(envelope.Warnings, "\n")
+	if envelope.Error.Recovery == nil || envelope.Error.Recovery.Hint != `Did you mean "preflight"?` || envelope.Error.Recovery.NextCommand != "omg preflight --help" {
+		t.Fatalf("structured recovery=%+v output=%s", envelope.Error.Recovery, output)
+	}
 	for _, want := range []string{
 		`hint: Did you mean "preflight"?`,
 		"next: omg preflight --help",
@@ -293,7 +296,10 @@ func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
 }
 
 func TestRequiredWorkerExamplesExposeStructuredPayloads(t *testing.T) {
-	for _, topic := range []string{"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add"} {
+	for _, topic := range []string{
+		"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add",
+		"task-create", "task-get", "task-claim", "task-transition", "task-run-create", "task-run-transition",
+	} {
 		t.Run(topic, func(t *testing.T) {
 			exit, output := run(t, "example", "show", topic, "--json")
 			if exit != ExitSuccess {

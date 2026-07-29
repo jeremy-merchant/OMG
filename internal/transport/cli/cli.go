@@ -46,10 +46,15 @@ type SuccessEnvelope struct {
 	Warnings []string `json:"warnings"`
 }
 type ErrorMetadata struct {
-	Code      string `json:"code"`
-	Message   string `json:"message"`
-	Retryable bool   `json:"retryable"`
-	ExitCode  int    `json:"exit_code"`
+	Code      string         `json:"code"`
+	Message   string         `json:"message"`
+	Retryable bool           `json:"retryable"`
+	ExitCode  int            `json:"exit_code"`
+	Recovery  *ErrorRecovery `json:"recovery,omitempty"`
+}
+type ErrorRecovery struct {
+	Hint        string `json:"hint,omitempty"`
+	NextCommand string `json:"next_command,omitempty"`
 }
 type ErrorEnvelope struct {
 	OK       bool          `json:"ok"`
@@ -737,6 +742,12 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 		if outcome.Error.Code == domain.CodeInvalidArgument {
 			return writeErrorWithContext(output, request.JSON, outcome.Error, applicationPayloadRecovery(request))
 		}
+		if request.Name == "session" && request.Subcommand == "create" && outcome.Error.Code == domain.CodeNotFound {
+			return writeErrorWithContext(output, request.JSON, outcome.Error, terminalErrorContext{
+				Hint: "Use the controller-provided OMG_HUMAN_ID; create a human only when establishing a new owner.",
+				Next: "omg example show session-create --json",
+			})
+		}
 		return writeError(output, request.JSON, outcome.Error)
 	}
 	return writeSuccess(output, request.JSON, outcome.Data)
@@ -1348,7 +1359,13 @@ func writeErrorWithContext(output io.Writer, jsonOutput bool, err domain.DomainE
 	if context.Next != "" {
 		warnings = append(warnings, "next: "+neutralizeTerminalControls(context.Next))
 	}
-	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{string(err.Code), err.Message, err.Retryable, exit}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: warnings}, exit)
+	var recovery *ErrorRecovery
+	if context.Hint != "" || context.Next != "" {
+		recovery = &ErrorRecovery{Hint: neutralizeTerminalControls(context.Hint), NextCommand: neutralizeTerminalControls(context.Next)}
+	}
+	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{
+		Code: string(err.Code), Message: err.Message, Retryable: err.Retryable, ExitCode: exit, Recovery: recovery,
+	}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: warnings}, exit)
 }
 func writeJSON(output io.Writer, value any, exit int) int {
 	encoder := json.NewEncoder(output)

@@ -23,6 +23,8 @@ import (
 
 const (
 	busyTimeoutMS                    = 5000
+	sqlitePrimaryBusy                = 5
+	sqlitePrimaryLocked              = 6
 	migrationApplyCommand            = "omg migration apply"
 	automaticMigrationApplyCommand   = "omg preflight auto-migrate"
 	automaticMigrationPolicyActor    = "omg-automatic-backup-policy-v1"
@@ -356,6 +358,19 @@ func retryDelay(key domain.IdempotencyKey, attempt int) time.Duration {
 }
 
 func transient(err error) bool {
+	var coded interface{ Code() int }
+	if errors.As(err, &coded) {
+		// SQLite extended result codes retain the primary result code in the
+		// least-significant byte. Classify BUSY and LOCKED without depending on
+		// driver-specific error strings; keep the string fallback for adapters
+		// that do not expose a result code.
+		switch coded.Code() & 0xff {
+		case sqlitePrimaryBusy, sqlitePrimaryLocked:
+			return true
+		default:
+			return false
+		}
+	}
 	text := strings.ToLower(err.Error())
 	return strings.Contains(text, "database is locked") || strings.Contains(text, "database is busy") || strings.Contains(text, "sqlite_busy") || strings.Contains(text, "sqlite_locked")
 }

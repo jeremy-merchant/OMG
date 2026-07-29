@@ -27,3 +27,25 @@ func TestMessageInboxPayloadErrorsNameExactRecovery(t *testing.T) {
 		t.Fatalf("valid inbox payload rejected: %+v", err)
 	}
 }
+
+func TestTaskLifecyclePayloadContractsRejectMissingFieldsPrecisely(t *testing.T) {
+	for _, test := range []struct {
+		command string
+		payload string
+		want    string
+	}{
+		{command: "task.create", payload: `{"title":"work"}`, want: "missing required field created_by_session_id; expected string"},
+		{command: "task.get", payload: `{}`, want: "missing required field task_id; expected string"},
+		{command: "task.claim", payload: `{"task_id":"task-1"}`, want: "missing required field session_id; expected string"},
+		{command: "task.transition", payload: `{"task_id":"task-1"}`, want: "missing required field state; expected string"},
+		{command: "task.run-create", payload: `{"task_id":"task-1"}`, want: "missing required field session_id; expected string"},
+		{command: "task.run-transition", payload: `{"run_id":"run-1"}`, want: "missing required field state; expected string"},
+	} {
+		t.Run(test.command, func(t *testing.T) {
+			err := validatePublicPayload(test.command, []byte(test.payload))
+			if err.Code == "" || err.Message != test.want {
+				t.Fatalf("error=%+v, want %q", err, test.want)
+			}
+		})
+	}
+}
