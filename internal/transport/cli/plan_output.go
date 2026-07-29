@@ -19,9 +19,13 @@ var createNewPrivatePlanOutputFile = func(path string) (privatePlanOutputFile, e
 	return createNewPrivatePlanFile(path)
 }
 
-func removePrivatePlanOutputIfSameFile(path string, created os.FileInfo) {
+func removePrivatePlanOutputIfSameFile(path string, created privatePlanOutputFile) {
+	opened, err := created.Stat()
+	if err != nil {
+		return
+	}
 	current, err := os.Lstat(path)
-	if err == nil && os.SameFile(created, current) {
+	if err == nil && os.SameFile(opened, current) {
 		_ = os.Remove(path)
 	}
 }
@@ -43,15 +47,17 @@ func writeNewPrivatePlan(path string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	created, err := file.Stat()
-	if err != nil {
+	if _, err := file.Stat(); err != nil {
 		_ = file.Close()
 		return err
 	}
 	complete := false
 	defer func() {
 		if !complete {
-			removePrivatePlanOutputIfSameFile(absolute, created)
+			// Compare against the still-open handle. An unlinked Unix inode
+			// cannot be reused while this handle remains open, and Windows
+			// denies replacement because the handle has no delete sharing.
+			removePrivatePlanOutputIfSameFile(absolute, file)
 		}
 		_ = file.Close()
 	}()

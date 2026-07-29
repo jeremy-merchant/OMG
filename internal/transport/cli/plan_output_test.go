@@ -39,12 +39,11 @@ func (file failingPlanOutputFile) Sync() error {
 }
 
 func (file failingPlanOutputFile) Close() error {
-	err := file.File.Close()
 	if file.stage == "close" {
 		*file.failed = true
 		return errors.New("injected close failure")
 	}
-	return err
+	return file.File.Close()
 }
 
 func privatePlanOutputPath(t *testing.T) string {
@@ -122,10 +121,6 @@ func TestRemovePrivatePlanOutputIfSameFilePreservesReplacement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	created, err := file.Stat()
-	if err != nil {
-		t.Fatal(err)
-	}
 	t.Cleanup(func() { _ = file.Close() })
 	if err := os.Remove(path); err != nil {
 		t.Fatal(err)
@@ -135,7 +130,7 @@ func TestRemovePrivatePlanOutputIfSameFilePreservesReplacement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	removePrivatePlanOutputIfSameFile(path, created)
+	removePrivatePlanOutputIfSameFile(path, file)
 
 	actual, err := os.ReadFile(path)
 	if err != nil {

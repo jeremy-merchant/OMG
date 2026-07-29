@@ -64,6 +64,9 @@ func conflict() error {
 	return domain.NewError(domain.CodeConflict, "lineage ownership conflict", false)
 }
 func notFound() error { return domain.NewError(domain.CodeNotFound, "lineage record not found", false) }
+func humanNotFound() error {
+	return domain.NewError(domain.CodeNotFound, "human_id is not registered in the selected project", false)
+}
 func unavailable() error {
 	return domain.NewError(domain.CodeUnavailable, "lineage store unavailable", true)
 }
@@ -215,6 +218,20 @@ func (s *Service) createSession(ctx context.Context, key domain.IdempotencyKey, 
 	}
 	if e := x.Validate(); e != nil {
 		return x, invalid()
+	}
+	if x.HumanID != "" {
+		var found bool
+		readErr := s.store.Read(ctx, func(r ports.Repositories) error {
+			_, exists, err := r.Coordination().GetHuman(ctx, x.HumanID)
+			found = exists
+			return err
+		})
+		if readErr != nil {
+			return x, mapErr(readErr)
+		}
+		if !found {
+			return x, humanNotFound()
+		}
 	}
 	_, result, e := s.store.Write(ctx, key, operation, func(r ports.Repositories) (domain.Result, error) {
 		e := r.Coordination().CreateSession(ctx, x)
