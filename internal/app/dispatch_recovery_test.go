@@ -156,7 +156,27 @@ func TestSafeReservationsRedactsSecretLikePatternsWithoutMutatingRecords(t *test
 	}
 }
 
-func TestDispatchRecoveryGitCleanupPlanIsAdvisoryAndDoesNotScan(t *testing.T) {
+func TestDispatchRecoveryGitCurrentIsLiveAndLedgerFree(t *testing.T) {
+	dispatcher, selection, scanner := recoveryDispatcher(t)
+	current := Request{Version: RequestVersion, Command: "git.current", Project: selection.Project, Payload: []byte(`{}`)}
+	result, owned := dispatcher.dispatchRecovery(context.Background(), current, selection)
+	live, ok := result.Data.(GitSnapshotResult)
+	if !owned || result.Error.Code != "" || !ok {
+		t.Fatalf("current result=%+v owned=%t", result, owned)
+	}
+	if live.Source != "git_live" || live.Durable || live.AuthoritativeSource != "git" || scanner.calls != 1 {
+		t.Fatalf("live result=%+v scanner calls=%d", live, scanner.calls)
+	}
+
+	history := Request{Version: RequestVersion, Command: "git.history", Project: selection.Project, Payload: []byte(`{}`)}
+	historyResult, owned := dispatcher.dispatchRecovery(context.Background(), history, selection)
+	items, ok := historyResult.Data.([]GitSnapshotResult)
+	if !owned || historyResult.Error.Code != "" || !ok || len(items) != 0 {
+		t.Fatalf("current persisted observation: result=%+v owned=%t", historyResult, owned)
+	}
+}
+
+func TestDispatchRecoveryGitCleanupPlanUsesLiveGitWithoutPersisting(t *testing.T) {
 	dispatcher, selection, scanner := recoveryDispatcher(t)
 	inventory := Request{Version: RequestVersion, Command: "git.inventory", Project: selection.Project, IdempotencyKey: "inventory", Payload: recoveryInventoryPayload(t, selection.Project, true)}
 	if result, owned := dispatcher.dispatchRecovery(context.Background(), inventory, selection); !owned || result.Error.Code != "" {
@@ -168,8 +188,8 @@ func TestDispatchRecoveryGitCleanupPlanIsAdvisoryAndDoesNotScan(t *testing.T) {
 	if !owned || result.Error.Code != "" {
 		t.Fatalf("cleanup result=%+v owned=%t", result, owned)
 	}
-	if scanner.calls != calls {
-		t.Fatalf("cleanup invoked scanner: before=%d after=%d", calls, scanner.calls)
+	if scanner.calls != calls+1 {
+		t.Fatalf("cleanup scanner calls: before=%d after=%d", calls, scanner.calls)
 	}
 	data, ok := result.Data.(GitCleanupPlanResult)
 	if !ok || !data.Advisory {
@@ -222,7 +242,7 @@ func TestDispatchRecoveryGitInventoryReplaysCanonicalResultWithoutDuplicateSnaps
 }
 
 func TestDispatchRecoveryGitQueriesAcceptCompatibilityHintAndDefaultDiffBounds(t *testing.T) {
-	dispatcher, selection, _ := recoveryDispatcher(t)
+	dispatcher, selection, scanner := recoveryDispatcher(t)
 	inventory := func(key string) GitSnapshotResult {
 		t.Helper()
 		result, owned := dispatcher.dispatchRecovery(context.Background(), Request{
@@ -241,13 +261,27 @@ func TestDispatchRecoveryGitQueriesAcceptCompatibilityHintAndDefaultDiffBounds(t
 	first := inventory("git-query-first")
 	second := inventory("git-query-second")
 
+	current, owned := dispatcher.dispatchRecovery(context.Background(), Request{
+		Version: RequestVersion,
+		Command: "git.current",
+		Project: selection.Project,
+		Payload: []byte(`{"session_id":"compatibility-hint"}`),
+	}, selection)
+	live, ok := current.Data.(GitSnapshotResult)
+	if !owned || current.Error.Code != "" || !ok || live.Source != "git_live" || live.Durable || live.AuthoritativeSource != "git" {
+		t.Fatalf("current result=%+v owned=%t", current, owned)
+	}
+	if scanner.calls != 3 {
+		t.Fatalf("current did not inspect live Git: calls=%d", scanner.calls)
+	}
+
 	latest, owned := dispatcher.dispatchRecovery(context.Background(), Request{
 		Version: RequestVersion,
 		Command: "git.latest",
 		Project: selection.Project,
 		Payload: []byte(`{"session_id":"compatibility-hint"}`),
 	}, selection)
-	if snapshot, ok := latest.Data.(GitSnapshotResult); !owned || latest.Error.Code != "" || !ok || snapshot.ObservationID != second.ObservationID {
+	if snapshot, ok := latest.Data.(GitSnapshotResult); !owned || latest.Error.Code != "" || !ok || snapshot.ObservationID != second.ObservationID || snapshot.Source != "recorded_evidence" || !snapshot.Durable || snapshot.AuthoritativeSource != "git" {
 		t.Fatalf("latest result=%+v owned=%t", latest, owned)
 	}
 

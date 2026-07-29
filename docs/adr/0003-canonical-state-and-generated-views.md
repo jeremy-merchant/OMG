@@ -1,6 +1,6 @@
-# ADR 0003: SQLite Canonical State with Generated TTY, JSON, Markdown, and HTML Views
+# ADR 0003: SQLite Coordination State with Generated TTY, JSON, Markdown, and HTML Views
 
-- **Status:** Accepted
+- **Status:** Accepted; Git authority boundary amended by ADR 0004
 - **Date:** 2026-07-22
 - **Decision owners:** OMG maintainers
 
@@ -14,7 +14,7 @@ The product contract already selects SQLite as canonical state. It also requires
 
 ### Canonical data and invariants
 
-SQLite tables are the only canonical persistence for OMG coordination facts. Canonical records include project/workspace identity, humans, agent sessions and lineage, tasks and task runs, append-only progress, dependencies, messages and acknowledgements, reservations, handoffs, Git inventory observations/classifications, audit events, command receipts, and migration metadata.
+SQLite tables are the only canonical persistence for OMG coordination and policy facts. Canonical records include project/workspace identity, humans, agent sessions and lineage, tasks and task runs, append-only progress, dependencies, messages and acknowledgements, reservations, handoffs, audit events, command receipts, and migration metadata. Explicit Git inventory records are durable evidence that an observation occurred; Git remains authoritative for repository state under ADR 0004.
 
 The following invariants are enforced in the domain/application layer and, where relationally expressible, by SQLite constraints/foreign keys:
 
@@ -24,7 +24,7 @@ The following invariants are enforced in the domain/application layer and, where
 4. `WORK_COMPLETE` is an actor/self-reported run outcome; `VERIFIED_DONE` is a separate verified task/run transition with recorded verification evidence. Renderers MUST NOT collapse them into one status.
 5. Progress is append-only `done`/`doing`/`next` history. A current-progress projection is derived from ordered entries; editing a view never mutates history.
 6. Dependency edges are directed and may not introduce a cycle. Unblock notification state is durable and exactly-once at the domain outcome level, not inferred from whether a renderer ran.
-7. Messages, handoffs, audit events, Git observations, and command receipts are immutable facts. Corrections use a superseding record with an explicit relation, never in-place rewrite.
+7. Messages, handoffs, audit events, explicitly recorded Git evidence, and command receipts are immutable facts. A Git evidence record proves only what OMG observed at that time; it does not replace live Git state. Corrections use a superseding record with an explicit relation, never in-place rewrite.
 8. Reservations are advisory coordination facts with mode, scope, expiration, renewal/release, and audited override; views may warn but cannot claim operating-system enforcement.
 9. Git inventory is observational and cleanup-plan-only. A `SAFE_TO_REMOVE` classification is not an authorization and is rendered with that limitation.
 10. Raw delegation tokens are never stored. Raw prompts, message/final-output bodies, private paths, and secret-like values are treated as sensitive data and are absent or redacted by default.

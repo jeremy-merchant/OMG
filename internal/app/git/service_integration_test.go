@@ -252,7 +252,7 @@ func decodeScanSummary(t *testing.T, v any) ScanSummary {
 	return out
 }
 
-func TestCurrentAndCleanupPlanAreReadOnlyAndPreserveAssetMetadata(t *testing.T) {
+func TestRecordedCurrentAndLiveInspectionKeepGitAuthoritative(t *testing.T) {
 	now := time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
 	store, _ := testsupport.Store(t, now)
 	testsupport.Seed(t, store, now)
@@ -267,7 +267,7 @@ func TestCurrentAndCleanupPlanAreReadOnlyAndPreserveAssetMetadata(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	current, err := service.Current(context.Background(), testsupport.Project)
+	current, err := service.RecordedCurrent(context.Background(), testsupport.Project)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,13 +277,24 @@ func TestCurrentAndCleanupPlanAreReadOnlyAndPreserveAssetMetadata(t *testing.T) 
 	if len(persisted.Assets) != 1 || len(current.Assets) != 1 || !persisted.Assets[0].FirstSeenAt.Equal(current.Assets[0].FirstSeenAt) || !persisted.Assets[0].LastSeenAt.Equal(current.Assets[0].LastSeenAt) {
 		t.Fatalf("metadata not preserved: persisted=%+v current=%+v", persisted.Assets, current.Assets)
 	}
-	plan, err := service.CleanupPlan(context.Background(), testsupport.Project, "")
+	live, err := service.Inspect(context.Background(), testsupport.Project, "/private/current")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if scanner.calls != 2 || live.Trigger != "live" || len(live.Assets) != 1 || live.ID == persisted.ID {
+		t.Fatalf("live inspection = %+v; scanner calls=%d", live, scanner.calls)
+	}
+	history, err := service.History(context.Background(), testsupport.Project)
+	if err != nil || len(history) != 1 {
+		t.Fatalf("live inspection persisted history: len=%d err=%v", len(history), err)
+	}
+	plan, err := service.CleanupPlan(context.Background(), testsupport.Project, "/private/current", "")
 	if err != nil || plan.Mutating || len(plan.Blocked) != 1 {
 		t.Fatalf("cleanup = %+v, %v", plan, err)
 	}
-	if scanner.calls != 1 {
-		t.Fatalf("CleanupPlan invoked scanner %d times", scanner.calls)
+	if scanner.calls != 3 {
+		t.Fatalf("CleanupPlan scanner calls = %d", scanner.calls)
 	}
-	_, err = service.CleanupPlan(context.Background(), testsupport.Project, "unknown")
+	_, err = service.CleanupPlan(context.Background(), testsupport.Project, "/private/current", "unknown")
 	assertServiceCode(t, err, domain.CodeNotFound)
 }

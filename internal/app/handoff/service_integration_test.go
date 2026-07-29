@@ -433,7 +433,7 @@ func TestGitAdoptionExplicitOwnerOverridesAmbiguityAndReplaysCanonically(t *test
 	if err != nil || replay.ID != first.ID || !replay.CreatedAt.Equal(first.CreatedAt) {
 		t.Fatalf("replay=%+v err=%v want=%+v", replay, err, first)
 	}
-	current, err := appgit.New(store, nil, func() time.Time { return now }).Current(ctx, testsupport.Project)
+	current, err := appgit.New(store, nil, func() time.Time { return now }).RecordedCurrent(ctx, testsupport.Project)
 	if err != nil {
 		t.Fatal(err)
 	}

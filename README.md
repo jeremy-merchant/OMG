@@ -34,7 +34,7 @@ Coding agents are fast. Multi-agent work is not automatically coordinated.
 | Session context disappears when a chat ends. | Resumed and delegated sessions retain explicit lineage and handoff history. |
 | Parallel workers silently overlap. | Advisory path reservations and dependency state make conflicts visible. |
 | “Done” can mean “the agent stopped typing.” | `WORK_COMPLETE` stays separate from independently accepted `VERIFIED_DONE`. |
-| Tasks, messages, Git state, and evidence live in different tools. | One canonical ledger renders the same redacted state as TTY, JSON, Markdown, or HTML. |
+| Coordination decisions and Git evidence are hard to connect. | OMG links them while Git remains the repository source of truth. |
 | Coordination logic is coupled to one harness. | Runtime-neutral commands work across Codex, Claude Code, OMP, OpenCode, MCP clients, and shell agents. |
 
 ## Quickstart
@@ -82,7 +82,7 @@ The HTML board is static, self-contained, network-free, and written only to a ne
 | **Work** | Tasks, runs, progress, dependencies, blockers, and acceptance state. |
 | **Coordination** | Typed messages, inbox state, acknowledgements, and advisory path reservations. |
 | **Handoffs** | Immutable summaries, changed files, verification evidence, remaining risks, and suggested next actions. |
-| **Git observation** | Repository, branch, worktree, dirty/ahead/behind state, ownership signals, and classifications. |
+| **Git overlay** | Live repository risk plus OMG ownership; optional point-in-time evidence only when explicitly recorded. |
 | **Recovery** | Durable checkpoints and canonical state that survive interrupted or resumed sessions. |
 
 ## How it works
@@ -90,13 +90,15 @@ The HTML board is static, self-contained, network-free, and written only to a ne
 ```mermaid
 flowchart LR
     H[Human owner] --> A[Codex · Claude Code · OMP · OpenCode · other agents]
-    A <--> O[(OMG local SQLite ledger)]
+    A <--> O[(OMG coordination + policy state)]
     O --> V[TTY · JSON · Markdown · HTML]
     O --> M[MCP stdio]
-    O -. read-only observation .-> G[Git repositories and worktrees]
+    G[Git: code · commits · refs · worktrees] --> A
+    O -. live read-only verification .-> G
 ```
 
-- **Local-first:** canonical mutable state lives outside Git in an owner-scoped SQLite store.
+- **Git-native:** Git is authoritative for code, commits, refs, branches, worktrees, diffs, and history. OMG stores only coordination/policy facts and explicitly requested evidence.
+- **Local-first:** canonical OMG coordination state lives in an owner-scoped SQLite store outside Git.
 - **Daemonless by default:** no background service, cloud account, Node runtime, Python runtime, or shared SQLite library is required.
 - **Runtime-neutral:** agents can use the global discovery harness, explicit wrappers, shell helpers, or the MCP stdio adapter.
 - **One projection:** every renderer starts from the same canonical, redacted snapshot.

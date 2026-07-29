@@ -908,7 +908,7 @@ func TestBoardGitOwnershipOverlaysCanonicalAdoptionsWithoutMutatingObservation(t
 			t.Fatalf("%s did not project adopted owner: %q", mode, owner)
 		}
 	}
-	current, err := appgit.New(store, nil, nil).Current(context.Background(), testsupport.Project)
+	current, err := appgit.New(store, nil, nil).RecordedCurrent(context.Background(), testsupport.Project)
 	if err != nil || current.Assets[0].OwnerSessionID != "adopter-one" {
 		t.Fatalf("git current disagrees after adoption: %+v, %v", current.Assets, err)
 	}
@@ -959,7 +959,7 @@ func TestBoardGitOwnershipFailsClosedForStaleAdoption(t *testing.T) {
 			t.Fatalf("%s failed closed stale ownership projection: %#v", mode, asset)
 		}
 	}
-	current, err := appgit.New(store, nil, nil).Current(context.Background(), testsupport.Project)
+	current, err := appgit.New(store, nil, nil).RecordedCurrent(context.Background(), testsupport.Project)
 	if err != nil || len(current.Assets) != 1 || current.Assets[0].OwnerSessionID != "stale-adopter" || current.Assets[0].Facts.Owner.State != gitdomain.OwnerStale {
 		t.Fatalf("git current did not report stale ownership: %+v, %v", current.Assets, err)
 	}

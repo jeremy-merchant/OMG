@@ -725,7 +725,7 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 		}
 		if request.Name == "git" && request.Subcommand == "inventory" && !request.PayloadProvided && !request.PayloadFileProvided && !request.PayloadStdin {
 			return writeErrorWithContext(output, request.JSON, invalid("git inventory records a fresh observation and requires an idempotency key plus directory payload"), terminalErrorContext{
-				Hint: "For read-only inspection of the current observation, use git current.", Next: "omg git current --project " + shellQuote(selection.Project) + " --json",
+				Hint: "For live read-only Git inspection without persistence, use git current.", Next: "omg git current --project " + shellQuote(selection.Project) + " --json",
 			})
 		}
 		var loaded string

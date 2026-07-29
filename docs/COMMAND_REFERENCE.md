@@ -317,26 +317,28 @@ omg canary start|finish
 | `reserve release` | yes | `reservation_id`, `reason` |
 | `reserve override` | yes | `reservation_id`, `human_id`, `reason` |
 | `git inventory` | yes | `directory`; `session_id`, `task_id`, and `run_id` must be supplied together or all omitted |
-| `git current\|latest\|history` | no | payload omitted; optional `session_id` is accepted only as a compatibility hint |
+| `git current` | no | payload omitted; scans live Git without persistence; optional `session_id` is a compatibility hint only |
+| `git latest\|history` | no | payload omitted; reads explicitly recorded audit evidence; optional `session_id` is a compatibility hint only |
 | `git diff` | no | payload omitted for the latest pair; optional `before` and/or `after` observation IDs select bounds |
-| `git cleanup-plan` | no | payload omitted for all assets; optional `fingerprint` selects one asset |
+| `git cleanup-plan` | no | payload omitted for all live assets; optional `fingerprint` selects one asset; persists nothing |
 | `git reconcile` | no | direct `--integration-branch REF`; verifies actual source SHA/tree and merge, cherry-pick/squash patch equivalence, or exact-tree inclusion |
 | `orphan scan` | no | optional direct `--integration-branch REF`; defaults to `HEAD` |
 | `git adopt` | yes | `id`, `git_asset_id`, `new_owner_session_id`, `reason` |
 
-Git observation and reconciliation are bounded to the selected project repository and its linked worktrees. They do not scan unrelated repositories elsewhere on the machine.
+Git is authoritative for code, commits, refs, branches, worktrees, diffs, and history. `git current` and `git cleanup-plan` scan the selected repository live and persist nothing. `git inventory` explicitly records point-in-time audit evidence; `latest`, `history`, and OMG's observation `diff` read only that recorded evidence. All Git inspection is bounded to the selected project repository and its linked worktrees and never scans unrelated repositories elsewhere on the machine.
 
 `canary start` takes `--handoff`, `--session`, `--integration-ref`, `--verification-command`, `--execution-kind real|mock`, `--environment-fingerprint`, and an idempotency key. It resolves the latest recorded integration commit and refuses to start if the selected ref is at another SHA. `canary finish` takes `--canary`, `--session`, `--exit-code`, `--passed`, `--failed`, `--skipped`, optional `--evidence-path`, and an idempotency key. OMG records the command and receipt; it does not execute the verification command. A changed SHA, tree, or ref-history fingerprint produces `CANARY_INVALIDATED` even when the supplied test counts otherwise pass.
 
-Git reads are project-scoped. Prefer the payload-free forms below; do not invent a `session_id` filter. `git diff` reports the selected `before` and `after` IDs with its counts.
+Git reads are project-scoped; do not invent a `session_id` filter. Prefer live inspection for current risk, and use native read-only Git commands for code/history. Recorded-evidence commands are explicit audit surfaces. `git diff` reports selected observation IDs and counts, not a code patch.
 
 ```text
+omg git current --project /project --json
 omg git latest --project /project --json
 omg git history --project /project --json
 omg git diff --project /project --json
 ```
 
-Git commands are observational. `cleanup-plan` is advisory and does not delete, reset, clean, merge, commit, push, or otherwise mutate Git. `git adopt` changes only canonical OMG ownership metadata.
+Git JSON summaries expose `authoritative_source: "git"`. Live inspection reports `source: "git_live"` and `durable: false`; explicit recorded evidence reports `source: "recorded_evidence"` and `durable: true`. Git commands are observational. `cleanup-plan` is advisory and does not delete, reset, clean, merge, commit, push, or otherwise mutate Git. `git adopt` changes only canonical OMG ownership metadata.
 
 Reservations require complete execution lineage. Create a task run before reserving a path, then supply the same human, session, task, and run IDs:
 

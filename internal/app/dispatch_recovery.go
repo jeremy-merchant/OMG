@@ -110,12 +110,15 @@ type ReservationHistoryResult struct {
 	Overridden   bool   `json:"overridden"`
 }
 type GitSnapshotResult struct {
-	ObservationID   string `json:"observation_id"`
-	Sequence        int64  `json:"sequence,omitempty"`
-	Hash            string `json:"hash"`
-	RepositoryState string `json:"repository_state"`
-	Confidence      string `json:"confidence"`
-	AssetCount      int    `json:"asset_count"`
+	ObservationID       string `json:"observation_id"`
+	Sequence            int64  `json:"sequence,omitempty"`
+	Hash                string `json:"hash"`
+	RepositoryState     string `json:"repository_state"`
+	Confidence          string `json:"confidence"`
+	AssetCount          int    `json:"asset_count"`
+	Source              string `json:"source"`
+	Durable             bool   `json:"durable"`
+	AuthoritativeSource string `json:"authoritative_source"`
 }
 type GitDiffResult struct {
 	Before       string `json:"before"`
@@ -230,7 +233,7 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			}
 			return nil
 		}
-		if request.Command == "git.inventory" && d.scanner == nil {
+		if (request.Command == "git.inventory" || request.Command == "git.current" || request.Command == "git.cleanup-plan") && d.scanner == nil {
 			return domain.NewError(domain.CodeUnavailable, "git scanner is unavailable", true)
 		}
 		if request.Command == "git.inventory" && d.pathInspector == nil {
@@ -287,14 +290,18 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			var snapshot gitobs.Snapshot
 			var e error
 			if request.Command == "git.current" {
-				snapshot, e = svc.Current(ctx, project)
+				snapshot, e = svc.Inspect(ctx, project, resolved.ProjectRoot)
 			} else {
 				snapshot, e = svc.Latest(ctx, project)
 			}
 			if e != nil {
 				return e
 			}
-			result = safeGitSnapshot(snapshot)
+			if request.Command == "git.current" {
+				result = safeGitSnapshot(snapshot, "git_live", false)
+			} else {
+				result = safeGitSnapshot(snapshot, "recorded_evidence", true)
+			}
 		case "git.history":
 			var p gitQueryPayload
 			if !decodePayload(request.Payload, &p) {
@@ -306,7 +313,7 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			}
 			out := make([]GitSnapshotResult, len(snapshots))
 			for i := range snapshots {
-				out[i] = safeGitSnapshot(snapshots[i])
+				out[i] = safeGitSnapshot(snapshots[i], "recorded_evidence", true)
 			}
 			result = out
 		case "git.diff":
@@ -328,7 +335,7 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
 			}
-			plan, e := svc.CleanupPlan(ctx, project, p.Fingerprint)
+			plan, e := svc.CleanupPlan(ctx, project, resolved.ProjectRoot, p.Fingerprint)
 			if e != nil {
 				return e
 			}
@@ -383,8 +390,11 @@ func safeReservations(records []res.Reservation) []ReservationResult {
 func canonicalGitSnapshotResult(data any) (GitSnapshotResult, bool) {
 	switch summary := data.(type) {
 	case gitapp.ScanSummary:
-		return GitSnapshotResult{ObservationID: summary.ObservationID, Hash: summary.Hash, RepositoryState: string(summary.RepositoryState), Confidence: string(summary.Confidence), AssetCount: summary.AssetCount}, true
+		return GitSnapshotResult{ObservationID: summary.ObservationID, Hash: summary.Hash, RepositoryState: string(summary.RepositoryState), Confidence: string(summary.Confidence), AssetCount: summary.AssetCount, Source: "recorded_evidence", Durable: true, AuthoritativeSource: "git"}, true
 	case GitSnapshotResult:
+		if summary.Source == "" {
+			summary.Source, summary.Durable, summary.AuthoritativeSource = "recorded_evidence", true, "git"
+		}
 		return summary, true
 	}
 
@@ -395,6 +405,9 @@ func canonicalGitSnapshotResult(data any) (GitSnapshotResult, bool) {
 	var result GitSnapshotResult
 	if err := json.Unmarshal(encoded, &result); err != nil || result.ObservationID == "" {
 		return GitSnapshotResult{}, false
+	}
+	if result.Source == "" {
+		result.Source, result.Durable, result.AuthoritativeSource = "recorded_evidence", true, "git"
 	}
 	return result, true
 }
@@ -432,8 +445,8 @@ func resolveGitDiffBounds(ctx context.Context, svc *gitapp.Service, project doma
 	return "", "", domain.NewError(domain.CodeNotFound, "Git observation is not found", false)
 }
 
-func safeGitSnapshot(snapshot gitobs.Snapshot) GitSnapshotResult {
-	return GitSnapshotResult{ObservationID: snapshot.ID, Sequence: snapshot.SequenceNo, Hash: snapshot.Observation.Hash, RepositoryState: string(snapshot.Observation.Repository), Confidence: string(snapshot.Observation.Confidence), AssetCount: len(snapshot.Assets)}
+func safeGitSnapshot(snapshot gitobs.Snapshot, source string, durable bool) GitSnapshotResult {
+	return GitSnapshotResult{ObservationID: snapshot.ID, Sequence: snapshot.SequenceNo, Hash: snapshot.Observation.Hash, RepositoryState: string(snapshot.Observation.Repository), Confidence: string(snapshot.Observation.Confidence), AssetCount: len(snapshot.Assets), Source: source, Durable: durable, AuthoritativeSource: "git"}
 }
 func safeGitCleanupPlan(plan gitobs.CleanupPlan) GitCleanupPlanResult {
 	out := GitCleanupPlanResult{Advisory: !plan.Mutating, CandidateCount: len(plan.Candidates), BlockedCount: len(plan.Blocked), Classifications: make(map[string]int), BlockReasons: make(map[string]int)}

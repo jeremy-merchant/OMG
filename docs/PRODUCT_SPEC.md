@@ -52,7 +52,7 @@ Every agent or human operator must be able to answer:
 9. Typed asynchronous mailbox: `NOTICE`, `QUESTION`, `DEPENDENCY`, `CONFLICT`, `HANDOFF`, `DONE`, `BLOCKED`, `CANCEL`, `ACK`.
 10. Immutable or superseding handoffs with final output, changed files, commits, verification evidence, remaining risks, and suggested actions.
 11. Advisory exact/path/glob reservations with shared/exclusive modes, TTL, renewal, release, conservative possible-conflict, and audited override.
-12. Git reconciliation independent of registered sessions: worktrees, branches, detached heads, dirty state, unpushed/diverged/merged assets, owners, orphan classification, and cleanup-plan-only behavior.
+12. Live Git reconciliation independent of registered sessions: worktrees, branches, detached heads, dirty state, unpushed/diverged/merged assets, owners, orphan classification, and cleanup-plan-only behavior. Git is authoritative; durable observations are explicit audit evidence only.
 13. Adoption of orphan sessions, tasks, handoffs, and Git assets without automatic checkout, merge, deletion, reset, or clean.
 14. TTY, JSON, Markdown, and self-contained accessible HTML views generated from canonical state.
 15. Append-only audit events, idempotency keys, command receipts, migration backups, integrity checks, and fail-closed newer-schema handling.
@@ -60,7 +60,7 @@ Every agent or human operator must be able to answer:
 ## Runtime and architecture constraints
 
 - Use current stable Go and one primary cross-platform binary.
-- SQLite is canonical state. Use foreign keys, bounded busy timeout, short transactions, migrations with checksums and pre-migration backup, deterministic transient-busy retry, and WAL only on supported local filesystems.
+- SQLite is canonical for OMG coordination and policy state, never for repository state. Use foreign keys, bounded busy timeout, short transactions, migrations with checksums and pre-migration backup, deterministic transient-busy retry, and WAL only on supported local filesystems.
 - In Git repositories, resolve shared state with `git rev-parse --path-format=absolute --git-common-dir` so linked worktrees share one store.
 - Safe tracked configuration lives under `.omg/`; the database, tokens, prompts, private paths, PID data, and local overrides remain untracked.
 - Non-Git mode uses the platform user-data directory. Explicit workspace mode may coordinate multiple projects in one local database.
@@ -73,7 +73,7 @@ Every agent or human operator must be able to answer:
 - `omg preflight`: identity, task, inbox, dependencies, reservations, and Git warnings before work.
 - `omg board me|tree|task|all|git`: human and agent views.
 - `omg checkpoint`: semantic heartbeat, inbox, dependency, and reservation refresh.
-- Commands for human, session, task, progress, delegate, message, reserve, handoff, Git inventory/adoption/cleanup-plan, integration, shell-init, completion, watch, MCP, export/import, backup, doctor, and version.
+- Commands for human, session, task, progress, delegate, message, reserve, handoff, live Git inspection/reconciliation plus explicit evidence inventory, integration, shell-init, completion, watch, MCP, export/import, backup, doctor, and version.
 - A stable JSON success/error envelope and documented stable exit codes.
 - Idempotent plan/apply/status/remove integration for `AGENTS.md`, `CLAUDE.md`, and configurable runtime instruction surfaces; preserve existing content, encoding, EOL, symlinks, and nested rules.
 - Generic `omg run --runtime ... -- <command>` wrapper; never silently shadow existing agent binaries.

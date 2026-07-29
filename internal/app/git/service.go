@@ -1,9 +1,11 @@
-// Package git persists read-only Git observations as advisory evidence.
+// Package git inspects live Git state and optionally persists explicit
+// point-in-time observations as advisory evidence.
 package git
 
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"strings"
@@ -282,9 +284,10 @@ func (s *Service) Latest(ctx context.Context, project domain.ProjectID) (gitobs.
 	return out, mapErr(err)
 }
 
-// Current overlays latest durable scanner facts with current canonical lineage;
-// it does not invoke the scanner or mutate Git.
-func (s *Service) Current(ctx context.Context, project domain.ProjectID) (gitobs.Snapshot, error) {
+// RecordedCurrent overlays the latest durable observation with current OMG
+// ownership facts. It does not inspect or mutate Git and exists for historical
+// evidence views; callers that need repository truth must use Inspect.
+func (s *Service) RecordedCurrent(ctx context.Context, project domain.ProjectID) (gitobs.Snapshot, error) {
 	if s == nil || s.store == nil || project == "" {
 		return gitobs.Snapshot{}, invalid()
 	}
@@ -303,10 +306,48 @@ func (s *Service) Current(ctx context.Context, project domain.ProjectID) (gitobs
 	return out, mapErr(err)
 }
 
-// CleanupPlan returns advisory candidates and blocks only. It never invokes a
-// scanner and contains no cleanup application capability.
-func (s *Service) CleanupPlan(ctx context.Context, project domain.ProjectID, fingerprint string) (gitobs.CleanupPlan, error) {
-	current, err := s.Current(ctx, project)
+// Inspect reads the selected repository directly from Git, overlays OMG's
+// coordination-only ownership facts, and returns the result without creating
+// a Git observation, audit event, or command receipt. Git remains authoritative
+// for repository state; Scan is only for explicit point-in-time evidence.
+func (s *Service) Inspect(ctx context.Context, project domain.ProjectID, directory string) (gitobs.Snapshot, error) {
+	if s == nil || s.store == nil || s.scanner == nil || project == "" || directory == "" {
+		return gitobs.Snapshot{}, invalid()
+	}
+	observed, err := s.scanner.Scan(ctx, directory)
+	if err != nil || observed.Revision != gitobs.ObservationRevision {
+		return gitobs.Snapshot{}, unavailable()
+	}
+	at := s.now().UTC()
+	// Keep live identity tied only to Git facts. OMG ownership overlays may change
+	// independently and must not masquerade as a different repository state.
+	digest := sha256.Sum256([]byte(observed.Hash))
+	snapshot := gitobs.Snapshot{
+		ID:          "git-live-" + hex.EncodeToString(digest[:16]),
+		ProjectID:   project,
+		Trigger:     "live",
+		ObservedAt:  at,
+		Observation: observed,
+	}
+	err = s.store.Read(ctx, func(r ports.Repositories) error {
+		var reconcileErr error
+		snapshot, reconcileErr = ReconcileCurrent(ctx, r, snapshot)
+		return reconcileErr
+	})
+	if err != nil {
+		return gitobs.Snapshot{}, mapErr(err)
+	}
+	for index := range snapshot.Assets {
+		snapshot.Assets[index].FirstSeenAt = at
+		snapshot.Assets[index].LastSeenAt = at
+	}
+	return snapshot, nil
+}
+
+// CleanupPlan derives advisory candidates from a fresh, non-persisted Git
+// inspection. It contains no cleanup application capability.
+func (s *Service) CleanupPlan(ctx context.Context, project domain.ProjectID, directory, fingerprint string) (gitobs.CleanupPlan, error) {
+	current, err := s.Inspect(ctx, project, directory)
 	if err != nil {
 		return gitobs.CleanupPlan{}, err
 	}
@@ -458,7 +499,7 @@ func (s *Service) OrphanScan(ctx context.Context, project domain.ProjectID, dire
 	}
 	risks := []OrphanRisk{}
 	owners := map[string]gitobs.AssetRecord{}
-	if snapshot, snapshotErr := s.Current(ctx, project); snapshotErr == nil {
+	if snapshot, snapshotErr := s.reconcileObserved(ctx, project, observation); snapshotErr == nil {
 		for _, record := range snapshot.Assets {
 			owners[record.Fingerprint] = record
 		}
@@ -487,4 +528,20 @@ func (s *Service) OrphanScan(ctx context.Context, project domain.ProjectID, dire
 		}
 	}
 	return OrphanReport{Count: len(risks), Risks: risks}, nil
+}
+
+func (s *Service) reconcileObserved(ctx context.Context, project domain.ProjectID, observation gitobs.Observation) (gitobs.Snapshot, error) {
+	if s == nil || s.store == nil || project == "" || observation.Revision != gitobs.ObservationRevision {
+		return gitobs.Snapshot{}, invalid()
+	}
+	snapshot := gitobs.Snapshot{ProjectID: project, Trigger: "live", ObservedAt: s.now().UTC(), Observation: observation}
+	err := s.store.Read(ctx, func(r ports.Repositories) error {
+		var reconcileErr error
+		snapshot, reconcileErr = ReconcileCurrent(ctx, r, snapshot)
+		return reconcileErr
+	})
+	if err != nil {
+		return gitobs.Snapshot{}, mapErr(err)
+	}
+	return snapshot, nil
 }
