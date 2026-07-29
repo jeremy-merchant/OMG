@@ -37,7 +37,8 @@ jobs:
       - name: Verify formatting
         shell: bash
         run: |
-          test -z "$(gofmt -l .)"
+          unformatted="$(git ls-files -z -- '*.go' | xargs -0 gofmt -l)"
+          [ -z "$unformatted" ]
       - name: Vet
         run: go vet ./...
       - name: Test with race detector
