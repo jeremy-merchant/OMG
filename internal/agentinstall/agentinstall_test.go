@@ -189,7 +189,7 @@ func TestStatusRejectsSymlinkParent(t *testing.T) {
 
 func TestSkillContentIsAlwaysApplyAndSecretFree(t *testing.T) {
 	content := string(SkillContent())
-	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 5", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "auto-safe", "create and verify the exact backup", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg example show session-create", "omg example show message-inbox", "instruction_source", "typed messages", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
+	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 5", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "every exact pending migration", "plan-bound backup", "do not wait for human approval", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg example show session-create", "omg example show message-inbox", "instruction_source", "typed messages", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf("skill missing %q", required)
 		}

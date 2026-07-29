@@ -53,23 +53,16 @@ omg agent doctor
 
 ### 2. Initialize a project safely
 
-Fresh initialization never applies schema changes implicitly. On an already initialized store, `preflight` may automatically upgrade only when every pending migration is compiled as `auto-safe`; OMG first creates and verifies the exact backup, applies the migration atomically, and checks integrity. Fresh, mixed, unknown, and risky plans remain behind a separate, exact, short-lived human approval.
+`omg init` creates the project configuration and state location. The next `preflight` automatically applies every exact pending migration compiled into the installed OMG binary. Before changing schema, OMG creates and verifies the plan-bound backup, applies atomically, and checks integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain blocked rather than asking for approval.
 
 ```bash
 PROJECT=/absolute/path/to/your/project
 
 omg init --project "$PROJECT" --json
-omg migration plan \
-  --project "$PROJECT" \
-  --output "$PROJECT/.omg/migration-plan.json" \
-  --json
-omg backup create \
-  --project "$PROJECT" \
-  --plan-file "$PROJECT/.omg/migration-plan.json" \
-  --json
+omg preflight --project "$PROJECT" --json
 ```
 
-For fresh initialization or any non-eligible plan, review the plan and verified backup before applying the migration. The exact approval-file contract, automatic-safe policy, and recovery procedure are documented in the [operator guide](docs/OPERATIONS.md#initialization-and-schema-lifecycle).
+Normal initialization needs no approval file. `migration plan`, `backup create`, and the legacy manual `migration apply` command remain available for diagnostics and controlled recovery. The automatic backup policy and failure procedure are documented in the [operator guide](docs/OPERATIONS.md#initialization-and-schema-lifecycle).
 
 ### 3. See the project
 
@@ -169,7 +162,7 @@ OMG coordinates and observes. It does **not** silently acquire authority.
 
 Additional guarantees:
 
-- Automatic schema changes are limited to an already initialized, backup-bound incremental plan whose every compiled migration is explicitly `auto-safe`; all other plans remain human-gated.
+- Every exact migration compiled into the installed binary is eligible for backup-verified automatic application; unknown, stale, checksum-divergent, backup-failed, and integrity-failed plans fail closed.
 
 - Native conversation transcripts remain in their source runtime.
 - `.omg/` contains only tracked-safe configuration and operator-created plan/approval files; canonical mutable state stays outside Git.

@@ -27,11 +27,11 @@ The state directory and database are private local data. On POSIX systems OMG en
 
 `omg init` is idempotent. It creates the safe project configuration and local state location but does not apply schema changes. The result reports `pending_migrations`.
 
-### Automatic safe upgrades
+### Automatic verified upgrades
 
-The first `omg preflight` (or `omg worker bootstrap`) after a binary update evaluates the exact pending plan. It applies the plan automatically only when the store is already initialized and every pending migration is compiled as `auto-safe`. Before changing schema, OMG creates the plan-bound SQLite backup, verifies its checksum and integrity, then applies schema records plus an `automatic_safe_policy` authorization and receipt in one transaction. A post-migration integrity check runs before commit and is verified again after commit. Backups are retained.
+The first `omg preflight` (or `omg worker bootstrap`) after initialization or a binary update evaluates the exact pending plan compiled into that binary. Every non-empty exact plan is eligible. Before changing schema, OMG creates the plan-bound SQLite backup, verifies its checksum and integrity, then applies schema records plus an `automatic_safe_policy` machine authorization and receipt in one transaction. A post-migration integrity check runs before commit and is verified again after commit. Backups are retained.
 
-Fresh initialization, a chain containing any unclassified or risky migration, newer/checksum-divergent schema history, backup failure, or integrity failure never falls back to automatic apply. `preflight` leaves that plan pending for the separate human workflow below.
+Unknown migrations, newer or checksum-divergent schema history, a stale plan, backup failure, migration failure, or integrity failure never falls back to an unsafe apply. The operation fails closed and leaves the verified backup available. It does not wait for human approval.
 
 ### Plan
 
@@ -55,9 +55,9 @@ omg backup create \
 
 OMG creates the backup through SQLite's online backup API, verifies it with `PRAGMA integrity_check`, and returns its SHA-256 checksum. The plan becomes stale if schema state changes before apply.
 
-### Separate human approval
+### Optional manual compatibility path
 
-Create an approval JSON file only after reviewing the plan and backup. It must bind all of these fields exactly:
+Normal initialization and upgrades use `preflight` and need no approval file. The legacy manual `migration apply` command remains available for controlled compatibility testing and recovery. When that command is chosen, its approval JSON must bind all of these fields exactly:
 
 - `approval_id`: a non-empty, unique, one-time identifier generated locally;
 - `approved_by`: non-empty human identity;
@@ -80,7 +80,7 @@ omg migration apply \
   --json
 ```
 
-Apply fails closed when the plan is stale, approval does not match, is expired, or was already consumed, backup checksum differs, backup integrity fails, schema history is non-contiguous/newer/inconsistent, or migration execution fails. Migrations, the one-use approval record, secret-free audit fact, and command receipt are committed in one transaction. OMG retains backups after success and failure.
+Manual apply fails closed when the plan is stale, approval does not match, is expired, or was already consumed, backup checksum differs, backup integrity fails, schema history is non-contiguous/newer/inconsistent, or migration execution fails. Migrations, the one-use approval record, secret-free audit fact, and command receipt are committed in one transaction. OMG retains backups after success and failure.
 
 ### Verify
 
@@ -104,7 +104,7 @@ Recovery rules:
 5. Prepare a restore plan. Restore mutation requires a separate explicit human approval; v0.1 does not perform automatic restore.
 6. After an approved external recovery, run `doctor --integrity`, `preflight`, and a JSON board query before resuming writers.
 
-If an interrupted migration left schema metadata inconsistent, do not retry with a modified approval file. Preserve the database and verified backup, regenerate `migration plan`, and investigate the original error.
+If an interrupted migration left schema metadata inconsistent, preserve the database and verified backup, regenerate `migration plan`, and investigate the original error. Do not bypass the automatic checks or repeatedly edit a manual approval file.
 
 ## Boards and exports
 
@@ -197,7 +197,7 @@ The SQLite store remains the operator's durable audit record. Define local reten
 | Symptom | Action |
 |---|---|
 | Exit 4 and `uninitialized` | Run `omg init` for the intended project or select the correct `--store`/`--workspace`. |
-| `schema migration is required` | Run plan → backup → separate approval → apply; never bypass the gate. |
+| `schema migration is required` | Run `preflight` again with the current binary; if it remains pending, inspect plan, backup, checksum, migration, and integrity errors. Do not bypass the automatic gate. |
 | Exit 5 conflict | Re-read canonical state. Regenerate stale plans; inspect active reservations/watch ownership; use a new idempotency key only for a genuinely new command. |
 | Exit 6 retryable failure | Retry after bounded backoff. If persistent, check competing local writers and filesystem health. |
 | Integrity false or newer/checksum-mismatched schema | Stop writers, preserve store and backups, and investigate. Do not apply or restore automatically. |

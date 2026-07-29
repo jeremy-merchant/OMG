@@ -185,11 +185,10 @@ func (s *Service) Apply(ctx context.Context, selection Selection, plan Plan, fil
 	return domain.DomainError{}
 }
 
-// AutoMigrate applies only an incremental plan whose every pending migration
-// is explicitly declared safe by the compiled adapter. It creates and verifies
-// an exact pre-migration backup, records the machine policy authorization, and
-// verifies integrity before returning. Fresh initialization and mixed/risky
-// plans remain human-gated.
+// AutoMigrate applies every exact pending plan compiled into this OMG binary.
+// It creates and verifies an exact pre-migration backup, records machine-policy
+// authorization, applies atomically, and verifies integrity before returning.
+// Unknown, stale, checksum-mismatched, or failed plans still fail closed.
 func (s *Service) AutoMigrate(ctx context.Context, selection Selection) (AutomaticMigration, domain.DomainError) {
 	if s == nil || s.resolver == nil || s.open == nil {
 		return AutomaticMigration{}, unavailable()
@@ -218,9 +217,9 @@ func (s *Service) AutoMigrate(ctx context.Context, selection Selection) (Automat
 	result.BackupChecksum = backup.Checksum
 	now := time.Now().UTC()
 	approval := ports.MigrationApproval{
-		ApprovalID:        "auto-safe-" + plan.ID,
-		ApprovedBy:        "omg-auto-safe-policy-v1",
-		EvidenceReference: "all-pending-migrations-declared-auto-safe",
+		ApprovalID:        "auto-backup-" + plan.ID,
+		ApprovedBy:        "omg-automatic-backup-policy-v1",
+		EvidenceReference: "compiled-plan-backed-up-and-integrity-checked",
 		PlanID:            plan.ID,
 		Project:           plan.Project,
 		FromVersion:       plan.FromVersion,

@@ -241,7 +241,7 @@ CREATE TABLE migration_approvals(approval_id TEXT PRIMARY KEY, plan_id TEXT NOT 
 	service := New(Dependencies{
 		Resolver: resolverStub{resolved: ports.ResolvedStore{Path: path, Project: domain.ProjectID(project)}},
 		Open: func(ctx context.Context, path string, options ports.OpenOptions) (ports.FoundationStore, ports.OpenStatus, error) {
-			options.Migrations = []ports.Migration{{Version: 1, SQL: baseSQL}, {Version: 2, SQL: safeSQL, AutomaticSafe: true}}
+			options.Migrations = []ports.Migration{{Version: 1, SQL: baseSQL}, {Version: 2, SQL: safeSQL}}
 			return sqliteOpener(ctx, path, options)
 		},
 	})
@@ -258,11 +258,57 @@ CREATE TABLE migration_approvals(approval_id TEXT PRIMARY KEY, plan_id TEXT NOT 
 	}
 	defer db.Close()
 	var kind string
-	if err := db.QueryRow(`SELECT authorization_kind FROM migration_approvals WHERE approval_id=?`, "auto-safe-"+result.PlanID).Scan(&kind); err != nil {
+	if err := db.QueryRow(`SELECT authorization_kind FROM migration_approvals WHERE approval_id=?`, "auto-backup-"+result.PlanID).Scan(&kind); err != nil {
 		t.Fatal(err)
 	}
 	if kind != string(ports.MigrationAuthorizationAutomaticSafe) {
 		t.Fatalf("authorization kind = %q", kind)
+	}
+}
+
+func TestAutoMigrateAppliesFreshCompiledPlanWithoutHumanApproval(t *testing.T) {
+	const project = "automatic-fresh"
+	const foundationSQL = `CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, checksum TEXT NOT NULL, applied_at TEXT NOT NULL);
+CREATE TABLE projects(id TEXT PRIMARY KEY, created_at TEXT NOT NULL);
+CREATE TABLE command_receipts(id TEXT PRIMARY KEY, project_id TEXT NOT NULL, idempotency_key TEXT NOT NULL, operation TEXT NOT NULL, outcome TEXT NOT NULL, result_json BLOB NOT NULL, created_at TEXT NOT NULL, UNIQUE(project_id,idempotency_key));
+CREATE TABLE audit_events(sequence_no INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE, project_id TEXT NOT NULL, receipt_id TEXT, event_type TEXT NOT NULL, payload_json BLOB NOT NULL, occurred_at TEXT NOT NULL);
+CREATE TABLE migration_approvals(approval_id TEXT PRIMARY KEY, plan_id TEXT NOT NULL, project_id TEXT NOT NULL, approved_by TEXT NOT NULL, evidence_reference TEXT NOT NULL, from_version INTEGER NOT NULL, to_version INTEGER NOT NULL, checksums_json BLOB NOT NULL, backup_location TEXT NOT NULL, backup_checksum TEXT NOT NULL, command TEXT NOT NULL, approved_at TEXT NOT NULL, expires_at TEXT NOT NULL, consumed_at TEXT NOT NULL, authorization_kind TEXT NOT NULL DEFAULT 'human');`
+	path := filepath.Join(t.TempDir(), "state.db")
+	ctx := context.Background()
+	migrations := []ports.Migration{{Version: 1, SQL: foundationSQL}}
+	store, _, err := sqlite.Open(ctx, path, ports.OpenOptions{Migrations: migrations})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	service := New(Dependencies{
+		Resolver: resolverStub{resolved: ports.ResolvedStore{Path: path, Project: domain.ProjectID(project)}},
+		Open: func(ctx context.Context, path string, options ports.OpenOptions) (ports.FoundationStore, ports.OpenStatus, error) {
+			options.Migrations = migrations
+			return sqliteOpener(ctx, path, options)
+		},
+	})
+	result, autoErr := service.AutoMigrate(ctx, Selection{})
+	if autoErr.Code != "" {
+		t.Fatal(autoErr)
+	}
+	if !result.Eligible || !result.Applied || !result.Integrity || result.FromVersion != 0 || result.ToVersion != 1 || result.BackupChecksum == "" {
+		t.Fatalf("fresh automatic result = %#v", result)
+	}
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var kind string
+	if err := db.QueryRow(`SELECT authorization_kind FROM migration_approvals WHERE approval_id=?`, "auto-backup-"+result.PlanID).Scan(&kind); err != nil {
+		t.Fatal(err)
+	}
+	if kind != string(ports.MigrationAuthorizationAutomaticSafe) {
+		t.Fatalf("fresh authorization kind = %q", kind)
 	}
 }
 

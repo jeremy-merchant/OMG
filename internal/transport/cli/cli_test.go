@@ -650,11 +650,14 @@ func TestInitPreservesExistingConfigAndNeverMigrates(t *testing.T) {
 		t.Fatalf("preflight exit=%d: %s", exit, output)
 	}
 	var status struct {
-		Pending int `json:"pending_migrations"`
+		Pending   int `json:"pending_migrations"`
+		Automatic *struct {
+			Applied bool `json:"applied"`
+		} `json:"automatic_migration"`
 	}
 	decodeData(t, output, &status)
-	if status.Pending == 0 {
-		t.Fatal("init applied migrations")
+	if status.Pending != 0 || status.Automatic == nil || !status.Automatic.Applied {
+		t.Fatalf("fresh preflight did not auto-migrate: %+v", status)
 	}
 	gitRoot := t.TempDir()
 	if command := exec.Command("git", "init", gitRoot); command.Run() != nil {
@@ -667,9 +670,15 @@ func TestInitPreservesExistingConfigAndNeverMigrates(t *testing.T) {
 	if exit != ExitSuccess {
 		t.Fatalf("git preflight=%d: %s", exit, output)
 	}
+	status = struct {
+		Pending   int `json:"pending_migrations"`
+		Automatic *struct {
+			Applied bool `json:"applied"`
+		} `json:"automatic_migration"`
+	}{}
 	decodeData(t, output, &status)
-	if status.Pending == 0 {
-		t.Fatal("git init applied migrations")
+	if status.Pending != 0 || status.Automatic == nil || !status.Automatic.Applied {
+		t.Fatalf("fresh Git preflight did not auto-migrate: %+v", status)
 	}
 }
 func TestFoundationMigrationFlowAndApprovalGuards(t *testing.T) {
@@ -722,9 +731,9 @@ func TestFoundationMigrationFlowAndApprovalGuards(t *testing.T) {
 	if exit != ExitUsage {
 		t.Fatalf("mismatched approval exit=%d", exit)
 	}
-	exit, output = run(t, "preflight", "--project", root, "--json")
+	exit, output = run(t, "doctor", "--project", root, "--json")
 	if exit != ExitSuccess {
-		t.Fatalf("preflight: %s", output)
+		t.Fatalf("doctor after invalid approval: %s", output)
 	}
 	var before struct {
 		Pending int `json:"pending_migrations"`

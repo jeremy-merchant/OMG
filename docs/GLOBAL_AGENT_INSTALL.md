@@ -71,7 +71,7 @@ The global harness does not create one shared cloud account or central database.
 
 1. run `omg preflight --project <root> --json` before mutation;
 2. run `omg init --project <root> --json` only when the repository is uninitialized;
-3. allow `preflight` to apply only an already-initialized, all-`auto-safe` incremental plan through verified backup and integrity checks; stop if any migration remains pending until the explicit plan, backup, and approval contract is satisfied;
+3. let `preflight` apply every exact migration compiled into the installed OMG binary through a plan-bound verified backup, atomic transaction, and integrity checks; if anything remains pending, report the migration or integrity failure instead of waiting for approval;
 4. let the controller pre-register project/session/task identity and inject the five `OMG_*` worker values;
 5. run `omg worker bootstrap` so a worker verifies that identity, claims only ready work, reads its inbox, and receives `board me` instead of `board all`;
 6. maintain progress, dependencies, messages, reservations, and safe Git observations;

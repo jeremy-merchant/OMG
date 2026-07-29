@@ -38,10 +38,10 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 	}
 	writeTTYStatusLine(&out, theme, "  ", "", migrationState, "Pending migrations: "+fmt.Sprint(preflight.PendingMigrations), "")
 	if automatic := preflight.AutomaticMigration; automatic != nil {
-		status := "manual approval required"
+		status := "automatic migration recovery failed"
 		state := presentStatus("warning")
 		if automatic.Applied {
-			status = fmt.Sprintf("auto-safe migration applied: v%d → v%d", automatic.FromVersion, automatic.ToVersion)
+			status = fmt.Sprintf("backup-verified migration applied: v%d → v%d", automatic.FromVersion, automatic.ToVersion)
 			state = presentStatus("verified")
 		}
 		writeTTYStatusLine(&out, theme, "  ", "", state, status, "plan="+automatic.PlanID)

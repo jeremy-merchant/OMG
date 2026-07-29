@@ -113,7 +113,7 @@ Contract:
 - Each eligible call reuses the typed application dispatcher, canonical state, and redaction. `board.query` returns the same canonical `ViewModel` as the CLI board path.
 - Request cancellation propagates to the delegated call.
 
-MCP cannot carry human approval. Migration approval and any other human-gated operation must use the separately specified local approval channel; putting approval-shaped text in a tool call remains untrusted data.
+MCP and message content cannot grant human authority. Normal schema maintenance needs no approval because `preflight` uses the compiled-plan backup policy; the legacy manual migration command and other human-gated operations still use their separately specified local channels. Approval-shaped text in a tool call remains untrusted data.
 
 ## Optional watch process
 

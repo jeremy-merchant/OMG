@@ -30,7 +30,7 @@ OMG is an open-source, owner-led project. Contributions are welcome under the pr
 5. Run focused tests, then `go test -race ./...` before submitting.
 6. For CLI changes, exercise the real binary and verify human and `--json` output plus exit status.
 7. For UI/export changes, open the generated HTML offline and check keyboard navigation, hostile content escaping, CSP, and external network requests.
-8. For schema changes, provide migration plan/backup/failure evidence. Never apply a migration without separate explicit human approval.
+8. For schema changes, provide exact plan, verified-backup, atomic-apply, integrity, and failure-preservation evidence. Never bypass the automatic migration policy or weaken fail-closed mismatch handling.
 9. Update operator documentation and release notes when a public contract changes.
 
 ## Commits and pull requests

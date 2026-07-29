@@ -25,8 +25,8 @@ const (
 	busyTimeoutMS                    = 5000
 	migrationApplyCommand            = "omg migration apply"
 	automaticMigrationApplyCommand   = "omg preflight auto-migrate"
-	automaticMigrationPolicyActor    = "omg-auto-safe-policy-v1"
-	automaticMigrationPolicyEvidence = "all-pending-migrations-declared-auto-safe"
+	automaticMigrationPolicyActor    = "omg-automatic-backup-policy-v1"
+	automaticMigrationPolicyEvidence = "compiled-plan-backed-up-and-integrity-checked"
 )
 
 var (
@@ -406,13 +406,10 @@ func (s *SQLiteStore) PlanMigrations(ctx context.Context, project string) (Migra
 	}
 	checksums := make([]string, len(pending))
 	to := from
-	automaticEligible := from > 0 && len(pending) > 0
+	automaticEligible := len(pending) > 0
 	for i, migration := range pending {
 		checksums[i] = migration.Checksum
 		to = migration.Version
-		if !migration.AutomaticSafe {
-			automaticEligible = false
-		}
 	}
 	backup := filepath.Join(filepath.Dir(s.path), "backups", "migration-"+planHash(project, from, to, checksums)+".db")
 	return MigrationPlan{ID: planHash(project, from, to, checksums), Project: project, FromVersion: from, ToVersion: to, Checksums: checksums, BackupLocation: backup, AutomaticEligible: automaticEligible}, nil
@@ -526,7 +523,7 @@ func approvalMatches(plan MigrationPlan, a Approval) bool {
 	}
 	authorized := kind == ports.MigrationAuthorizationHuman && a.Command == migrationApplyCommand
 	if kind == ports.MigrationAuthorizationAutomaticSafe {
-		authorized = plan.AutomaticEligible && plan.FromVersion > 0 && a.Command == automaticMigrationApplyCommand && a.ApprovedBy == automaticMigrationPolicyActor && a.EvidenceReference == automaticMigrationPolicyEvidence
+		authorized = plan.AutomaticEligible && len(plan.Checksums) > 0 && a.Command == automaticMigrationApplyCommand && a.ApprovedBy == automaticMigrationPolicyActor && a.EvidenceReference == automaticMigrationPolicyEvidence
 	}
 	return authorized && a.PlanID == plan.ID && a.Project == plan.Project && a.FromVersion == plan.FromVersion && a.ToVersion == plan.ToVersion && strings.Join(a.Checksums, ",") == strings.Join(plan.Checksums, ",") && a.BackupLocation == plan.BackupLocation && a.BackupChecksum != ""
 }

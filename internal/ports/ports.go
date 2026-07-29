@@ -207,8 +207,8 @@ const (
 	MigrationAuthorizationAutomaticSafe MigrationAuthorizationKind = "automatic_safe_policy"
 )
 
-// MigrationApproval binds a one-time human approval to an exact backup and
-// plan. Evidence is intentionally retained only as a reference.
+// MigrationApproval binds one exact migration authorization to an exact backup
+// and plan. Human and machine-policy evidence are retained as references.
 type MigrationApproval struct {
 	ApprovalID        string
 	ApprovedBy        string

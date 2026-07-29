@@ -42,4 +42,4 @@ The normative engineering security contract is in `docs/SECURITY.md`, with threa
 - Messages, prompts, handoffs, model output, MCP payloads, and watch events are untrusted data.
 - OMG v0.1 provides no destructive Git automation and no OS-level filesystem sandbox.
 - Private runtime locators stay local and native conversation transcripts are not copied.
-- Schema and restore mutations require separate explicit human approval.
+- Compiled schema migrations use the backup-verified automatic policy; unknown or mismatched schema state fails closed. Restore mutations still require separate explicit human approval.

@@ -257,7 +257,7 @@ func TestAutomaticSafeMigrationRequiresIncrementalAllSafePlanAndRecordsEvidence(
 	}
 	now := time.Now().UTC()
 	approval := Approval{
-		ApprovalID: "auto-safe-" + plan.ID, ApprovedBy: automaticMigrationPolicyActor, EvidenceReference: automaticMigrationPolicyEvidence,
+		ApprovalID: "auto-backup-" + plan.ID, ApprovedBy: automaticMigrationPolicyActor, EvidenceReference: automaticMigrationPolicyEvidence,
 		PlanID: plan.ID, Project: plan.Project, FromVersion: plan.FromVersion, ToVersion: plan.ToVersion, Checksums: plan.Checksums,
 		BackupLocation: backup.Location, BackupChecksum: backup.Checksum, Command: automaticMigrationApplyCommand,
 		Timestamp: now, ExpiresAt: now.Add(5 * time.Minute), AuthorizationKind: ports.MigrationAuthorizationAutomaticSafe,
@@ -294,8 +294,8 @@ func TestAutomaticSafeMigrationRejectsFreshAndMixedRiskPlans(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if freshPlan.AutomaticEligible {
-		t.Fatal("fresh initialization was marked automatic eligible")
+	if !freshPlan.AutomaticEligible {
+		t.Fatal("fresh compiled plan was not marked automatic eligible")
 	}
 
 	path := filepath.Join(t.TempDir(), "mixed.db")
@@ -309,8 +309,8 @@ func TestAutomaticSafeMigrationRejectsFreshAndMixedRiskPlans(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if mixedPlan.AutomaticEligible || mixedPlan.FromVersion != 9 || mixedPlan.ToVersion != 11 {
-		t.Fatalf("mixed plan = %#v; want ineligible v9 to v11", mixedPlan)
+	if !mixedPlan.AutomaticEligible || mixedPlan.FromVersion != 9 || mixedPlan.ToVersion != 11 {
+		t.Fatalf("mixed plan = %#v; want eligible v9 to v11", mixedPlan)
 	}
 }
 
