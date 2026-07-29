@@ -213,81 +213,88 @@ func (s *Service) TransitionAndReconcile(ctx context.Context, key domain.Idempot
 		return out, invalid()
 	}
 	_, result, e := s.store.Write(ctx, key, "task.transition", func(r ports.Repositories) (domain.Result, error) {
-		if actorSession != "" {
-			actor, ok, e := r.Coordination().GetSession(ctx, lineage.ID(actorSession))
-			if e != nil {
-				return domain.Result{}, e
-			}
-			if !ok || string(actor.ProjectID) != project {
-				return domain.Result{}, missing()
-			}
-			if (to == lineage.TaskWorkComplete || to == lineage.TaskVerifiedDone) && (actor.Liveness == lineage.Stale || actor.Liveness == lineage.Interrupted) {
-				return domain.Result{}, domain.NewError(domain.CodeConflict, "completion actor is not live", false)
-			}
-		}
-		pre, ok, e := r.Coordination().GetTask(ctx, lineage.ID(task))
-		if e != nil {
-			return domain.Result{}, e
-		}
-		if !ok || string(pre.ProjectID) != project {
-			return domain.Result{}, missing()
-		}
-		pre, e = r.Coordination().TransitionTask(ctx, pre.ID, to, evidence, s.now().UTC())
-		if e != nil {
-			return domain.Result{}, e
-		}
-		edges, e := r.Coordination().ListDependencies(ctx, project)
-		if e != nil {
-			return domain.Result{}, e
-		}
-		for _, d := range edges {
-			if d.PrerequisiteTaskID != task {
-				continue
-			}
-			f := coord.DecideSatisfaction(d, pre.State)
-			if !f.Satisfied {
-				continue
-			}
-			now := s.now().UTC()
-			sender := actorSession
-			if sender == "" {
-				sender = string(pre.CreatedBySessionID)
-			}
-			msg := coord.MailMessage{ID: f.NotificationKey, Type: coord.MessageDependency, ThreadID: "dependency:" + d.ID, SenderSessionID: sender, Recipients: []coord.RecipientTarget{{TaskID: d.DependentTaskID}}, Subject: "dependency satisfied", Body: "dependency satisfied", RelatedTaskID: d.DependentTaskID, CreatedAt: now}
-			won, e := r.Coordination().MarkDependencySatisfied(ctx, d.ID, now, nil, msg.ID)
-			if e != nil {
-				return domain.Result{}, e
-			}
-			if !won {
-				continue
-			}
-			if e = r.Coordination().CreateMessage(ctx, project, msg); e != nil {
-				return domain.Result{}, e
-			}
-			ready, e := r.Coordination().HardDependenciesSatisfied(ctx, d.DependentTaskID)
-			if e != nil {
-				return domain.Result{}, e
-			}
-			dependent, ok, e := r.Coordination().GetTask(ctx, lineage.ID(d.DependentTaskID))
-			if e != nil {
-				return domain.Result{}, e
-			}
-			if !ok {
-				return domain.Result{}, missing()
-			}
-			if ready && (dependent.State == lineage.TaskBlocked || dependent.State == lineage.TaskWaiting) {
-				if _, e = r.Coordination().TransitionTask(ctx, dependent.ID, resumeState(dependent), nil, now); e != nil {
-					return domain.Result{}, e
-				}
-			}
-		}
-		out = pre
-		return domain.Result{ID: domain.ResultID(pre.ID), Outcome: domain.OutcomeOK}, nil
+		var err error
+		out, err = TransitionAndReconcileRepositories(ctx, r, s.now().UTC(), project, task, actorSession, to, evidence)
+		return domain.Result{ID: domain.ResultID(out.ID), Outcome: domain.OutcomeOK}, err
 	})
 	if e != nil {
 		return out, mapErr(e)
 	}
 	return s.task(ctx, lineage.ID(result.ID))
+}
+
+// TransitionAndReconcileRepositories performs the task transition inside an
+// existing store transaction. It is shared by compound lifecycle operations so
+// dependency notifications cannot be committed separately from completion.
+func TransitionAndReconcileRepositories(ctx context.Context, r ports.Repositories, now time.Time, project, task, actorSession string, to lineage.TaskState, evidence []byte) (lineage.Task, error) {
+	if actorSession != "" {
+		actor, ok, err := r.Coordination().GetSession(ctx, lineage.ID(actorSession))
+		if err != nil {
+			return lineage.Task{}, err
+		}
+		if !ok || string(actor.ProjectID) != project {
+			return lineage.Task{}, missing()
+		}
+		if (to == lineage.TaskWorkComplete || to == lineage.TaskVerifiedDone) && (actor.Liveness == lineage.Stale || actor.Liveness == lineage.Interrupted) {
+			return lineage.Task{}, domain.NewError(domain.CodeConflict, "completion actor is not live", false)
+		}
+	}
+	pre, ok, err := r.Coordination().GetTask(ctx, lineage.ID(task))
+	if err != nil {
+		return lineage.Task{}, err
+	}
+	if !ok || string(pre.ProjectID) != project {
+		return lineage.Task{}, missing()
+	}
+	pre, err = r.Coordination().TransitionTask(ctx, pre.ID, to, evidence, now)
+	if err != nil {
+		return lineage.Task{}, err
+	}
+	edges, err := r.Coordination().ListDependencies(ctx, project)
+	if err != nil {
+		return lineage.Task{}, err
+	}
+	for _, dependency := range edges {
+		if dependency.PrerequisiteTaskID != task {
+			continue
+		}
+		fact := coord.DecideSatisfaction(dependency, pre.State)
+		if !fact.Satisfied {
+			continue
+		}
+		sender := actorSession
+		if sender == "" {
+			sender = string(pre.CreatedBySessionID)
+		}
+		message := coord.MailMessage{ID: fact.NotificationKey, Type: coord.MessageDependency, ThreadID: "dependency:" + dependency.ID, SenderSessionID: sender, Recipients: []coord.RecipientTarget{{TaskID: dependency.DependentTaskID}}, Subject: "dependency satisfied", Body: "dependency satisfied", RelatedTaskID: dependency.DependentTaskID, CreatedAt: now}
+		won, err := r.Coordination().MarkDependencySatisfied(ctx, dependency.ID, now, nil, message.ID)
+		if err != nil {
+			return lineage.Task{}, err
+		}
+		if !won {
+			continue
+		}
+		if err = r.Coordination().CreateMessage(ctx, project, message); err != nil {
+			return lineage.Task{}, err
+		}
+		ready, err := r.Coordination().HardDependenciesSatisfied(ctx, dependency.DependentTaskID)
+		if err != nil {
+			return lineage.Task{}, err
+		}
+		dependent, ok, err := r.Coordination().GetTask(ctx, lineage.ID(dependency.DependentTaskID))
+		if err != nil {
+			return lineage.Task{}, err
+		}
+		if !ok {
+			return lineage.Task{}, missing()
+		}
+		if ready && (dependent.State == lineage.TaskBlocked || dependent.State == lineage.TaskWaiting) {
+			if _, err = r.Coordination().TransitionTask(ctx, dependent.ID, resumeState(dependent), nil, now); err != nil {
+				return lineage.Task{}, err
+			}
+		}
+	}
+	return pre, nil
 }
 
 func resumeState(task lineage.Task) lineage.TaskState {

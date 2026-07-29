@@ -20,6 +20,7 @@ import (
 	"github.com/jeremy-merchant/OMG/internal/agentinstall"
 	"github.com/jeremy-merchant/OMG/internal/app"
 	"github.com/jeremy-merchant/OMG/internal/app/foundation"
+	appLifecycle "github.com/jeremy-merchant/OMG/internal/app/lifecycle"
 	"github.com/jeremy-merchant/OMG/internal/app/query"
 	"github.com/jeremy-merchant/OMG/internal/domain"
 )
@@ -312,7 +313,7 @@ func Decode(args []string) (Request, domain.DomainError) {
 
 func commandTakesSubcommand(name string) bool {
 	switch name {
-	case "migration", "backup", "release", "agent", "worker", "board", "export", "integration",
+	case "migration", "backup", "release", "agent", "worker", "mode", "board", "export", "integration",
 		"shell-init", "completion", "watch", "human", "session", "delegate", "checkpoint",
 		"task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt", "example", "mcp":
 		return true
@@ -428,7 +429,7 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 			return writeErrorWithContext(output, false, domain.NewError(domain.CodeCommandNotWired, message, false), context)
 		}
 	}
-	if (request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin) && !applicationCommandName(request.Name) &&
+	if (request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin) && !applicationCommandName(request.Name) && request.Name != "mode" &&
 		!(request.Name == "backup" && request.Subcommand == "restore") {
 		return writeError(output, request.JSON, invalid("payload transport is invalid for this command"))
 	}
@@ -438,6 +439,8 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		return runAgent(output, request)
 	case "worker":
 		return runWorkerBootstrap(ctx, output, request, application)
+	case "mode":
+		return runLifecycleMode(output, stdin, request)
 	case "version":
 		if request.Subcommand != "" {
 			break
@@ -776,6 +779,49 @@ func applicationCommandName(name string) bool {
 	}
 }
 
+func runLifecycleMode(output io.Writer, input io.Reader, request Request) int {
+	if request.Integrity || request.Status || request.Stdio || request.Verbose || request.runtimeProvided || request.Runtime != "" ||
+		len(request.Command) != 0 || request.outputProvided || request.Output != "" || request.planFileProvided || request.PlanFile != "" ||
+		request.approvalFileProvided || request.ApprovalFile != "" || request.idempotencyKeyProvided || request.IdempotencyKey != "" ||
+		request.formatProvided || request.Format != "" || request.sessionProvided || request.SessionID != "" || request.taskProvided || request.TaskID != "" {
+		return writeInvalidRequest(output, request, "mode request is invalid")
+	}
+
+	var (
+		contract appLifecycle.Contract
+		err      error
+	)
+	switch request.Subcommand {
+	case "observe", "work-lite", "full":
+		if request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin {
+			return writeInvalidRequest(output, request, "fixed mode request does not accept a payload")
+		}
+		contract, err = appLifecycle.ContractFor(appLifecycle.Mode(strings.ToUpper(strings.ReplaceAll(request.Subcommand, "-", "_"))))
+	case "classify":
+		payload, loadErr := loadApplicationPayload(request, input)
+		if loadErr != nil {
+			return writeErrorWithContext(output, request.JSON, invalid("mode payload transport is invalid"), terminalErrorContext{Next: "omg mode classify --help"})
+		}
+		var modeInput appLifecycle.Input
+		if !decodePayload(payload, &modeInput) {
+			return writeErrorWithContext(output, request.JSON, invalid("mode payload is invalid"), terminalErrorContext{Next: "omg mode classify --help"})
+		}
+		contract, err = appLifecycle.Classify(modeInput)
+	default:
+		return writeInvalidRequest(output, request, "mode request is invalid")
+	}
+	if err != nil {
+		return writeError(output, request.JSON, invalid(err.Error()))
+	}
+	if request.JSON {
+		return writeSuccess(output, true, contract)
+	}
+	_, _ = fmt.Fprintf(output, "OMG MODE %s\nverification=%s session=%t task=%t run=%t progress=%t reservation=%t handoff=%t independent_verification=%t auto_archive=%t\n",
+		contract.Mode, contract.VerificationLevel, contract.SessionRequired, contract.TaskRequired, contract.RunRequired,
+		contract.ProgressRequired, contract.ReservationRequired, contract.HandoffRequired, contract.IndependentVerificationRequired, contract.AutoArchive)
+	return ExitSuccess
+}
+
 func hasCanaryOptions(request Request) bool {
 	return request.handoffProvided || request.canaryProvided || request.verificationCommandProvided || request.executionKindProvided || request.environmentFingerprintProvided || request.evidencePathProvided || request.exitCodeProvided || request.passedCountProvided || request.failedCountProvided || request.skippedCountProvided
 }
@@ -799,8 +845,17 @@ func runBoard(output io.Writer, request Request, application app.CLIService, sel
 	if !validBoardRequest(request) {
 		return writeInvalidRequest(output, request, "board request is invalid")
 	}
-	if request.Subcommand == string(query.BoardSummary) {
+	if request.Subcommand == string(query.BoardSummary) || request.Subcommand == "backlog" {
 		return runOperatorSummary(ctx, output, request, application, selection)
+	}
+	if request.Subcommand == "hygiene" {
+		return runBoardHygiene(ctx, output, request, application, selection)
+	}
+	if request.Subcommand == "actionable" {
+		return runBoardActionable(ctx, output, request, application, selection)
+	}
+	if request.Subcommand == "history" {
+		request.Subcommand = string(query.BoardAll)
 	}
 	format, _ := boardFormat(request.Format)
 	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{
@@ -837,6 +892,10 @@ func validBoardRequest(request Request) bool {
 		request.PayloadProvided || request.Payload != "" || request.PayloadFileProvided ||
 		request.PayloadFile != "" || request.PayloadStdin {
 		return false
+	}
+	switch request.Subcommand {
+	case "actionable", "backlog", "hygiene", "history":
+		return !request.sessionProvided && !request.taskProvided && !request.formatProvided
 	}
 	switch query.BoardMode(request.Subcommand) {
 	case query.BoardMe:
@@ -889,6 +948,126 @@ func runOperatorSummary(ctx context.Context, output io.Writer, request Request, 
 	return ExitSuccess
 }
 
+type actionableBoardView struct {
+	GeneratedAt          time.Time                        `json:"generated_at"`
+	SnapshotCursor       string                           `json:"snapshot_cursor"`
+	Totals               actionableBoardCounts            `json:"totals"`
+	Truncated            map[string]int                   `json:"truncated"`
+	Tasks                []query.TaskView                 `json:"tasks"`
+	Handoffs             []query.IntegrationQueueItemView `json:"handoffs"`
+	UnreadInbox          []query.InboxItemView            `json:"unread_inbox"`
+	ConflictingResources []query.ReservationView          `json:"conflicting_resources"`
+	StaleSessions        []query.IdentityView             `json:"stale_sessions"`
+}
+
+type actionableBoardCounts struct {
+	Tasks         int `json:"tasks"`
+	Handoffs      int `json:"handoffs"`
+	UnreadInbox   int `json:"unread_inbox"`
+	Conflicts     int `json:"conflicts"`
+	StaleSessions int `json:"stale_sessions"`
+}
+
+const actionableItemLimit = 10
+
+func runBoardActionable(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
+	snapshot, err := loadBoardSnapshot(ctx, application, selection)
+	if err.Code != "" {
+		return writeError(output, request.JSON, err)
+	}
+	view := actionableBoardView{
+		GeneratedAt: snapshot.GeneratedAt, SnapshotCursor: snapshot.SnapshotCursor, Truncated: map[string]int{},
+		Tasks: []query.TaskView{}, Handoffs: []query.IntegrationQueueItemView{}, UnreadInbox: []query.InboxItemView{},
+		ConflictingResources: []query.ReservationView{}, StaleSessions: []query.IdentityView{},
+	}
+	for _, task := range snapshot.Tasks {
+		switch task.State {
+		case "WORK_COMPLETE", "BLOCKED", "FAILED":
+			view.Totals.Tasks++
+			if len(view.Tasks) < actionableItemLimit {
+				view.Tasks = append(view.Tasks, task)
+			}
+		}
+	}
+	for _, handoff := range query.IntegrationQueue(snapshot) {
+		view.Totals.Handoffs++
+		if len(view.Handoffs) < actionableItemLimit {
+			view.Handoffs = append(view.Handoffs, handoff)
+		}
+	}
+	for _, item := range snapshot.Inbox {
+		if item.ReadAt == nil || item.Acknowledgement == "pending" {
+			view.Totals.UnreadInbox++
+			if len(view.UnreadInbox) < actionableItemLimit {
+				view.UnreadInbox = append(view.UnreadInbox, item)
+			}
+		}
+	}
+	for _, item := range snapshot.Reservations {
+		if len(item.ConflictIDs) != 0 {
+			view.Totals.Conflicts++
+			if len(view.ConflictingResources) < actionableItemLimit {
+				view.ConflictingResources = append(view.ConflictingResources, item)
+			}
+		}
+	}
+	for _, session := range snapshot.Sessions {
+		if session.EndedAt == nil && (session.Liveness == query.SessionLivenessStale || session.InterruptedAt != nil) {
+			view.Totals.StaleSessions++
+			if len(view.StaleSessions) < actionableItemLimit {
+				view.StaleSessions = append(view.StaleSessions, session)
+			}
+		}
+	}
+	view.Truncated["tasks"] = view.Totals.Tasks - len(view.Tasks)
+	view.Truncated["handoffs"] = view.Totals.Handoffs - len(view.Handoffs)
+	view.Truncated["unread_inbox"] = view.Totals.UnreadInbox - len(view.UnreadInbox)
+	view.Truncated["conflicts"] = view.Totals.Conflicts - len(view.ConflictingResources)
+	view.Truncated["stale_sessions"] = view.Totals.StaleSessions - len(view.StaleSessions)
+	if request.JSON {
+		return writeSuccess(output, true, view)
+	}
+	_, _ = fmt.Fprintf(output, "OMG ACTIONABLE\ntasks=%d handoffs=%d inbox=%d conflicts=%d stale_sessions=%d\n",
+		view.Totals.Tasks, view.Totals.Handoffs, view.Totals.UnreadInbox, view.Totals.Conflicts, view.Totals.StaleSessions)
+	return ExitSuccess
+}
+
+func runBoardHygiene(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
+	snapshot, err := loadBoardSnapshot(ctx, application, selection)
+	if err.Code != "" {
+		return writeError(output, request.JSON, err)
+	}
+	view := query.ClassifySessions(snapshot)
+	truncated := 0
+	if len(view.Sessions) > actionableItemLimit {
+		truncated = len(view.Sessions) - actionableItemLimit
+		view.Sessions = view.Sessions[:actionableItemLimit]
+	}
+	if request.JSON {
+		return writeSuccess(output, true, struct {
+			query.StaleView
+			Truncated int `json:"truncated"`
+		}{StaleView: view, Truncated: truncated})
+	}
+	exit := renderSessionClassifications(output, false, view, "OMG HYGIENE")
+	if truncated != 0 {
+		_, _ = fmt.Fprintf(output, "... %d additional session classifications; use omg stale for the complete diagnostic list\n", truncated)
+	}
+	return exit
+}
+
+func loadBoardSnapshot(ctx context.Context, application app.CLIService, selection foundation.Selection) (query.BoardSnapshot, domain.DomainError) {
+	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
+	if err.Code != "" {
+		return query.BoardSnapshot{}, err
+	}
+	var snapshot query.BoardSnapshot
+	if decodeErr := json.Unmarshal(model.Data(), &snapshot); decodeErr != nil {
+		return query.BoardSnapshot{}, domain.NewError(domain.CodeInternal, "unable to decode board snapshot", false)
+	}
+	return snapshot, domain.DomainError{}
+}
+
 func runStaleSessions(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
 	if !validStaleRequest(request) {
 		return writeInvalidRequest(output, request, "stale request is invalid")
@@ -901,11 +1080,14 @@ func runStaleSessions(ctx context.Context, output io.Writer, request Request, ap
 	if decodeErr := json.Unmarshal(model.Data(), &snapshot); decodeErr != nil {
 		return writeError(output, request.JSON, domain.NewError(domain.CodeInternal, "unable to decode session classifications", false))
 	}
-	view := query.ClassifySessions(snapshot)
-	if request.JSON {
+	return renderSessionClassifications(output, request.JSON, query.ClassifySessions(snapshot), "OMG STALE")
+}
+
+func renderSessionClassifications(output io.Writer, jsonOutput bool, view query.StaleView, title string) int {
+	if jsonOutput {
 		return writeSuccess(output, true, view)
 	}
-	_, _ = fmt.Fprintf(output, "OMG STALE\nthresholds idle=%s stale=%s\nalive=%d idle=%d stale=%d runtime_unobservable=%d finished_unclosed=%d\n",
+	_, _ = fmt.Fprintf(output, "%s\nthresholds idle=%s stale=%s\nalive=%d idle=%d stale=%d runtime_unobservable=%d finished_unclosed=%d\n", title,
 		time.Duration(view.IdleAfterSeconds)*time.Second,
 		time.Duration(view.StaleAfterSeconds)*time.Second,
 		view.Counts.Alive,

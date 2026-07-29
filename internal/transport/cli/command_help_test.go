@@ -12,7 +12,7 @@ import (
 
 func TestCommandHelpCatalogIsUniqueAndComplete(t *testing.T) {
 	wantCommands := []string{
-		"init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker",
+		"init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker", "mode",
 		"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
 		"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 	}
@@ -192,14 +192,14 @@ func TestGlobalHelpIsWorkflowFirstAndCompact(t *testing.T) {
 		t.Fatalf("global help exit=%d: %s", exit, output)
 	}
 	for _, want := range []string{
-		"35 commands",
+		"36 commands",
 		"WORKFLOWS",
-		"First run",
+		"Choose scope",
 		"Start work",
 		"Share state",
 		"Recover safely",
-		"omg init → omg preflight → omg board all",
-		"START + VERIFY · 11",
+		"omg mode classify",
+		"START + VERIFY · 12",
 		"COORDINATE WORK · 10",
 		"INSPECT + INTEGRATE · 14",
 		"Record or inspect done / doing / next.",

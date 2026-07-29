@@ -106,7 +106,7 @@ omg_preflight() {
     command omg preflight --project "$PWD" "$@"
 }
 omg_board() {
-    command omg board all --project "$PWD" "$@"
+    command omg board actionable --project "$PWD" "$@"
 }
 omg_checkpoint() {
     command omg checkpoint --project "$PWD" "$@"
@@ -117,7 +117,7 @@ omg_preflight() {
     command omg preflight --project "$PWD" "$@"
 }
 omg_board() {
-    command omg board all --project "$PWD" "$@"
+    command omg board actionable --project "$PWD" "$@"
 }
 omg_checkpoint() {
     command omg checkpoint --project "$PWD" "$@"
@@ -128,7 +128,7 @@ function omg_preflight
     command omg preflight --project "$PWD" $argv
 end
 function omg_board
-    command omg board all --project "$PWD" $argv
+    command omg board actionable --project "$PWD" $argv
 end
 function omg_checkpoint
     command omg checkpoint --project "$PWD" $argv
@@ -139,7 +139,7 @@ function OMG-Preflight {
     & omg preflight --project $PWD.Path @args
 }
 function OMG-Board {
-    & omg board all --project $PWD.Path @args
+    & omg board actionable --project $PWD.Path @args
 }
 function OMG-Checkpoint {
     & omg checkpoint --project $PWD.Path @args
@@ -148,7 +148,7 @@ function OMG-Checkpoint {
 }
 
 var completionCommands = []string{
-	"help", "init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker",
+	"help", "init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker", "mode",
 	"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
 	"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 }
@@ -172,6 +172,7 @@ var completionCommandDescriptions = map[string]string{
 	"version":     "Print the current build version.",
 	"agent":       "Install, inspect, diagnose, or remove global coding-agent discovery surfaces.",
 	"worker":      "Bootstrap one worker directly into its scoped task and inbox.",
+	"mode":        "Classify work into a proportional, read-only lifecycle contract.",
 	"human":       "Create or inspect canonical human identities.",
 	"session":     "Create, resume, adopt, or import agent sessions.",
 	"delegate":    "Issue, redeem, or revoke bounded delegation.",
@@ -230,17 +231,18 @@ var completionValueDescriptions = map[string]map[string]string{
 	"release":     {"status": "Inspect local publication readiness."},
 	"agent":       {"install": "Install always-on OMG skills and global instructions.", "status": "Inspect global agent discovery surfaces.", "doctor": "Diagnose discovery, permissions, and drift.", "uninstall": "Remove only OMG-managed global surfaces."},
 	"worker":      {"bootstrap": "Ensure worker identity and task ownership, then return its scoped board and inbox."},
+	"mode":        {"observe": "Use no ledger records for read-only work.", "work-lite": "Use a lightweight single-owner lifecycle.", "full": "Use the complete coordination and release lifecycle.", "classify": "Classify stable risk signals without project mutation."},
 	"human":       {"create": "Create or supersede a human identity.", "get": "Read one canonical human identity."},
 	"session":     {"create": "Create a new canonical session.", "resume": "Resume a known session with continuation metadata.", "adopt": "Adopt interrupted work without fabricating completion.", "import": "Import a normalized session record.", "archive": "Remove a finished session from active counts."},
 	"delegate":    {"issue": "Issue a short-lived project-scoped delegation.", "register": "Redeem a delegation from stdin or a private file.", "revoke": "Revoke an unconsumed delegation."},
 	"checkpoint":  {"record": "Append a canonical liveness checkpoint."},
-	"task":        {"create": "Create a task with an atomic display number.", "get": "Read one task and its canonical state.", "claim": "Claim one ready task for exactly one session.", "transition": "Apply a validated task state transition.", "run-create": "Create an execution run for a task and session.", "run-transition": "Apply a validated run state transition."},
+	"task":        {"create": "Create a task with an atomic display number.", "get": "Read one task and its canonical state.", "claim": "Claim one ready task for exactly one session.", "transition": "Apply a validated task state transition.", "run-create": "Create an execution run for a task and session.", "run-transition": "Apply a validated run state transition.", "finish-lite": "Atomically complete and archive one WORK-LITE lifecycle."},
 	"progress":    {"add": "Append a done, doing, and next update.", "history": "Read immutable progress history."},
 	"dependency":  {"add": "Add a validated dependency edge.", "list": "Read the dependency graph."},
 	"message":     {"send": "Send an inert typed coordination message.", "inbox": "Read one recipient inbox.", "thread": "Read one message thread.", "deliver": "Record message delivery.", "read": "Record message read state.", "ack": "Record explicit acknowledgement."},
 	"handoff":     {"create": "Create an immutable handoff with evidence and risk.", "show": "Read one safe handoff projection.", "history": "Read handoff history for a task.", "lifecycle": "Read append-only integration lifecycle events.", "advance": "Append a validated integration lifecycle event.", "supersede": "Replace a handoff through a superseding record.", "accept": "Accept a submitted handoff explicitly.", "reject": "Reject a submitted handoff explicitly.", "adopt": "Adopt orphaned canonical work."},
 	"reserve":     {"add": "Add an advisory path reservation.", "list": "List reservation records.", "active": "List active reservations.", "history": "Read reservation history.", "renew": "Renew a live reservation.", "release": "Release a reservation with a reason.", "override": "Record a human override without hiding conflict."},
-	"board":       {"summary": "Count states and show workflow bottlenecks.", "me": "Show one session and adjacent work.", "tree": "Show session and task lineage.", "task": "Show one task and adjacent coordination facts.", "all": "Show the complete safe operator snapshot.", "git": "Focus on Git observations and risks.", "tty": "Render terminal output.", "markdown": "Render Markdown output.", "html": "Render the self-contained operator board.", "json": "Render the canonical JSON view model."},
+	"board":       {"actionable": "Show work needing an operator decision now.", "backlog": "Show compact state counts and bottlenecks.", "hygiene": "Show stale and unclosed session cleanup risks.", "history": "Show the complete append-only audit snapshot.", "summary": "Count states and show workflow bottlenecks.", "me": "Show one session and adjacent work.", "tree": "Show session and task lineage.", "task": "Show one task and adjacent coordination facts.", "all": "Show the complete safe operator snapshot.", "git": "Focus on Git observations and risks.", "tty": "Render terminal output.", "markdown": "Render Markdown output.", "html": "Render the self-contained operator board.", "json": "Render the canonical JSON view model."},
 	"git":         {"inventory": "Record a safe Git inventory observation.", "current": "Read the current observation.", "latest": "Read the latest observation.", "history": "Read observation history.", "diff": "Compare two observations.", "cleanup-plan": "Produce a non-destructive cleanup plan.", "reconcile": "Verify source SHA/tree inclusion in an integration ref.", "adopt": "Change canonical ownership metadata only."},
 	"orphan":      {"scan": "Scan selected-repository orphan risks without mutation."},
 	"canary":      {"start": "Pin an exact integration SHA/tree.", "finish": "Record a structured canary result."},
@@ -268,17 +270,18 @@ var completionByCommand = map[string][]string{
 	"version":     {},
 	"agent":       {"install", "status", "doctor", "uninstall"},
 	"worker":      {"bootstrap"},
+	"mode":        {"observe", "work-lite", "full", "classify"},
 	"human":       {"create", "get"},
 	"session":     {"create", "resume", "adopt", "import", "archive"},
 	"delegate":    {"issue", "register", "revoke"},
 	"checkpoint":  {"record"},
-	"task":        {"create", "get", "claim", "transition", "run-create", "run-transition"},
+	"task":        {"create", "get", "claim", "transition", "run-create", "run-transition", "finish-lite"},
 	"progress":    {"add", "history"},
 	"dependency":  {"add", "list"},
 	"message":     {"send", "inbox", "thread", "deliver", "read", "ack"},
 	"handoff":     {"create", "show", "history", "lifecycle", "advance", "supersede", "accept", "reject", "adopt"},
 	"reserve":     {"add", "list", "active", "history", "renew", "release", "override"},
-	"board":       {"summary", "me", "tree", "task", "all", "git", "tty", "markdown", "html", "json"},
+	"board":       {"actionable", "backlog", "hygiene", "history", "summary", "me", "tree", "task", "all", "git", "tty", "markdown", "html", "json"},
 	"git":         {"inventory", "current", "latest", "history", "diff", "cleanup-plan", "reconcile", "adopt"},
 	"orphan":      {"scan"},
 	"canary":      {"start", "finish"},

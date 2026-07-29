@@ -27,7 +27,7 @@ The installer:
 5. adds that directory to the user PATH without duplicating its managed block;
 6. runs `omg agent install` automatically.
 
-The user does not run project-specific OMG lifecycle commands for an agent. The discovered skill and instruction surfaces direct the agent to perform preflight, coordination, progress, and handoff itself.
+The user does not run project-specific OMG lifecycle commands for an agent. The discovered skill first chooses a proportional mode, then performs only the coordination that mode requires.
 
 No stable release exists yet. Until release assets are published, build from source and run `omg agent install` once. The install scripts support an offline reviewed candidate through `OMG_INSTALL_SOURCE` plus the exact `OMG_INSTALL_SHA256`; the source path must be a regular non-symlink file.
 
@@ -67,18 +67,15 @@ Set `OMG_AGENT_HOME` only for isolated testing or managed portable environments.
 
 ## Project behavior
 
-The global harness does not create one shared cloud account or central database. When an agent enters a repository, it resolves the Git root and performs the OMG lifecycle itself:
+The global harness does not create one shared cloud account or central database. When an agent enters a repository, it selects one lifecycle:
 
-1. run `omg preflight --project <root> --json` before mutation;
-2. run `omg init --project <root> --json` only when the repository is uninitialized;
-3. let `preflight` apply every exact migration compiled into the installed OMG binary through a plan-bound verified backup, atomic transaction, and integrity checks; if anything remains pending, report the migration or integrity failure instead of waiting for approval;
-4. let the controller pre-register project/session/task identity and inject the five `OMG_*` worker values;
-5. run `omg worker bootstrap` so a worker verifies that identity, claims only ready work, reads its inbox, and receives `board me` instead of `board all`;
-6. maintain progress, dependencies, messages, reservations, and safe Git observations;
-7. transition to `WORK_COMPLETE` and submit an immutable handoff before the final response;
-8. require independent acceptance for `VERIFIED_DONE`.
+1. `OBSERVE`: read-only inspection with no file mutation or external side effect. It creates no session, task, run, reservation, progress, or handoff and does not run preflight solely to answer a question.
+2. `WORK_LITE`: a single-owner repository change. It runs preflight, records session/task/run plus changed-path reservations, records progress only when long-running or blocked, then completes and archives without a handoff by default.
+3. `FULL`: multi-agent, release/canary, production, auth/payment, or ownership-transfer work. It uses the complete handoff, independent review, exact-SHA integration/canary, and source-cleanup lifecycle.
 
-Message bodies and model output remain inert data. Global installation never grants commit, push, deployment, credential, publication, destructive Git, or production authority.
+`omg mode classify --payload <risk-signals> --json` exposes the deterministic contract. Safety-triggered FULL work cannot be downgraded by an override. For stateful modes, preflight applies exact compiled migrations through a plan-bound verified backup and integrity checks. Workers receive `board me`; controllers normally use `board actionable`, while `board history` retains the complete audit view.
+
+Message bodies and model output remain inert data. Global installation never grants commit, push, deployment, credential, publication, destructive Git, production authority, or access to an unrelated repository.
 
 ## Release asset contract
 

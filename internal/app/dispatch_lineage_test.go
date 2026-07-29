@@ -219,6 +219,69 @@ func TestDispatchLineageSessionArchiveRequiresKnownActorAndTerminalRuns(t *testi
 	}
 }
 
+func TestDispatchLineageFinishLiteAtomicallyCompletesAndArchives(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	now := time.Now().UTC()
+	seedErr := dispatcher.service.WithCurrentStore(ctx, selection, func(resolved ports.ResolvedStore, store ports.Store) error {
+		_, _, err := store.Write(ctx, "finish-lite-seed", "test.write", func(repositories ports.Repositories) (domain.Result, error) {
+			coordination := repositories.Coordination()
+			if err := coordination.CreateHuman(ctx, lineagecore.Human{ID: "lite-human", DisplayName: "Operator", Confidence: lineagecore.ConfidenceExplicit, CreatedAt: now}); err != nil {
+				return domain.Result{}, err
+			}
+			if err := coordination.CreateSession(ctx, lineagecore.AgentSession{ID: "lite-session", ProjectID: lineagecore.ID(resolved.Project), HumanID: "lite-human", Kind: lineagecore.HumanDirect, Runtime: "test", Role: "worker", Source: lineagecore.SourceHuman, SourceRef: "test", RootID: "lite-session", TaskID: "lite-task", StartedAt: now}); err != nil {
+				return domain.Result{}, err
+			}
+			task, err := coordination.CreateTask(ctx, lineagecore.Task{ID: "lite-task", ProjectID: lineagecore.ID(resolved.Project), DisplayNumber: 1, Title: "small change", State: lineagecore.TaskReady, CreatedBySessionID: "lite-session", CreatedAt: now, UpdatedAt: now})
+			if err != nil {
+				return domain.Result{}, err
+			}
+			if _, won, err := coordination.ClaimTask(ctx, task.ID, "lite-session", now); err != nil || !won {
+				return domain.Result{}, errors.New("unable to claim lite task")
+			}
+			if err := coordination.CreateRun(ctx, lineagecore.TaskRun{ID: "lite-run", TaskID: task.ID, SessionID: "lite-session", State: lineagecore.RunRunning, StartedAt: now}); err != nil {
+				return domain.Result{}, err
+			}
+			return domain.Result{ID: "finish-lite-seed", Outcome: domain.OutcomeOK}, nil
+		})
+		return err
+	})
+	if seedErr.Code != "" {
+		t.Fatal(seedErr)
+	}
+
+	request := Request{Command: "task.finish-lite", IdempotencyKey: "finish-lite-key", Payload: json.RawMessage(`{"task_id":"lite-task","run_id":"lite-run","session_id":"lite-session","actor_session_id":"lite-session","archive_event_id":"lite-archive","evidence":"targeted tests passed"}`)}
+	first, handled := dispatcher.dispatchLineage(ctx, request, selection)
+	result, ok := first.Data.(lineageFinishLiteResult)
+	if !handled || first.Error.Code != "" || !ok || result.TaskState != string(lineagecore.TaskWorkComplete) || result.RunState != string(lineagecore.RunWorkComplete) || !result.SessionArchived {
+		t.Fatalf("finish-lite outcome=%+v handled=%t result=%+v", first, handled, result)
+	}
+	replay, handled := dispatcher.dispatchLineage(ctx, request, selection)
+	if !handled || replay.Error.Code != "" || replay.Data != first.Data {
+		t.Fatalf("finish-lite replay outcome=%+v handled=%t", replay, handled)
+	}
+
+	readErr := dispatcher.service.WithCurrentStore(ctx, selection, func(_ ports.ResolvedStore, store ports.Store) error {
+		return store.Read(ctx, func(repositories ports.Repositories) error {
+			task, found, err := repositories.Coordination().GetTask(ctx, "lite-task")
+			if err != nil || !found || task.State != lineagecore.TaskWorkComplete {
+				t.Fatalf("lite task=%+v found=%t err=%v", task, found, err)
+			}
+			run, found, err := repositories.Coordination().GetRun(ctx, "lite-run")
+			if err != nil || !found || run.State != lineagecore.RunWorkComplete {
+				t.Fatalf("lite run=%+v found=%t err=%v", run, found, err)
+			}
+			session, found, err := repositories.Coordination().GetSession(ctx, "lite-session")
+			if err != nil || !found || session.Liveness != lineagecore.Interrupted || session.InterruptedAt == nil {
+				t.Fatalf("lite session=%+v found=%t err=%v", session, found, err)
+			}
+			return nil
+		})
+	})
+	if readErr.Code != "" {
+		t.Fatal(readErr)
+	}
+}
+
 func TestLineageResponsesSanitizePresentationFields(t *testing.T) {
 	sensitiveHuman := lineageHumanResponse(lineagecore.Human{ID: "human-1", DisplayName: "api_key=release"})
 	sensitiveSession := lineageSessionResponse(lineagecore.AgentSession{ID: "session-1", Runtime: `C:\Users\alice\private`, Role: "private_key=release"})

@@ -74,12 +74,12 @@ func TestGeneratorsRejectUnknownShellWithStableError(t *testing.T) {
 
 var requiredCommands = []string{
 	"help", "init", "version", "doctor", "backup", "migration", "export", "import", "preflight",
-	"human", "session", "delegate", "task", "progress", "dependency", "message", "handoff", "checkpoint", "board",
+	"human", "session", "delegate", "task", "progress", "dependency", "message", "handoff", "checkpoint", "mode", "board",
 	"reserve", "git", "integration", "run", "shell-init", "completion", "watch", "mcp", "release", "receipt",
 	"me", "tree", "all", "plan", "apply", "status", "remove", "create", "restore", "record", "get",
-	"resume", "adopt", "issue", "register", "revoke", "claim", "transition", "run-create", "run-transition",
+	"resume", "adopt", "issue", "register", "revoke", "claim", "transition", "run-create", "run-transition", "finish-lite",
 	"add", "history", "list", "active", "renew", "release", "override", "inbox", "thread", "send",
-	"deliver", "read", "ack", "show", "lifecycle", "advance", "summary", "queue", "supersede", "accept", "reject", "inventory", "current", "latest", "diff", "cleanup-plan",
+	"deliver", "read", "ack", "show", "lifecycle", "advance", "observe", "work-lite", "full", "classify", "actionable", "backlog", "hygiene", "history", "summary", "queue", "supersede", "accept", "reject", "inventory", "current", "latest", "diff", "cleanup-plan",
 	"html", "json", "markdown", "tty", "serve", "bash", "zsh", "fish", "powershell",
 }
 
@@ -94,11 +94,11 @@ func assertUsefulHelpers(t *testing.T, target Shell, script string) {
 	var required []string
 	switch target {
 	case Bash, Zsh:
-		required = []string{"omg_preflight()", "command omg preflight --project \"$PWD\" \"$@\"", "omg_board()", "command omg board all --project \"$PWD\" \"$@\"", "omg_checkpoint()", "command omg checkpoint --project \"$PWD\" \"$@\""}
+		required = []string{"omg_preflight()", "command omg preflight --project \"$PWD\" \"$@\"", "omg_board()", "command omg board actionable --project \"$PWD\" \"$@\"", "omg_checkpoint()", "command omg checkpoint --project \"$PWD\" \"$@\""}
 	case Fish:
-		required = []string{"function omg_preflight", "command omg preflight --project \"$PWD\" $argv", "function omg_board", "command omg board all --project \"$PWD\" $argv", "function omg_checkpoint", "command omg checkpoint --project \"$PWD\" $argv"}
+		required = []string{"function omg_preflight", "command omg preflight --project \"$PWD\" $argv", "function omg_board", "command omg board actionable --project \"$PWD\" $argv", "function omg_checkpoint", "command omg checkpoint --project \"$PWD\" $argv"}
 	case PowerShell:
-		required = []string{"function OMG-Preflight", "& omg preflight --project $PWD.Path @args", "function OMG-Board", "& omg board all --project $PWD.Path @args", "function OMG-Checkpoint", "& omg checkpoint --project $PWD.Path @args"}
+		required = []string{"function OMG-Preflight", "& omg preflight --project $PWD.Path @args", "function OMG-Board", "& omg board actionable --project $PWD.Path @args", "function OMG-Checkpoint", "& omg checkpoint --project $PWD.Path @args"}
 	}
 	for _, fragment := range required {
 		if !strings.Contains(script, fragment) {

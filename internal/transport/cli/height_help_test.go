@@ -16,7 +16,7 @@ func TestShortTerminalGlobalHelpUsesProgressiveDisclosure(t *testing.T) {
 		t.Fatal("expanded global help was not found")
 	}
 	for _, want := range []string{
-		"WORKFLOWS", "First run", "Start work", "Share state", "Recover safely",
+		"WORKFLOWS", "Choose scope", "Start work", "Share state", "Recover safely",
 		"COMMAND FAMILIES", "START + VERIFY", "COORDINATE WORK", "INSPECT + INTEGRATE",
 		"COMMON OPTIONS", "--project <path> · --json · --help", "Short terminal view",
 	} {

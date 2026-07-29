@@ -43,6 +43,8 @@ The agent command family is global and therefore rejects project, workspace, sto
 ```text
 omg version [--json]
 omg release status [--json]
+omg mode observe|work-lite|full [--json]
+omg mode classify --payload JSON [--json]
 omg init [--project P | --workspace W | --store DB] [--json]
 omg doctor [selection] [--integrity] [--json]
 omg preflight [selection] [--verbose] [--json]
@@ -50,7 +52,7 @@ omg status [selection] [--json]
 omg stale [selection] [--json]
 ```
 
-`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns compact operator counts and includes `automatic_migration` when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck. `stale` classifies only open sessions as `alive`, `idle`, `stale`, `runtime_unobservable`, or `finished_unclosed`; it reports the last heartbeat, elapsed time, run states, and a recommended operator action. Closed and interrupted historical sessions do not inflate the actionable stale count. The default idle and stale thresholds are reported in every response (15 minutes and 1 hour in v0.1).
+`version` and `mode` are available without state. `mode classify` accepts strict risk signals and returns the required records, handoff/review policy, automatic archival policy, and verification level. OBSERVE creates no ledger records; WORK_LITE uses session/task/run but no handoff by default; FULL protects multi-agent, production, auth/payment, release/canary, and ownership-transfer work. A risky FULL classification cannot be downgraded by `override`. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns compact operator counts and includes `automatic_migration` when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck. `stale` classifies only open sessions as `alive`, `idle`, `stale`, `runtime_unobservable`, or `finished_unclosed`; it reports the last heartbeat, elapsed time, run states, and a recommended operator action. Closed and interrupted historical sessions do not inflate the actionable stale count. The default idle and stale thresholds are reported in every response (15 minutes and 1 hour in v0.1).
 
 ## Worker bootstrap
 
@@ -96,6 +98,10 @@ See `docs/OPERATIONS.md` for automatic migration and recovery rules.
 ## Board and export
 
 ```text
+omg board actionable [selection] [--json]
+omg board backlog [selection] [--json]
+omg board hygiene [selection] [--json]
+omg board history [selection] [--json]
 omg board me   [selection] --session ID [--format tty|markdown|html|json | --json]
 omg board summary [selection] [--json]
 omg board tree [selection] [--format tty|markdown|html|json | --json]
@@ -111,7 +117,7 @@ omg export tty      [selection] --output NEW_FILE
 omg export json     [selection] --output NEW_FILE
 ```
 
-The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. `board summary` emits state counts and bottlenecks without the full board. `integration queue` excludes terminal `SOURCE_CLEANED` and `REJECTED` handoffs and reports missing lifecycle evidence per item; unresolved old handoffs remain visible rather than being silently archived. Exports are created atomically with mode `0600` and never overwrite an existing path.
+The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. `board actionable` returns tasks needing an operator decision, unfinished handoffs, unread inbox items, conflicting reservations, and stale sessions. `board backlog` is the compact state/bottleneck summary, `board hygiene` is the stale and finished-unclosed session classifier, and `board history` is the complete append-only audit snapshot. `board summary` remains a compatibility alias for the backlog projection. `integration queue` excludes terminal `SOURCE_CLEANED` and `REJECTED` handoffs and reports missing lifecycle evidence per item; unresolved old handoffs remain visible rather than being silently deleted. Exports are created atomically with mode `0600` and never overwrite an existing path.
 
 ## Typed coordination commands
 
@@ -252,6 +258,8 @@ Every command takes exactly one payload source as described above; mutations als
 | `task run-transition` | `run_id`, `state`, `evidence?` |
 
 `task transition` with `actor_session_id` atomically reconciles dependencies and emits the resulting notifications. Native runtime homes and opaque locator fields are accepted only for adapter linkage and never appear in default views.
+
+`task finish-lite` is the normal WORK_LITE close path. In one idempotent transaction it moves the owned run and task to `WORK_COMPLETE`, reconciles dependency notifications, releases the task's active reservations, verifies that the session owns no other non-terminal run, and appends its archive heartbeat. Its strict payload is `task_id`, `run_id`, `session_id`, matching `actor_session_id`, unique `archive_event_id`, and non-empty `evidence`. It does not create a handoff or imply independent verification.
 
 `session archive` is append-only: it records an archived/interrupted liveness event and removes the session from active counts only after every owned run is terminal. It requires both the target session and controller actor to exist in the selected project; it never deletes session history.
 

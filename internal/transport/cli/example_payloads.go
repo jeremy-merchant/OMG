@@ -12,6 +12,10 @@ func stringArrayProperty(description string) map[string]any {
 	return map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": description}
 }
 
+func booleanProperty(description string) map[string]any {
+	return map[string]any{"type": "boolean", "description": description}
+}
+
 // examplePayloadContract is the single copyable JSON payload catalog used by
 // example discovery and CLI validation recovery. It contains only public field
 // names and inert placeholder values.
@@ -26,6 +30,18 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 		schema  map[string]any
 		payload any
 	}{
+		"mode-classify": {
+			objectSchema(nil, map[string]any{
+				"mutates_files": booleanProperty("The work edits repository files."), "creates_branch": booleanProperty("The work creates a branch."),
+				"creates_worktree": booleanProperty("The work creates a worktree."), "uses_multiple_agents": booleanProperty("More than one agent participates."),
+				"touches_production": booleanProperty("The work changes production state."), "touches_auth_or_payment": booleanProperty("The work affects authentication, authorization, or payment."),
+				"changes_user_visible_behavior": booleanProperty("The work changes user-visible behavior."), "external_side_effects": booleanProperty("The work has non-repository side effects."),
+				"release_or_canary": booleanProperty("The work publishes, releases, or runs a canary."), "requires_handoff": booleanProperty("Ownership must cross sessions."),
+				"expected_duration_minutes": map[string]any{"type": "integer", "minimum": 0, "description": "Expected duration used to decide whether progress is required."},
+				"override":                  stringProperty("Optional OBSERVE, WORK_LITE, or FULL override; unsafe downgrades are ignored."),
+			}),
+			map[string]any{"mutates_files": true, "changes_user_visible_behavior": false, "expected_duration_minutes": 10},
+		},
 		"session-create": {
 			objectSchema([]string{"id", "human_id", "runtime", "role", "native_access_state"}, map[string]any{
 				"id": stringProperty("Stable worker session ID."), "human_id": stringProperty("Canonical human owner ID."),
@@ -77,6 +93,14 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 				"run_id": stringProperty("Run ID."), "state": stringProperty("Target run state."), "evidence": stringProperty("Optional safe transition evidence."),
 			}),
 			map[string]any{"run_id": "RUN_ID", "state": "WORK_COMPLETE", "evidence": "verification passed"},
+		},
+		"task-finish-lite": {
+			objectSchema([]string{"task_id", "run_id", "session_id", "actor_session_id", "archive_event_id", "evidence"}, map[string]any{
+				"task_id": stringProperty("Owned WORK-LITE task ID."), "run_id": stringProperty("Owned running run ID."),
+				"session_id": stringProperty("Owning session ID."), "actor_session_id": stringProperty("Must equal the owning session ID."),
+				"archive_event_id": stringProperty("Unique append-only session archive heartbeat ID."), "evidence": stringProperty("Safe completion and verification evidence."),
+			}),
+			map[string]any{"task_id": "TASK_ID", "run_id": "RUN_ID", "session_id": "SESSION_ID", "actor_session_id": "SESSION_ID", "archive_event_id": "ARCHIVE_EVENT_ID", "evidence": "targeted verification passed"},
 		},
 		"message-inbox": {
 			objectSchema([]string{"recipient"}, map[string]any{"recipient": recipient}),

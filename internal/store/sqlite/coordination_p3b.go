@@ -71,6 +71,36 @@ func (r coordination) ListRunsForSession(ctx context.Context, project, sessionID
 	}
 	return out, rows.Err()
 }
+
+// ListRunsForProject is an optional batch query used by large board views. It
+// intentionally sits outside the public repository port so alternate stores
+// can keep using the per-session fallback.
+func (r coordination) ListRunsForProject(ctx context.Context, project lineage.ID) ([]lineage.TaskRun, error) {
+	if !r.acceptsProject(string(project)) {
+		return nil, nil
+	}
+	rows, err := r.tx.QueryContext(ctx, "SELECT r.id FROM task_runs r JOIN tasks t ON t.id=r.task_id JOIN agent_sessions s ON s.id=r.session_id WHERE t.project_id=? AND s.project_id=? ORDER BY r.started_at,r.id", project, project)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []lineage.TaskRun{}
+	for rows.Next() {
+		var id lineage.ID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		run, ok, err := r.GetRun(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, fmt.Errorf("invalid stored run")
+		}
+		out = append(out, run)
+	}
+	return out, rows.Err()
+}
 func targetColumns(t coord.RecipientTarget) (any, any, any, any) {
 	var s, h, task, role any
 	if t.SessionID != "" {

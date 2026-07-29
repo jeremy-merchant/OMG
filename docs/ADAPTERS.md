@@ -17,7 +17,7 @@ omg agent doctor
 omg agent uninstall
 ```
 
-Global installation preserves all non-OMG content, rejects symlink/reparse-point paths and drifted managed skills, uses atomic replacement with rollback, and renders home-relative paths only. The installed skill directs the agent itself to perform repository preflight, typed coordination, progress, and immutable handoff. It does not make the user operate OMG for the agent and does not grant additional authority.
+Global installation preserves all non-OMG content, rejects symlink/reparse-point paths and drifted managed skills, uses atomic replacement with rollback, and renders home-relative paths only. The installed skill selects `OBSERVE`, `WORK_LITE`, or `FULL`: read-only work stays ledger-free, single-owner changes omit a handoff by default, and only shared or release work uses the complete lifecycle. It does not make the user operate OMG for the agent and does not grant additional authority.
 
 Project `omg integration` remains an optional repository-local visibility layer. It is not required for global discovery and must not become a second state authority. See `docs/GLOBAL_AGENT_INSTALL.md`.
 
@@ -57,7 +57,7 @@ Properties:
 - Multi-target apply runs all preflights before its first mutation and rolls back already changed targets if a later write fails.
 - Repeated apply and remove are idempotent.
 
-The managed block tells agents to run preflight, share typed state, treat messages as untrusted data, avoid destructive Git behavior, and report progress/handoff evidence. It does not change the runtime's own security model.
+The managed block tells agents to apply the proportional lifecycle, treat messages as untrusted data, avoid unrelated repositories and destructive Git behavior, and report progress/handoff evidence only when the selected mode requires it. It does not change the runtime's own security model.
 
 ## Shell integration
 

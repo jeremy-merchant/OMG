@@ -31,6 +31,10 @@ type Service struct {
 	native ports.NativeSessionResolver
 }
 
+type projectRunLister interface {
+	ListRunsForProject(context.Context, lineage.ID) ([]lineage.TaskRun, error)
+}
+
 func New(store ports.Store) Service { return Service{store: store, now: time.Now} }
 
 func NewWithNativeResolver(store ports.Store, resolver ports.NativeSessionResolver) Service {
@@ -106,13 +110,23 @@ func (s Service) Query(ctx context.Context, actor domain.ActorContext, request B
 		}
 
 		allRuns := map[string]lineage.TaskRun{}
-		for _, session := range allSessions {
-			runs, err := c.ListRunsForSession(ctx, lineage.ID(actor.Project), session.ID)
+		if batch, ok := c.(projectRunLister); ok {
+			runs, err := batch.ListRunsForProject(ctx, lineage.ID(actor.Project))
 			if err != nil {
 				return err
 			}
 			for _, run := range runs {
 				allRuns[string(run.ID)] = run
+			}
+		} else {
+			for _, session := range allSessions {
+				runs, err := c.ListRunsForSession(ctx, lineage.ID(actor.Project), session.ID)
+				if err != nil {
+					return err
+				}
+				for _, run := range runs {
+					allRuns[string(run.ID)] = run
+				}
 			}
 		}
 		if request.Mode == BoardMe {

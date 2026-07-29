@@ -40,6 +40,7 @@ func TestTaskLifecyclePayloadContractsRejectMissingFieldsPrecisely(t *testing.T)
 		{command: "task.transition", payload: `{"task_id":"task-1"}`, want: "missing required field state; expected string"},
 		{command: "task.run-create", payload: `{"task_id":"task-1"}`, want: "missing required field session_id; expected string"},
 		{command: "task.run-transition", payload: `{"run_id":"run-1"}`, want: "missing required field state; expected string"},
+		{command: "task.finish-lite", payload: `{"task_id":"task-1","run_id":"run-1","session_id":"session-1","actor_session_id":"session-1","archive_event_id":"archive-1"}`, want: "missing required field evidence; expected string"},
 	} {
 		t.Run(test.command, func(t *testing.T) {
 			err := validatePublicPayload(test.command, []byte(test.payload))

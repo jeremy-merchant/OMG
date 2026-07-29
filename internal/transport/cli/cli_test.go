@@ -97,7 +97,7 @@ func TestEmptyInvocationShowsConciseDiscoveryWithoutDispatch(t *testing.T) {
 	}
 	got := output.String()
 	for _, want := range []string{
-		"OMG  OPERATOR LEDGER", "Usage:", "WORKFLOWS", "First run", "Start work", "Share state", "Recover safely",
+		"OMG  OPERATOR LEDGER", "Usage:", "WORKFLOWS", "Choose scope", "Start work", "Share state", "Recover safely",
 		"COMMAND FAMILIES", "START + VERIFY", "COORDINATE WORK", "INSPECT + INTEGRATE",
 		"COMMON OPTIONS", "Short terminal view", "omg <command> --help",
 	} {
@@ -115,6 +115,29 @@ func TestEmptyInvocationShowsConciseDiscoveryWithoutDispatch(t *testing.T) {
 	}
 	if lines := strings.Count(got, "\n"); lines > 32 {
 		t.Fatalf("empty discovery remains too tall: %d lines\n%s", lines, got)
+	}
+}
+
+func TestModeClassifyIsReadOnlyAndProportional(t *testing.T) {
+	dispatcher := &recordingDispatcher{}
+	service := bootstrap.CLIService(bootstrap.Foundation())
+	service.Dispatcher = dispatcher
+	var output bytes.Buffer
+	exit := RunWithApplication(context.Background(), []string{"mode", "classify", "--payload", `{"mutates_files":true}`, "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+	if exit != ExitSuccess {
+		t.Fatalf("mode classify exit=%d output=%s", exit, output.String())
+	}
+	if !strings.Contains(output.String(), `"mode":"WORK_LITE"`) || !strings.Contains(output.String(), `"handoff_required":false`) {
+		t.Fatalf("unexpected mode contract: %s", output.String())
+	}
+	if len(dispatcher.requests) != 0 {
+		t.Fatalf("mode classify mutated or queried application state: %+v", dispatcher.requests)
+	}
+
+	output.Reset()
+	exit = RunWithApplication(context.Background(), []string{"mode", "classify", "--payload", `{"touches_production":true,"override":"observe"}`, "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"mode":"FULL"`) || !strings.Contains(output.String(), "unsafe_downgrade_ignored") {
+		t.Fatalf("unsafe mode downgrade was not rejected: exit=%d output=%s", exit, output.String())
 	}
 }
 
@@ -298,7 +321,7 @@ func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
 func TestRequiredWorkerExamplesExposeStructuredPayloads(t *testing.T) {
 	for _, topic := range []string{
 		"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add",
-		"task-create", "task-get", "task-claim", "task-transition", "task-run-create", "task-run-transition",
+		"task-create", "task-get", "task-claim", "task-transition", "task-run-create", "task-run-transition", "task-finish-lite",
 	} {
 		t.Run(topic, func(t *testing.T) {
 			exit, output := run(t, "example", "show", topic, "--json")
@@ -371,6 +394,39 @@ func TestBoardMeUsesWorkerEnvironmentDefaults(t *testing.T) {
 	var payload query.BoardRequest
 	if json.Unmarshal(dispatcher.requests[0].Payload, &payload) != nil || payload.SessionID != "worker-from-environment" || payload.Mode != query.BoardMe {
 		t.Fatalf("board me environment payload=%+v", payload)
+	}
+}
+
+func TestOperationalBoardViewsQueryHistoryAndCompressOutput(t *testing.T) {
+	snapshot := query.BoardSnapshot{
+		GeneratedAt:    time.Date(2026, 7, 29, 0, 0, 0, 0, time.UTC),
+		SnapshotCursor: "audit:7",
+		Tasks:          []query.TaskView{{ID: "ready-for-review", State: "WORK_COMPLETE"}, {ID: "already-done", State: "VERIFIED_DONE"}},
+		Handoffs:       []query.HandoffView{{ID: "pending", IntegrationState: "SUBMITTED"}, {ID: "cleaned", IntegrationState: "SOURCE_CLEANED"}},
+		Sessions:       []query.IdentityView{}, Inbox: []query.InboxItemView{}, Reservations: []query.ReservationView{}, Runs: []query.RunView{},
+	}
+	data, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	model, modelErr := query.NewViewModel("board", "audit:7", data)
+	if modelErr != nil {
+		t.Fatal(modelErr)
+	}
+	dispatcher := &recordingDispatcher{outcome: app.Outcome{Data: model}}
+	service := bootstrap.CLIService(bootstrap.Foundation())
+	service.Dispatcher = dispatcher
+	var output bytes.Buffer
+	exit := RunWithApplication(context.Background(), []string{"board", "actionable", "--project", t.TempDir(), "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), "ready-for-review") || strings.Contains(output.String(), "already-done") || !strings.Contains(output.String(), `"handoff_id":"pending"`) || strings.Contains(output.String(), `"handoff_id":"cleaned"`) {
+		t.Fatalf("actionable board exit=%d output=%s", exit, output.String())
+	}
+	if len(dispatcher.requests) != 1 {
+		t.Fatalf("board requests=%+v", dispatcher.requests)
+	}
+	var request query.BoardRequest
+	if json.Unmarshal(dispatcher.requests[0].Payload, &request) != nil || request.Mode != query.BoardAll {
+		t.Fatalf("actionable board did not derive from canonical history: %+v", request)
 	}
 }
 

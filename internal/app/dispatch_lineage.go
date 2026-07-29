@@ -100,6 +100,14 @@ type lineageRunTransitionPayload struct {
 	State    string `json:"state"`
 	Evidence string `json:"evidence,omitempty"`
 }
+type lineageFinishLitePayload struct {
+	TaskID         string `json:"task_id"`
+	RunID          string `json:"run_id"`
+	SessionID      string `json:"session_id"`
+	ActorSessionID string `json:"actor_session_id"`
+	ArchiveEventID string `json:"archive_event_id"`
+	Evidence       string `json:"evidence"`
+}
 
 type lineageHumanResult struct {
 	ID          string `json:"id"`
@@ -136,6 +144,15 @@ type lineageRunResult struct {
 	TaskID    string `json:"task_id"`
 	SessionID string `json:"session_id"`
 	State     string `json:"state"`
+}
+type lineageFinishLiteResult struct {
+	TaskID               string `json:"task_id"`
+	TaskState            string `json:"task_state"`
+	RunID                string `json:"run_id"`
+	RunState             string `json:"run_state"`
+	SessionID            string `json:"session_id"`
+	ReservationsReleased int    `json:"reservations_released"`
+	SessionArchived      bool   `json:"session_archived"`
 }
 type lineageDelegateIssueResult struct {
 	TokenID   string    `json:"token_id"`
@@ -178,7 +195,7 @@ func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request
 	mutations := map[string]bool{
 		"human.create": true, "session.create": true, "session.resume": true, "session.adopt": true, "session.import": true, "session.archive": true,
 		"delegate.issue": true, "delegate.register": true, "delegate.revoke": true, "checkpoint.record": true,
-		"task.claim": true, "task.transition": true, "task.run-create": true, "task.run-transition": true,
+		"task.claim": true, "task.transition": true, "task.run-create": true, "task.run-transition": true, "task.finish-lite": true,
 	}
 	if !query && !mutations[request.Command] {
 		return Outcome{}, false
@@ -409,6 +426,79 @@ func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request
 				result = lineageRunResponse(run)
 			}
 			return err
+		case "task.finish-lite":
+			var payload lineageFinishLitePayload
+			if !decodePayload(request.Payload, &payload) || payload.TaskID == "" || payload.RunID == "" || payload.SessionID == "" || payload.ActorSessionID == "" || payload.ArchiveEventID == "" || payload.Evidence == "" || payload.ActorSessionID != payload.SessionID {
+				return invalidRequest()
+			}
+			var completed lineageFinishLiteResult
+			_, recorded, err := store.Write(ctx, key, "task.finish-lite", func(repositories ports.Repositories) (domain.Result, error) {
+				now := time.Now().UTC()
+				coordination := repositories.Coordination()
+				session, found, err := coordination.GetSession(ctx, lineage.ID(payload.SessionID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				if !found || session.ProjectID != project {
+					return domain.Result{}, domain.NewError(domain.CodeNotFound, "work-lite session was not found in project", false)
+				}
+				if session.Liveness == lineage.Stale || session.Liveness == lineage.Interrupted {
+					return domain.Result{}, domain.NewError(domain.CodeConflict, "work-lite session is not live", false)
+				}
+				task, found, err := coordination.GetTask(ctx, lineage.ID(payload.TaskID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				if !found || task.ProjectID != project || task.ClaimedBySessionID != session.ID {
+					return domain.Result{}, domain.NewError(domain.CodeConflict, "work-lite task is not owned by the session", false)
+				}
+				run, found, err := coordination.GetRun(ctx, lineage.ID(payload.RunID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				if !found || run.TaskID != task.ID || run.SessionID != session.ID || !lineage.CanTransitionRun(run.State, lineage.RunWorkComplete, []byte(payload.Evidence)) {
+					return domain.Result{}, domain.NewError(domain.CodeConflict, "work-lite run cannot be completed", false)
+				}
+				run, err = coordination.TransitionRun(ctx, run.ID, lineage.RunWorkComplete, []byte(payload.Evidence), now)
+				if err != nil {
+					return domain.Result{}, err
+				}
+				task, err = dependencyapp.TransitionAndReconcileRepositories(ctx, repositories, now, string(project), payload.TaskID, payload.ActorSessionID, lineage.TaskWorkComplete, []byte(payload.Evidence))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				runs, err := coordination.ListRunsForSession(ctx, project, session.ID)
+				if err != nil {
+					return domain.Result{}, err
+				}
+				for _, ownedRun := range runs {
+					if !lineage.RunHasEnded(ownedRun.State) {
+						return domain.Result{}, domain.NewError(domain.CodeConflict, "work-lite session still owns a non-terminal run", false)
+					}
+				}
+				released, err := repositories.Reservations().ReleaseForTask(ctx, domain.ProjectID(resolved.Project), task.ID, now, "work-lite completed")
+				if err != nil {
+					return domain.Result{}, err
+				}
+				heartbeat := lineage.Heartbeat{ID: lineage.ID(payload.ArchiveEventID), SessionID: session.ID, ObservedAt: now, Liveness: lineage.Interrupted, Detail: []byte(`{"archived":true,"mode":"WORK_LITE"}`)}
+				if heartbeat.Validate() != nil {
+					return domain.Result{}, invalidRequest()
+				}
+				if err := coordination.RecordHeartbeat(ctx, heartbeat); err != nil {
+					return domain.Result{}, err
+				}
+				value := lineageFinishLiteResult{TaskID: string(task.ID), TaskState: string(task.State), RunID: string(run.ID), RunState: string(run.State), SessionID: string(session.ID), ReservationsReleased: len(released), SessionArchived: true}
+				return domain.Result{ID: domain.ResultID(task.ID), Outcome: domain.OutcomeOK, Data: value}, nil
+			})
+			if err != nil {
+				return err
+			}
+			encoded, err := json.Marshal(recorded.Data)
+			if err != nil || json.Unmarshal(encoded, &completed) != nil {
+				return domain.NewError(domain.CodeInternal, "work-lite completion receipt is invalid", false)
+			}
+			result = completed
+			return nil
 		}
 		return invalidRequest()
 	})

@@ -78,6 +78,10 @@ func publicPayloadContracts() map[string]publicPayloadContract {
 			prototype: func() any { return &lineageRunTransitionPayload{} },
 			required:  map[string]string{"run_id": "string", "state": "string"},
 		},
+		"task.finish-lite": {
+			prototype: func() any { return &lineageFinishLitePayload{} },
+			required:  map[string]string{"task_id": "string", "run_id": "string", "session_id": "string", "actor_session_id": "string", "archive_event_id": "string", "evidence": "string"},
+		},
 		"message.inbox": {
 			prototype: func() any { return &coordinationInboxPayload{} },
 			required:  map[string]string{"recipient": "object"},

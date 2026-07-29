@@ -91,20 +91,20 @@ func TestNestedCompletionGeneratorsContainLeafOptionRouting(t *testing.T) {
 		{Bash, []string{
 			`local selected="${COMP_WORDS[2]}"`,
 			`case "$selected" in`,
-			`create|get|claim|transition|run-create|run-transition) candidates='--help -h --json`,
+			`create|get|claim|transition|run-create|run-transition|finish-lite) candidates='--help -h --json`,
 		}},
 		{Zsh, []string{
 			`local selected="${words[3]}"`,
 			`case "$selected" in`,
-			`create|get|claim|transition|run-create|run-transition) choices=(`,
+			`create|get|claim|transition|run-create|run-transition|finish-lite) choices=(`,
 		}},
 		{Fish, []string{
-			`__fish_seen_subcommand_from task; and not __fish_seen_subcommand_from create get claim transition run-create run-transition`,
+			`__fish_seen_subcommand_from task; and not __fish_seen_subcommand_from create get claim transition run-create run-transition finish-lite`,
 			`__fish_seen_subcommand_from task`,
 		}},
 		{PowerShell, []string{
 			`$selected = if ($elements.Count -gt 2)`,
-			`if ($selected -in @('create', 'get', 'claim', 'transition', 'run-create', 'run-transition'))`,
+			`if ($selected -in @('create', 'get', 'claim', 'transition', 'run-create', 'run-transition', 'finish-lite'))`,
 		}},
 	}
 	for _, test := range tests {
