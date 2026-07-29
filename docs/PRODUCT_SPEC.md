@@ -87,7 +87,7 @@ Every agent or human operator must be able to answer:
 - Core behavior works without a background daemon.
 - Required targets are macOS arm64/amd64, Linux amd64/arm64, and Windows amd64.
 - Paths with spaces and CJK, non-`main` default branches, detached HEAD, bare repository detection, linked worktrees, and non-Git directories are covered.
-- No commit, push, remote repository creation, package publication, domain purchase, deploy, migration, restart, branch/worktree deletion, reset, or clean occurs without separate explicit human approval.
+- No commit, push, remote repository creation, package publication, domain purchase, deploy, restart, branch/worktree deletion, reset, or clean occurs without separate explicit human approval. Schema migration has one narrow exception: an already-initialized incremental plan may run through the backup-bound automatic policy only when every compiled step is explicitly `auto-safe`.
 - Pygmalion and Zoomzi adapters remain outside the general-purpose core.
 
 ## Non-goals for v0.1
@@ -162,7 +162,7 @@ All criteria below are mandatory. Checkbox state is intentionally left unclaimed
 7. **Pygmalion proof:** approved read-only inventory, dry-run migration, active-work import, live adapters, report, and rollback.
 8. **Zoomzi proof:** approved minimal setup, portable collaboration/recovery scenario, parity report, and rollback.
 
-Each phase has its own evidence and approval gate. **The standalone RC gate must pass before either Phase 7 or Phase 8 may start.** Phase 7 and Phase 8 do not authorize commit, push, deploy, publication, or destructive cleanup. Schema migration apply remains subject to separate explicit human approval; migration planning, backup, validation, and dry-run evidence do not constitute that approval.
+Each phase has its own evidence and approval gate. **The standalone RC gate must pass before either Phase 7 or Phase 8 may start.** Phase 7 and Phase 8 do not authorize commit, push, deploy, publication, or destructive cleanup. Fresh, mixed, unknown, and risky schema migration apply remains subject to separate explicit human approval; only already-initialized all-`auto-safe` incremental plans may use the backup-bound automatic policy.
 
 ## Post-v0.1 deferrals
 

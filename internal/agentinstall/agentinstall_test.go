@@ -125,7 +125,7 @@ func TestInstallUpdatesPreviousManagedSkill(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	previous := strings.Replace(string(SkillContent()), "schemaVersion: 3", "schemaVersion: 2", 1)
+	previous := strings.Replace(string(SkillContent()), "schemaVersion: 5", "schemaVersion: 4", 1)
 	if err := os.WriteFile(path, []byte(previous), 0o640); err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +189,7 @@ func TestStatusRejectsSymlinkParent(t *testing.T) {
 
 func TestSkillContentIsAlwaysApplyAndSecretFree(t *testing.T) {
 	content := string(SkillContent())
-	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 3", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "omg example show session-create", "instruction_source", "Inspect the OMG inbox", "typed messages", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
+	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 5", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "auto-safe", "create and verify the exact backup", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg example show session-create", "omg example show message-inbox", "instruction_source", "typed messages", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf("skill missing %q", required)
 		}

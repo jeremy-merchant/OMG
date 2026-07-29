@@ -71,6 +71,12 @@ type lineageCheckpointPayload struct {
 	Liveness  string `json:"liveness"`
 	Detail    string `json:"detail,omitempty"`
 }
+type lineageSessionArchivePayload struct {
+	ID             string `json:"id"`
+	SessionID      string `json:"session_id"`
+	ActorSessionID string `json:"actor_session_id"`
+	Reason         string `json:"reason"`
+}
 type lineageTaskGetPayload struct {
 	TaskID string `json:"task_id"`
 }
@@ -170,7 +176,7 @@ func unavailableCheckpointRefresh(checkpoint lineageapp.CheckpointResult) lineag
 func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request, selection foundation.Selection) (Outcome, bool) {
 	query := request.Command == "human.get" || request.Command == "task.get"
 	mutations := map[string]bool{
-		"human.create": true, "session.create": true, "session.resume": true, "session.adopt": true, "session.import": true,
+		"human.create": true, "session.create": true, "session.resume": true, "session.adopt": true, "session.import": true, "session.archive": true,
 		"delegate.issue": true, "delegate.register": true, "delegate.revoke": true, "checkpoint.record": true,
 		"task.claim": true, "task.transition": true, "task.run-create": true, "task.run-transition": true,
 	}
@@ -236,6 +242,55 @@ func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request
 				result = lineageSessionResponse(session)
 			}
 			return err
+		case "session.archive":
+			var payload lineageSessionArchivePayload
+			if !decodePayload(request.Payload, &payload) || payload.ID == "" || payload.SessionID == "" || payload.ActorSessionID == "" || payload.Reason == "" {
+				return invalidRequest()
+			}
+			var archived lineageCheckpointResult
+			_, recorded, err := store.Write(ctx, key, "session.archive", func(repositories ports.Repositories) (domain.Result, error) {
+				target, found, err := repositories.Coordination().GetSession(ctx, lineage.ID(payload.SessionID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				if !found || target.ProjectID != project {
+					return domain.Result{}, domain.NewError(domain.CodeNotFound, "session to archive was not found in project", false)
+				}
+				actor, found, err := repositories.Coordination().GetSession(ctx, lineage.ID(payload.ActorSessionID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				if !found || actor.ProjectID != project {
+					return domain.Result{}, domain.NewError(domain.CodeNotFound, "archive actor session was not found in project", false)
+				}
+				runs, err := repositories.Coordination().ListRunsForSession(ctx, project, lineage.ID(payload.SessionID))
+				if err != nil {
+					return domain.Result{}, err
+				}
+				for _, run := range runs {
+					if !lineage.RunHasEnded(run.State) {
+						return domain.Result{}, domain.NewError(domain.CodeConflict, "session still owns a non-terminal run", false)
+					}
+				}
+				heartbeat := lineage.Heartbeat{ID: lineage.ID(payload.ID), SessionID: lineage.ID(payload.SessionID), ObservedAt: time.Now().UTC(), Liveness: lineage.Interrupted, Detail: []byte(`{"archived":true}`)}
+				if heartbeat.Validate() != nil {
+					return domain.Result{}, invalidRequest()
+				}
+				if err := repositories.Coordination().RecordHeartbeat(ctx, heartbeat); err != nil {
+					return domain.Result{}, err
+				}
+				value := lineageCheckpointResult{ID: payload.ID, SessionID: payload.SessionID, Liveness: "archived", RefreshAvailable: false, Warnings: []string{}, Inbox: []queryapp.InboxItemView{}, Dependencies: []queryapp.DependencyView{}, Reservations: []queryapp.ReservationView{}}
+				return domain.Result{ID: domain.ResultID(payload.ID), Outcome: domain.OutcomeOK, Data: value}, nil
+			})
+			if err != nil {
+				return err
+			}
+			encoded, err := json.Marshal(recorded.Data)
+			if err != nil || json.Unmarshal(encoded, &archived) != nil {
+				return domain.NewError(domain.CodeInternal, "session archive receipt is invalid", false)
+			}
+			result = archived
+			return nil
 		case "delegate.issue":
 			var payload lineageDelegateIssuePayload
 			if !decodePayload(request.Payload, &payload) || payload.ParentSessionID == "" || payload.TTLSeconds <= 0 {

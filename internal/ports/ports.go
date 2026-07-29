@@ -165,9 +165,10 @@ type IntegrityReport struct {
 
 // Migration is an immutable, ordered schema change supplied by a store adapter.
 type Migration struct {
-	Version  int
-	SQL      string
-	Checksum string
+	Version       int
+	SQL           string
+	Checksum      string
+	AutomaticSafe bool
 }
 
 // OpenOptions controls adapter-level opening behavior without exposing an
@@ -190,13 +191,21 @@ type OpenStatus struct {
 
 // MigrationPlan is immutable discovery data and carries no authority.
 type MigrationPlan struct {
-	ID             string   `json:"id"`
-	Project        string   `json:"project"`
-	FromVersion    int      `json:"from_version"`
-	ToVersion      int      `json:"to_version"`
-	Checksums      []string `json:"checksums"`
-	BackupLocation string   `json:"backup_location"`
+	ID                string   `json:"id"`
+	Project           string   `json:"project"`
+	FromVersion       int      `json:"from_version"`
+	ToVersion         int      `json:"to_version"`
+	Checksums         []string `json:"checksums"`
+	BackupLocation    string   `json:"backup_location"`
+	AutomaticEligible bool     `json:"automatic_eligible"`
 }
+
+type MigrationAuthorizationKind string
+
+const (
+	MigrationAuthorizationHuman         MigrationAuthorizationKind = "human"
+	MigrationAuthorizationAutomaticSafe MigrationAuthorizationKind = "automatic_safe_policy"
+)
 
 // MigrationApproval binds a one-time human approval to an exact backup and
 // plan. Evidence is intentionally retained only as a reference.
@@ -214,6 +223,7 @@ type MigrationApproval struct {
 	Command           string
 	Timestamp         time.Time
 	ExpiresAt         time.Time
+	AuthorizationKind MigrationAuthorizationKind
 }
 
 // ProjectConfigInitializer creates and validates project-local configuration

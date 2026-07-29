@@ -148,7 +148,7 @@ function OMG-Checkpoint {
 }
 
 var completionCommands = []string{
-	"help", "init", "preflight", "status", "doctor", "migration", "backup", "release", "version", "agent",
+	"help", "init", "preflight", "status", "doctor", "migration", "backup", "release", "version", "agent", "worker",
 	"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
 	"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 }
@@ -156,7 +156,7 @@ var completionCommands = []string{
 var completionOptions = []string{
 	"--help", "-h", "--json", "--verbose", "--integrity", "--status", "--stdio", "--payload-stdin",
 	"--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key",
-	"--format", "--session", "--task", "--runtime", "--payload", "--payload-file",
+	"--format", "--session", "--task", "--runtime", "--controller-session", "--human", "--role", "--payload", "--payload-file",
 }
 
 var completionCommandDescriptions = map[string]string{
@@ -170,6 +170,7 @@ var completionCommandDescriptions = map[string]string{
 	"release":     "Inspect publication and source-bound readiness.",
 	"version":     "Print the current build version.",
 	"agent":       "Install, inspect, diagnose, or remove global coding-agent discovery surfaces.",
+	"worker":      "Bootstrap one worker directly into its scoped task and inbox.",
 	"human":       "Create or inspect canonical human identities.",
 	"session":     "Create, resume, adopt, or import agent sessions.",
 	"delegate":    "Issue, redeem, or revoke bounded delegation.",
@@ -198,25 +199,28 @@ var completionCommandDescriptions = map[string]string{
 
 var completionOptionDescriptions = map[string]string{
 	"--help": "Show contextual help.", "-h": "Show contextual help.",
-	"--json":            "Emit the stable machine envelope.",
-	"--verbose":         "Include detailed preflight records.",
-	"--integrity":       "Run the optional SQLite integrity check.",
-	"--status":          "Include final status where supported.",
-	"--stdio":           "Use protocol-only standard input and output.",
-	"--payload-stdin":   "Read one strict payload from standard input.",
-	"--project":         "Select a project root.",
-	"--workspace":       "Select a local multi-project workspace.",
-	"--store":           "Select an exact SQLite store.",
-	"--output":          "Create a new owner-only output file.",
-	"--plan-file":       "Read the exact private plan file.",
-	"--approval-file":   "Read the matching private approval file.",
-	"--idempotency-key": "Provide the required mutation replay key.",
-	"--format":          "Choose tty, markdown, html, or json output.",
-	"--session":         "Select one canonical session.",
-	"--task":            "Select one canonical task.",
-	"--runtime":         "Select a configured child runtime.",
-	"--payload":         "Supply one strict inline JSON payload.",
-	"--payload-file":    "Read one strict owner-only payload file.",
+	"--json":               "Emit the stable machine envelope.",
+	"--verbose":            "Include detailed preflight records.",
+	"--integrity":          "Run the optional SQLite integrity check.",
+	"--status":             "Include final status where supported.",
+	"--stdio":              "Use protocol-only standard input and output.",
+	"--payload-stdin":      "Read one strict payload from standard input.",
+	"--project":            "Select a project root.",
+	"--workspace":          "Select a local multi-project workspace.",
+	"--store":              "Select an exact SQLite store.",
+	"--output":             "Create a new owner-only output file.",
+	"--plan-file":          "Read the exact private plan file.",
+	"--approval-file":      "Read the matching private approval file.",
+	"--idempotency-key":    "Provide the required mutation replay key.",
+	"--format":             "Choose tty, markdown, html, or json output.",
+	"--session":            "Select one canonical session.",
+	"--task":               "Select one canonical task.",
+	"--runtime":            "Select a configured child runtime.",
+	"--controller-session": "Select the controller session for worker bootstrap.",
+	"--human":              "Select the canonical human owner for worker bootstrap.",
+	"--role":               "Select the worker role.",
+	"--payload":            "Supply one strict inline JSON payload.",
+	"--payload-file":       "Read one strict owner-only payload file.",
 }
 
 var completionValueDescriptions = map[string]map[string]string{
@@ -224,8 +228,9 @@ var completionValueDescriptions = map[string]map[string]string{
 	"backup":      {"create": "Create and verify a private backup.", "restore": "Validate a guarded restore request."},
 	"release":     {"status": "Inspect local publication readiness."},
 	"agent":       {"install": "Install always-on OMG skills and global instructions.", "status": "Inspect global agent discovery surfaces.", "doctor": "Diagnose discovery, permissions, and drift.", "uninstall": "Remove only OMG-managed global surfaces."},
+	"worker":      {"bootstrap": "Ensure worker identity and task ownership, then return its scoped board and inbox."},
 	"human":       {"create": "Create or supersede a human identity.", "get": "Read one canonical human identity."},
-	"session":     {"create": "Create a new canonical session.", "resume": "Resume a known session with continuation metadata.", "adopt": "Adopt interrupted work without fabricating completion.", "import": "Import a normalized session record."},
+	"session":     {"create": "Create a new canonical session.", "resume": "Resume a known session with continuation metadata.", "adopt": "Adopt interrupted work without fabricating completion.", "import": "Import a normalized session record.", "archive": "Remove a finished session from active counts."},
 	"delegate":    {"issue": "Issue a short-lived project-scoped delegation.", "register": "Redeem a delegation from stdin or a private file.", "revoke": "Revoke an unconsumed delegation."},
 	"checkpoint":  {"record": "Append a canonical liveness checkpoint."},
 	"task":        {"create": "Create a task with an atomic display number.", "get": "Read one task and its canonical state.", "claim": "Claim one ready task for exactly one session.", "transition": "Apply a validated task state transition.", "run-create": "Create an execution run for a task and session.", "run-transition": "Apply a validated run state transition."},
@@ -260,8 +265,9 @@ var completionByCommand = map[string][]string{
 	"release":     {"status"},
 	"version":     {},
 	"agent":       {"install", "status", "doctor", "uninstall"},
+	"worker":      {"bootstrap"},
 	"human":       {"create", "get"},
-	"session":     {"create", "resume", "adopt", "import"},
+	"session":     {"create", "resume", "adopt", "import", "archive"},
 	"delegate":    {"issue", "register", "revoke"},
 	"checkpoint":  {"record"},
 	"task":        {"create", "get", "claim", "transition", "run-create", "run-transition"},

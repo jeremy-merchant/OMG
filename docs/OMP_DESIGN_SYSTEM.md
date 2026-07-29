@@ -101,4 +101,4 @@ OMG does **not** copy OMP's complete interactive shell. OMP is an agent runtime 
 - no card border is added around every discovery row;
 - human TTY never replaces stable JSON contracts;
 - install and uninstall remain bounded filesystem transactions rather than interactive approval UIs;
-- project schema migration and external authority remain separately human-gated.
+- fresh, mixed, unknown, and risky project schema migration plus external authority remain separately human-gated; only backup-bound all-`auto-safe` incremental upgrades may run automatically.

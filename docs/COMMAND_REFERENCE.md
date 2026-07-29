@@ -49,7 +49,34 @@ omg preflight [selection] [--verbose] [--json]
 omg status [selection] [--json]
 ```
 
-`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. Default `preflight` returns only `healthy`, `pending_migrations`, `active_sessions`, `stale_sessions`, `conflicts`, and `integration_queue`; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
+`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. On an initialized store, `preflight` automatically applies an incremental plan only when every pending migration is compiled as `auto-safe`; it creates and verifies the exact backup, records a machine-policy authorization, applies atomically, and verifies integrity. Otherwise it remains read-only and reports the pending plan for human approval. Default `preflight` returns the compact operator counts and includes `automatic_migration` only when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
+
+## Worker bootstrap
+
+Controllers should create the task and task-bound worker session before launching a worker, then inject these values:
+
+```text
+OMG_PROJECT
+OMG_SESSION_ID
+OMG_TASK_ID
+OMG_CONTROLLER_SESSION_ID
+OMG_HUMAN_ID
+```
+
+The worker runs one command:
+
+```bash
+omg worker bootstrap \
+  --idempotency-key bootstrap-worker-1 \
+  --output /absolute/private/worker-1.env \
+  --json
+```
+
+Matching flags (`--project`, `--session`, `--task`, `--controller-session`, and `--human`) override omitted environment values. Bootstrap performs compact preflight, safely applies an eligible `auto-safe` incremental upgrade, stops if migrations still remain pending, ensures the session exists, verifies its human/controller/task bindings, claims a ready task, reads `message inbox`, and returns a worker-scoped board plus one structured next action. If the controller did not pre-register the session, bootstrap creates a human-direct task-bound fallback; use delegation registration beforehand when exact delegated lineage is required.
+
+`--output` creates a new shell environment file with mode `0600` and never overwrites. Its parent must be a new or existing owner-only directory. Source only this generated file; never source message bodies or model output.
+
+Workers use `omg board me` (which reads `OMG_PROJECT` and `OMG_SESSION_ID` when selectors are omitted). Only controllers should use `board all`; a worker should not load the global coordination graph to discover its own state. See [`WORKER_BOOTSTRAP.md`](WORKER_BOOTSTRAP.md) for controller setup and shell-safe cmux/OMP launch patterns.
 
 ## Schema and backup
 
@@ -59,7 +86,7 @@ omg backup create [selection] [--plan-file PLAN.json] [--json]
 omg migration apply [selection] --plan-file PLAN.json --approval-file APPROVAL.json [--json]
 ```
 
-- `migration plan` does not change schema. `--output` writes the complete plan with mode `0600`; default JSON output intentionally omits its private backup path.
+- `migration plan` does not change schema. It reports `automatic_eligible`; this is true only for a non-fresh incremental chain whose every step is compiled as `auto-safe`. `--output` writes the complete plan with mode `0600`; default JSON output intentionally omits its private backup path.
 - `backup create` accepts the exact saved plan or computes the current plan when omitted. It returns the verified SHA-256 checksum.
 - `migration apply` requires exact plan and human-approval files. It fails closed on stale or mismatched state.
 
@@ -83,7 +110,7 @@ omg export tty      [selection] --output NEW_FILE
 omg export json     [selection] --output NEW_FILE
 ```
 
-The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. `board summary` emits state counts and bottlenecks without the full board. `integration queue` excludes terminal `SOURCE_CLEANED` and `REJECTED` handoffs and reports missing lifecycle evidence per item. Exports are created atomically with mode `0600` and never overwrite an existing path.
+The default board format is TTY. `--json` selects the standard CLI envelope and cannot be combined with `--format`. `board summary` emits state counts and bottlenecks without the full board. `integration queue` excludes terminal `SOURCE_CLEANED` and `REJECTED` handoffs and reports missing lifecycle evidence per item; unresolved old handoffs remain visible rather than being silently archived. Exports are created atomically with mode `0600` and never overwrite an existing path.
 
 ## Typed coordination commands
 
@@ -154,6 +181,16 @@ Message types: `NOTICE`, `QUESTION`, `DEPENDENCY`, `CONFLICT`, `HANDOFF`, `DONE`
 
 Agents should use messages for questions, dependencies, conflicts, and shared-path coordination, then record delivery, read, and acknowledgement state. `omg example show message-send --json` prints the live copyable payload.
 
+Read a worker inbox with the nested recipient selector (not `recipient_session_id`, a top-level `session_id`, or a positional argument):
+
+```bash
+omg message inbox --project /project \
+  --payload '{"recipient":{"session_id":"WORKER_SESSION_ID"}}' \
+  --json
+```
+
+`omg example show message-inbox --json` returns both `payload_schema` and `example_payload`.
+
 ### Create handoff
 
 ```text
@@ -188,7 +225,7 @@ Specify at most one target (`target_session_id` or `target_task_id`). Final outp
 
 ```text
 omg human create|get
-omg session create|resume|adopt|import
+omg session create|resume|adopt|import|archive
 omg delegate issue|register|revoke
 omg checkpoint [record]
 omg task get|claim|transition|run-create|run-transition
@@ -202,6 +239,7 @@ Every command takes exactly one payload source as described above; mutations als
 | `human get` | `id` |
 | `session create` | `id?`, `human_id`, `runtime`, `role`, `source_ref?`, inert compatibility fields `instruction_source?` and `provenance_confidence?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
 | `session resume\|adopt\|import` | `id?`, `human_id?`, `runtime`, `role`, `source_ref`, `parent_session_id?`, `continuation_of_id?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
+| `session archive` | `id`, `session_id`, `actor_session_id`, `reason` |
 | `delegate issue` | `task_id?`, `parent_session_id`, `ttl_seconds` |
 | `delegate register` | `raw_token`, `task_id?`, `parent_session_id`, `session` |
 | `delegate revoke` | `token_id` |
@@ -213,6 +251,8 @@ Every command takes exactly one payload source as described above; mutations als
 | `task run-transition` | `run_id`, `state`, `evidence?` |
 
 `task transition` with `actor_session_id` atomically reconciles dependencies and emits the resulting notifications. Native runtime homes and opaque locator fields are accepted only for adapter linkage and never appear in default views.
+
+`session archive` is append-only: it records an archived/interrupted liveness event and removes the session from active counts only after every owned run is terminal. It requires both the target session and controller actor to exist in the selected project; it never deletes session history.
 
 ### Progress, dependency, mailbox, and handoff lifecycle
 
@@ -337,7 +377,9 @@ omg example list [--json]
 omg example show TOPIC [--json]
 ```
 
-Example topics are generated from the live help contract, so displayed commands and payloads stay synchronized with contextual help. Topics use command-subcommand names such as `reserve-add` and `task-run-create`; `reservation-add` is accepted as a compatibility alias for `reserve-add`.
+Example topics are generated from the live help contract, so displayed commands and payloads stay synchronized with contextual help. In JSON mode, payload-bearing topics expose separate `payload_schema` and `example_payload` fields in addition to human `usage`. The required worker lifecycle topics include `message-inbox`, `progress-add`, `handoff-create`, `handoff-accept`, `checkpoint-record`, `reserve-add`, `session-create`, and `session-archive`. Topics use command-subcommand names such as `reserve-add` and `task-run-create`; `reservation-add` is accepted as a compatibility alias for `reserve-add`.
+
+Legacy discovery is explicit: `omg inbox` points to `omg message inbox`, payload-free `omg git inventory` points read-only users to `omg git current`, `omg schema` points to `omg migration`, and `omg --version` is accepted as an alias for `omg version`. These hints do not silently convert mutating requests.
 
 ## JSON envelopes
 
@@ -359,14 +401,14 @@ A failed `--json` command emits the same stable envelope shape. When a safe reco
   "ok": false,
   "error": {
     "code": "invalid_argument",
-    "message": "safe bounded message",
+    "message": "unknown field recipient_session_id; expected recipient.session_id",
     "retryable": false,
     "exit_code": 2
   },
   "meta": {"schema_version": 1, "command_version": 1},
   "warnings": [
-    "hint: use the current strict payload contract",
-    "next: omg reserve add --help"
+    "hint: Inspect the copyable payload_schema and example_payload fields.",
+    "next: omg example show message-inbox --json"
   ]
 }
 ```

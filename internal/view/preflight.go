@@ -37,6 +37,15 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 		migrationState = presentStatus("warning")
 	}
 	writeTTYStatusLine(&out, theme, "  ", "", migrationState, "Pending migrations: "+fmt.Sprint(preflight.PendingMigrations), "")
+	if automatic := preflight.AutomaticMigration; automatic != nil {
+		status := "manual approval required"
+		state := presentStatus("warning")
+		if automatic.Applied {
+			status = fmt.Sprintf("auto-safe migration applied: v%d → v%d", automatic.FromVersion, automatic.ToVersion)
+			state = presentStatus("verified")
+		}
+		writeTTYStatusLine(&out, theme, "  ", "", state, status, "plan="+automatic.PlanID)
+	}
 	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Active sessions: "+fmt.Sprint(preflight.ActiveSessions), "stale="+fmt.Sprint(preflight.StaleSessions))
 	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Conflicts: "+fmt.Sprint(preflight.Conflicts), "integration_queue="+fmt.Sprint(preflight.IntegrationQueue))
 	if preflight.Details == nil {

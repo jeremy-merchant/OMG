@@ -27,6 +27,12 @@ The state directory and database are private local data. On POSIX systems OMG en
 
 `omg init` is idempotent. It creates the safe project configuration and local state location but does not apply schema changes. The result reports `pending_migrations`.
 
+### Automatic safe upgrades
+
+The first `omg preflight` (or `omg worker bootstrap`) after a binary update evaluates the exact pending plan. It applies the plan automatically only when the store is already initialized and every pending migration is compiled as `auto-safe`. Before changing schema, OMG creates the plan-bound SQLite backup, verifies its checksum and integrity, then applies schema records plus an `automatic_safe_policy` authorization and receipt in one transaction. A post-migration integrity check runs before commit and is verified again after commit. Backups are retained.
+
+Fresh initialization, a chain containing any unclassified or risky migration, newer/checksum-divergent schema history, backup failure, or integrity failure never falls back to automatic apply. `preflight` leaves that plan pending for the separate human workflow below.
+
 ### Plan
 
 ```bash
@@ -36,7 +42,7 @@ omg migration plan \
   --json
 ```
 
-The saved plan includes the stable plan ID, project ID, from/to versions, ordered migration checksums, and expected backup location. Planning is read-only with respect to schema.
+The saved plan includes the stable plan ID, project ID, from/to versions, ordered migration checksums, expected backup location, and derived `automatic_eligible` decision. Planning is read-only with respect to schema.
 
 ### Backup
 

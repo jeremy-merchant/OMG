@@ -66,6 +66,9 @@ type Request struct {
 	Verbose                        bool
 	Stdio                          bool
 	Runtime                        string
+	ControllerSessionID            string
+	HumanID                        string
+	Role                           string
 	IntegrationBranch              string
 	HandoffID                      string
 	CanaryRunID                    string
@@ -92,6 +95,9 @@ type Request struct {
 	sessionProvided                bool
 	taskProvided                   bool
 	runtimeProvided                bool
+	controllerSessionProvided      bool
+	humanProvided                  bool
+	roleProvided                   bool
 	integrationBranchProvided      bool
 	handoffProvided                bool
 	canaryProvided                 bool
@@ -235,6 +241,15 @@ func Decode(args []string) (Request, domain.DomainError) {
 			case "--runtime":
 				request.Runtime = value
 				request.runtimeProvided = true
+			case "--controller-session":
+				request.ControllerSessionID = value
+				request.controllerSessionProvided = true
+			case "--human":
+				request.HumanID = value
+				request.humanProvided = true
+			case "--role":
+				request.Role = value
+				request.roleProvided = true
 			case "--integration-branch":
 				request.IntegrationBranch = value
 				request.integrationBranchProvided = true
@@ -291,7 +306,7 @@ func Decode(args []string) (Request, domain.DomainError) {
 
 func commandTakesSubcommand(name string) bool {
 	switch name {
-	case "migration", "backup", "release", "agent", "board", "export", "integration",
+	case "migration", "backup", "release", "agent", "worker", "board", "export", "integration",
 		"shell-init", "completion", "watch", "human", "session", "delegate", "checkpoint",
 		"task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt", "example", "mcp":
 		return true
@@ -302,7 +317,7 @@ func commandTakesSubcommand(name string) bool {
 
 func optionTakesValue(arg string) bool {
 	switch arg {
-	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--integration-branch", "--integration-ref", "--handoff", "--canary", "--verification-command", "--execution-kind", "--environment-fingerprint", "--evidence-path", "--exit-code", "--passed", "--failed", "--skipped", "--payload", "--payload-file":
+	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--controller-session", "--human", "--role", "--integration-branch", "--integration-ref", "--handoff", "--canary", "--verification-command", "--execution-kind", "--environment-fingerprint", "--evidence-path", "--exit-code", "--passed", "--failed", "--skipped", "--payload", "--payload-file":
 		return true
 	default:
 		return false
@@ -335,6 +350,19 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 			return ExitInternal
 		}
 		return ExitSuccess
+	}
+	if args[0] == "--version" {
+		args = append([]string{"version"}, args[1:]...)
+	}
+	if args[0] == "inbox" {
+		return writeErrorWithContext(output, hasJSON(args), domain.NewError(domain.CodeCommandNotWired, "legacy command omg inbox moved to omg message inbox", false), terminalErrorContext{
+			Hint: "The inbox payload is {\"recipient\":{\"session_id\":\"SESSION_ID\"}}.", Next: "omg example show message-inbox --json",
+		})
+	}
+	if args[0] == "schema" {
+		return writeErrorWithContext(output, hasJSON(args), domain.NewError(domain.CodeCommandNotWired, "legacy command omg schema moved to omg migration", false), terminalErrorContext{
+			Hint: "Migration planning is read-only; applying still requires an explicit approval file and backup.", Next: "omg migration --help",
+		})
 	}
 	if len(args) == 1 && commandRequiresSubcommand(args[0]) {
 		usage, found := renderHelpWithHeight(version, cliTerminalColorEnabled(output), cliTerminalWidth(output), cliTerminalHeight(output), helpTarget{Command: args[0]})
@@ -377,6 +405,12 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	if err.Code != "" {
 		return writeErrorWithContext(output, hasJSON(args), err, decodeRecoveryContext(args))
 	}
+	if request.Project == "" && request.Workspace == "" && request.Store == "" {
+		request.Project = os.Getenv("OMG_PROJECT")
+	}
+	if request.Name != "worker" && (request.controllerSessionProvided || request.humanProvided || request.roleProvided) {
+		return writeInvalidRequest(output, request, "worker identity options are supported only by worker bootstrap")
+	}
 	if request.Name != "canary" && hasCanaryOptions(request) || request.integrationBranchProvided && request.Name != "git" && request.Name != "orphan" && request.Name != "canary" {
 		return writeInvalidRequest(output, request, "command-specific Git or canary options are invalid here")
 	}
@@ -396,6 +430,8 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	switch request.Name {
 	case "agent":
 		return runAgent(output, request)
+	case "worker":
+		return runWorkerBootstrap(ctx, output, request, application)
 	case "version":
 		if request.Subcommand != "" {
 			break
@@ -479,9 +515,11 @@ type exampleListResult struct {
 }
 
 type exampleShowResult struct {
-	Topic   string `json:"topic"`
-	Command string `json:"command"`
-	Usage   string `json:"usage"`
+	Topic          string         `json:"topic"`
+	Command        string         `json:"command"`
+	Usage          string         `json:"usage"`
+	PayloadSchema  map[string]any `json:"payload_schema,omitempty"`
+	ExamplePayload any            `json:"example_payload,omitempty"`
 }
 
 func runExample(output io.Writer, args []string, version string) int {
@@ -543,10 +581,10 @@ func runExample(output io.Writer, args []string, version string) int {
 			return writeErrorWithContext(output, jsonOutput, invalid("example topic is unavailable"), terminalErrorContext{Next: "omg example list"})
 		}
 		if jsonOutput {
+			payloadSchema, examplePayload, _ := examplePayloadContract(topic)
 			return writeSuccess(output, true, exampleShowResult{
-				Topic:   topic,
-				Command: "omg " + target.Command + " " + target.Subcommand,
-				Usage:   stripTerminalANSI(usage),
+				Topic: topic, Command: strings.TrimSpace("omg " + target.Command + " " + target.Subcommand),
+				Usage: stripTerminalANSI(usage), PayloadSchema: payloadSchema, ExamplePayload: examplePayload,
 			})
 		}
 		if _, err := io.WriteString(output, usage); err != nil {
@@ -674,6 +712,11 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 		if request.integrationBranchProvided || request.IntegrationBranch != "" || hasCanaryOptions(request) {
 			return writeInvalidRequest(output, request, "direct Git and canary options are not supported by this command")
 		}
+		if request.Name == "git" && request.Subcommand == "inventory" && !request.PayloadProvided && !request.PayloadFileProvided && !request.PayloadStdin {
+			return writeErrorWithContext(output, request.JSON, invalid("git inventory records a fresh observation and requires an idempotency key plus directory payload"), terminalErrorContext{
+				Hint: "For read-only inspection of the current observation, use git current.", Next: "omg git current --project " + shellQuote(selection.Project) + " --json",
+			})
+		}
 		var loaded string
 		loaded, err = loadApplicationPayload(request, input)
 		payload = []byte(loaded)
@@ -691,9 +734,23 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 		Store: selection.Store, IdempotencyKey: request.IdempotencyKey, Payload: json.RawMessage(payload),
 	})
 	if outcome.Error.Code != "" {
+		if outcome.Error.Code == domain.CodeInvalidArgument {
+			return writeErrorWithContext(output, request.JSON, outcome.Error, applicationPayloadRecovery(request))
+		}
 		return writeError(output, request.JSON, outcome.Error)
 	}
 	return writeSuccess(output, request.JSON, outcome.Data)
+}
+
+func applicationPayloadRecovery(request Request) terminalErrorContext {
+	topic := request.Name
+	if request.Subcommand != "" {
+		topic += "-" + request.Subcommand
+	}
+	if _, _, ok := examplePayloadContract(topic); ok {
+		return terminalErrorContext{Hint: "Inspect the copyable payload_schema and example_payload fields.", Next: "omg example show " + topic + " --json"}
+	}
+	return terminalErrorContext{Hint: "Use only the fields documented by contextual help.", Next: "omg " + request.Name + " " + request.Subcommand + " --help"}
 }
 
 func applicationCommandName(name string) bool {
@@ -719,6 +776,12 @@ func decodePayload(data string, target any) bool {
 }
 
 func runBoard(output io.Writer, request Request, application app.CLIService, selection foundation.Selection, ctx context.Context) int {
+	if request.Subcommand == string(query.BoardMe) && !request.sessionProvided && request.SessionID == "" {
+		if sessionID := os.Getenv("OMG_SESSION_ID"); sessionID != "" {
+			request.SessionID = sessionID
+			request.sessionProvided = true
+		}
+	}
 	if !validBoardRequest(request) {
 		return writeInvalidRequest(output, request, "board request is invalid")
 	}
@@ -1170,12 +1233,13 @@ func runApply(output io.Writer, request Request, service app.Foundation, selecti
 }
 func safePlan(plan foundation.Plan) any {
 	return struct {
-		ID          string   `json:"id"`
-		Project     string   `json:"project"`
-		FromVersion int      `json:"from_version"`
-		ToVersion   int      `json:"to_version"`
-		Checksums   []string `json:"checksums"`
-	}{plan.ID, plan.Project, plan.FromVersion, plan.ToVersion, plan.Checksums}
+		ID                string   `json:"id"`
+		Project           string   `json:"project"`
+		FromVersion       int      `json:"from_version"`
+		ToVersion         int      `json:"to_version"`
+		Checksums         []string `json:"checksums"`
+		AutomaticEligible bool     `json:"automatic_eligible"`
+	}{plan.ID, plan.Project, plan.FromVersion, plan.ToVersion, plan.Checksums, plan.AutomaticEligible}
 }
 func statusResult(output io.Writer, request Request, result foundation.Status, err domain.DomainError) int {
 	if err.Code != "" {

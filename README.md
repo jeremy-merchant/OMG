@@ -49,6 +49,14 @@ omg agent doctor
 
 See [`docs/GLOBAL_AGENT_INSTALL.md`](docs/GLOBAL_AGENT_INSTALL.md) for the discovery surfaces, offline reviewed-candidate path, uninstall behavior, release asset contract, and terminal design.
 
+Controllers launching parallel OMP lanes can pre-register each worker and inject its exact project/session/task/controller/human identity. The worker then starts with one bounded command instead of reconstructing OMG payloads:
+
+```bash
+omg worker bootstrap --idempotency-key bootstrap-worker-1 --output /absolute/private/worker-1.env --json
+```
+
+See [`docs/WORKER_BOOTSTRAP.md`](docs/WORKER_BOOTSTRAP.md) for the controller contract and a shell-safe cmux/OMP launch pattern.
+
 ## Build from this checkout
 
 Requirements: Go 1.26 or the version declared in `go.mod`. Release binaries are built with `CGO_ENABLED=0` and require no Node, Python, shared SQLite library, daemon, or cloud account.
@@ -63,7 +71,7 @@ The expected source status is `SOURCE PUBLISHED`; `stable_release` remains `fals
 
 ## Fresh-project quickstart
 
-Schema changes are never implicit. Initialization creates the local project configuration and state location, then reports pending schema migrations. Review the exact plan and verified backup before creating the separate approval file.
+Fresh initialization remains explicit: it creates the local project configuration and state location, then reports pending schema migrations. Review the exact plan and verified backup before creating the separate approval file. On an already initialized store, `preflight` may automatically upgrade only when every pending migration is compiled as `auto-safe`; OMG first creates and verifies an exact backup, applies the migration atomically, and checks integrity. Mixed, unknown, and risky plans remain human-gated.
 
 ```bash
 PROJECT=/absolute/path/to/your/project
@@ -165,6 +173,7 @@ File output is owner-only and refuses to overwrite an existing path. `--output -
 
 - [Operator guide](docs/OPERATIONS.md): storage, migrations, backup/recovery, watch, MCP, privacy, and troubleshooting.
 - [Command reference](docs/COMMAND_REFERENCE.md): supported command syntax, payloads, JSON envelopes, and stable exit codes.
+- [Worker bootstrap guide](docs/WORKER_BOOTSTRAP.md): controller pre-registration, worker-scoped startup, and atomic cmux/OMP prompt delivery.
 - [Adapter guide](docs/ADAPTERS.md): runtime wrappers, contextual shell helpers/completion, instruction surfaces, watch, MCP, and native-session metadata.
 - [2026 interface research](docs/INTERFACE_RESEARCH_2026.md): official trend research, OMP source audit, accessibility decisions, and browser measurements.
 - [Product specification](docs/PRODUCT_SPEC.md) and [acceptance matrix](docs/ACCEPTANCE_MATRIX.md).

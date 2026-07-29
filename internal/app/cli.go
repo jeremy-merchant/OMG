@@ -16,6 +16,7 @@ type Foundation interface {
 	Plan(context.Context, foundation.Selection) (foundation.Plan, domain.DomainError)
 	Backup(context.Context, foundation.Selection, *foundation.Plan) (foundation.Backup, domain.DomainError)
 	Apply(context.Context, foundation.Selection, foundation.Plan, foundation.ApprovalFile) domain.DomainError
+	AutoMigrate(context.Context, foundation.Selection) (foundation.AutomaticMigration, domain.DomainError)
 	PlanRestore(context.Context, foundation.Selection, foundation.RestorePlanRequest) (foundation.RestorePlan, domain.DomainError)
 }
 
