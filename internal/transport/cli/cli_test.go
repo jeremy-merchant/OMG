@@ -958,6 +958,25 @@ func TestBoardAndStaticExportUseCurrentCanonicalStore(t *testing.T) {
 		}
 	}
 	output.Reset()
+	exit = RunWithService([]string{"stale", "--project", root, "--json"}, "test-version", &output, service)
+	if exit != ExitSuccess {
+		t.Fatalf("stale JSON exit=%d: %s", exit, output.String())
+	}
+	var staleEnvelope struct {
+		Data query.StaleView `json:"data"`
+	}
+	if decodeErr := json.Unmarshal(output.Bytes(), &staleEnvelope); decodeErr != nil {
+		t.Fatal(decodeErr)
+	}
+	if staleEnvelope.Data.Counts.FinishedUnclosed != 1 || len(staleEnvelope.Data.Sessions) != 1 || staleEnvelope.Data.Sessions[0].SessionID != "session-cli" || staleEnvelope.Data.Sessions[0].RecommendedAction != "archive_session" {
+		t.Fatalf("stale JSON = %#v", staleEnvelope.Data)
+	}
+	output.Reset()
+	exit = RunWithService([]string{"stale", "--project", root}, "test-version", &output, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), "OMG STALE") || !strings.Contains(output.String(), "FINISHED_UNCLOSED session-cli") || !strings.Contains(output.String(), "action=archive_session") {
+		t.Fatalf("stale TTY exit=%d: %s", exit, output.String())
+	}
+	output.Reset()
 	exit = RunWithService([]string{"preflight", "--project", root, "--json"}, "test-version", &output, service)
 	if exit != ExitSuccess || !strings.Contains(output.String(), `"healthy":true`) || strings.Contains(output.String(), `"details"`) || strings.Contains(output.String(), `"sessions"`) {
 		t.Fatalf("compact preflight exit=%d: %s", exit, output.String())
@@ -1633,6 +1652,30 @@ func TestIntegrationQueueAllowsImplicitAndCanonicalSelections(t *testing.T) {
 	}
 	if validIntegrationQueueRequest(Request{Name: "integration", Subcommand: "queue", Payload: "{}", PayloadProvided: true}) {
 		t.Fatal("queue accepted a payload")
+	}
+}
+
+func TestStaleAllowsOnlySelectionAndJSON(t *testing.T) {
+	for _, request := range []Request{
+		{Name: "stale"},
+		{Name: "stale", JSON: true},
+		{Name: "stale", Project: "/project", projectProvided: true},
+		{Name: "stale", Workspace: "/workspace", workspaceProvided: true},
+		{Name: "stale", Store: "/state.db", storeProvided: true},
+	} {
+		if !validStaleRequest(request) {
+			t.Fatalf("stale selection was rejected: %+v", request)
+		}
+	}
+	for _, request := range []Request{
+		{Name: "stale", Subcommand: "all"},
+		{Name: "stale", Payload: "{}", PayloadProvided: true},
+		{Name: "stale", SessionID: "session", sessionProvided: true},
+		{Name: "stale", Format: "tty", formatProvided: true},
+	} {
+		if validStaleRequest(request) {
+			t.Fatalf("invalid stale request was accepted: %+v", request)
+		}
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/jeremy-merchant/OMG/internal/agentinstall"
@@ -472,6 +473,8 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		return runPreflight(ctx, output, request, application, selection)
 	case "status":
 		return runOperatorSummary(ctx, output, request, application, selection)
+	case "stale":
+		return runStaleSessions(ctx, output, request, application, selection)
 	case "migration":
 		if request.Subcommand == "plan" {
 			return runPlan(output, request, application.Foundation, selection, ctx)
@@ -884,6 +887,82 @@ func runOperatorSummary(ctx context.Context, output io.Writer, request Request, 
 		_, _ = fmt.Fprintf(output, "%s %d → %s %d\n", bottleneck.From, bottleneck.Waiting, bottleneck.To, bottleneck.Done)
 	}
 	return ExitSuccess
+}
+
+func runStaleSessions(ctx context.Context, output io.Writer, request Request, application app.CLIService, selection foundation.Selection) int {
+	if !validStaleRequest(request) {
+		return writeInvalidRequest(output, request, "stale request is invalid")
+	}
+	model, err := loadBoard(ctx, application.Dispatcher, selection, query.BoardRequest{Mode: query.BoardAll})
+	if err.Code != "" {
+		return writeError(output, request.JSON, err)
+	}
+	var snapshot query.BoardSnapshot
+	if decodeErr := json.Unmarshal(model.Data(), &snapshot); decodeErr != nil {
+		return writeError(output, request.JSON, domain.NewError(domain.CodeInternal, "unable to decode session classifications", false))
+	}
+	view := query.ClassifySessions(snapshot)
+	if request.JSON {
+		return writeSuccess(output, true, view)
+	}
+	_, _ = fmt.Fprintf(output, "OMG STALE\nthresholds idle=%s stale=%s\nalive=%d idle=%d stale=%d runtime_unobservable=%d finished_unclosed=%d\n",
+		time.Duration(view.IdleAfterSeconds)*time.Second,
+		time.Duration(view.StaleAfterSeconds)*time.Second,
+		view.Counts.Alive,
+		view.Counts.Idle,
+		view.Counts.Stale,
+		view.Counts.RuntimeUnobservable,
+		view.Counts.FinishedUnclosed,
+	)
+	for _, session := range view.Sessions {
+		heartbeat := "-"
+		if session.LastHeartbeatAt != nil {
+			heartbeat = session.LastHeartbeatAt.Format(time.RFC3339)
+		}
+		taskID := session.TaskID
+		if taskID == "" {
+			taskID = "-"
+		}
+		runStates := "-"
+		if len(session.RunStates) != 0 {
+			runStates = strings.Join(session.RunStates, ",")
+		}
+		_, _ = fmt.Fprintf(output, "%s %s age=%s heartbeat=%s runtime=%s task=%s runs=%s action=%s\n",
+			strings.ToUpper(string(session.Classification)),
+			session.SessionID,
+			formatElapsedSeconds(session.ElapsedSeconds),
+			heartbeat,
+			session.Runtime,
+			taskID,
+			runStates,
+			session.RecommendedAction,
+		)
+	}
+	return ExitSuccess
+}
+
+func validStaleRequest(request Request) bool {
+	return request.Name == "stale" && request.Subcommand == "" &&
+		!request.Integrity && !request.Status && !request.Stdio && !request.Verbose &&
+		!request.runtimeProvided && request.Runtime == "" && len(request.Command) == 0 &&
+		!request.outputProvided && request.Output == "" && !request.planFileProvided && request.PlanFile == "" &&
+		!request.approvalFileProvided && request.ApprovalFile == "" && !request.idempotencyKeyProvided && request.IdempotencyKey == "" &&
+		!request.formatProvided && request.Format == "" && !request.sessionProvided && request.SessionID == "" &&
+		!request.taskProvided && request.TaskID == "" && !request.PayloadProvided && request.Payload == "" &&
+		!request.PayloadFileProvided && request.PayloadFile == "" && !request.PayloadStdin
+}
+
+func formatElapsedSeconds(seconds int64) string {
+	if seconds < 60 {
+		return fmt.Sprintf("%ds", seconds)
+	}
+	if seconds < 3600 {
+		return fmt.Sprintf("%dm", seconds/60)
+	}
+	if seconds < 86400 {
+		return fmt.Sprintf("%dh%dm", seconds/3600, seconds%3600/60)
+	}
+	return fmt.Sprintf("%dd%dh", seconds/86400, seconds%86400/3600)
 }
 
 func validExportRequest(request Request) bool {

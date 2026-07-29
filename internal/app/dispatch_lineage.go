@@ -223,6 +223,9 @@ func (d *ServiceDispatcher) dispatchLineage(ctx context.Context, request Request
 			if !decodePayload(request.Payload, &payload) {
 				return invalidRequest()
 			}
+			if !d.service.WorktreeBelongsToProject(ctx, payload.WorktreeRef, resolved.Project) {
+				return domain.NewError(domain.CodeInvalidArgument, "worktree_ref is outside the selected project", false)
+			}
 			if request.Command == "session.create" && payload.SourceRef == "" {
 				payload.SourceRef = "session.create"
 			}

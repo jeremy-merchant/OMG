@@ -148,7 +148,7 @@ function OMG-Checkpoint {
 }
 
 var completionCommands = []string{
-	"help", "init", "preflight", "status", "doctor", "migration", "backup", "release", "version", "agent", "worker",
+	"help", "init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker",
 	"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
 	"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 }
@@ -164,6 +164,7 @@ var completionCommandDescriptions = map[string]string{
 	"init":        "Create local canonical state.",
 	"preflight":   "Check readiness, identity, blockers, inbox, reservations, and Git.",
 	"status":      "Show the compact operator summary and workflow bottleneck.",
+	"stale":       "Classify open sessions by liveness, observability, and unfinished closure risk.",
 	"doctor":      "Inspect store, platform, recovery, and integrity health.",
 	"migration":   "Plan or apply an explicitly approved schema migration.",
 	"backup":      "Create or validate private recovery artifacts.",
@@ -259,6 +260,7 @@ var completionByCommand = map[string][]string{
 	"init":        {},
 	"preflight":   {},
 	"status":      {},
+	"stale":       {},
 	"doctor":      {},
 	"migration":   {"plan", "apply"},
 	"backup":      {"create", "restore"},

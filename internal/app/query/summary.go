@@ -22,16 +22,9 @@ func Summarize(snapshot BoardSnapshot) OperatorSummary {
 		HandoffsByState: map[string]int{},
 		Bottlenecks:     []BottleneckView{},
 	}
-	for _, session := range snapshot.Sessions {
-		switch session.Liveness {
-		case SessionLivenessStale:
-			summary.StaleSessions++
-		default:
-			if session.EndedAt == nil && session.InterruptedAt == nil {
-				summary.ActiveSessions++
-			}
-		}
-	}
+	sessions := ClassifySessions(snapshot)
+	summary.ActiveSessions = len(sessions.Sessions)
+	summary.StaleSessions = sessions.Counts.Stale
 	for _, task := range snapshot.Tasks {
 		summary.TasksByState[task.State]++
 	}
@@ -42,9 +35,21 @@ func Summarize(snapshot BoardSnapshot) OperatorSummary {
 			summary.IntegrationQueue++
 		}
 	}
+	activeReservations := make(map[string]struct{}, len(snapshot.Reservations))
+	for _, reservation := range snapshot.Reservations {
+		if reservation.Lifecycle == "" || reservation.Lifecycle == "active" {
+			activeReservations[reservation.ID] = struct{}{}
+		}
+	}
 	conflicts := map[string]struct{}{}
 	for _, reservation := range snapshot.Reservations {
+		if _, active := activeReservations[reservation.ID]; !active {
+			continue
+		}
 		for _, other := range reservation.ConflictIDs {
+			if _, active := activeReservations[other]; !active {
+				continue
+			}
 			pair := []string{reservation.ID, other}
 			sort.Strings(pair)
 			conflicts[pair[0]+"\x00"+pair[1]] = struct{}{}

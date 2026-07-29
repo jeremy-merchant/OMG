@@ -47,9 +47,10 @@ omg init [--project P | --workspace W | --store DB] [--json]
 omg doctor [selection] [--integrity] [--json]
 omg preflight [selection] [--verbose] [--json]
 omg status [selection] [--json]
+omg stale [selection] [--json]
 ```
 
-`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns compact operator counts and includes `automatic_migration` when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck.
+`version` is available without state. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns compact operator counts and includes `automatic_migration` when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck. `stale` classifies only open sessions as `alive`, `idle`, `stale`, `runtime_unobservable`, or `finished_unclosed`; it reports the last heartbeat, elapsed time, run states, and a recommended operator action. Closed and interrupted historical sessions do not inflate the actionable stale count. The default idle and stale thresholds are reported in every response (15 minutes and 1 hour in v0.1).
 
 ## Worker bootstrap
 
@@ -237,8 +238,8 @@ Every command takes exactly one payload source as described above; mutations als
 |---|---|
 | `human create` | `id?`, `display_name`, `confidence`, `supersedes_id?` |
 | `human get` | `id` |
-| `session create` | `id?`, `human_id`, `runtime`, `role`, `source_ref?`, inert compatibility fields `instruction_source?` and `provenance_confidence?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
-| `session resume\|adopt\|import` | `id?`, `human_id?`, `runtime`, `role`, `source_ref`, `parent_session_id?`, `continuation_of_id?`, `task_id?`, `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
+| `session create` | `id?`, `human_id`, `runtime`, `role`, `source_ref?`, inert compatibility fields `instruction_source?` and `provenance_confidence?`, `task_id?`, project-matching `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
+| `session resume\|adopt\|import` | `id?`, `human_id?`, `runtime`, `role`, `source_ref`, `parent_session_id?`, `continuation_of_id?`, `task_id?`, project-matching `worktree_ref?`, `native_access_state`, and optional private native-runtime fields |
 | `session archive` | `id`, `session_id`, `actor_session_id`, `reason` |
 | `delegate issue` | `task_id?`, `parent_session_id`, `ttl_seconds` |
 | `delegate register` | `raw_token`, `task_id?`, `parent_session_id`, `session` |

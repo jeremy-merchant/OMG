@@ -53,6 +53,32 @@ func TestRunRuntimeIsProvenanceOnly(t *testing.T) {
 	}
 }
 
+func TestRunDoesNotLeakOMGCoordinationScopeToNestedRuntime(t *testing.T) {
+	t.Setenv("GO_WANT_RUNTIME_HELPER", "1")
+	t.Setenv("OMG_PROJECT", "/parent/project")
+	t.Setenv("OMG_WORKSPACE", "/parent/workspace")
+	t.Setenv("OMG_STORE_PATH", "/parent/state.db")
+	t.Setenv("OMG_SESSION_ID", "parent-session")
+	t.Setenv("OMG_TASK_ID", "parent-task")
+	t.Setenv("OMG_CONTROLLER_SESSION_ID", "parent-controller")
+	t.Setenv("OMG_HUMAN_ID", "parent-human")
+	t.Setenv("OMG_RUNTIME", "parent-runtime")
+	t.Setenv("OMG_ROLE", "parent-role")
+	t.Setenv("OMG_COLOR_SCHEME", "dark")
+
+	var stdout bytes.Buffer
+	result, err := Run(context.Background(), RunRequest{
+		Runtime: "chatgpt2codex",
+		Argv:    []string{os.Args[0], "-test.run=TestRuntimeHelperProcess", "mode=environment"},
+	}, Dependencies{Stdin: strings.NewReader(""), Stdout: &stdout, Stderr: &bytes.Buffer{}})
+	if err != nil || result.Status != StatusSucceeded {
+		t.Fatalf("Run() result=%#v error=%v", result, err)
+	}
+	if got, want := stdout.String(), "project=;session=;task=;workspace=;store=;color=dark"; got != want {
+		t.Fatalf("nested environment = %q, want %q", got, want)
+	}
+}
+
 func TestRunStreamsStandardIOAndPropagatesExitStatus(t *testing.T) {
 	t.Setenv("GO_WANT_RUNTIME_HELPER", "1")
 	var stdout, stderr bytes.Buffer
@@ -209,6 +235,16 @@ func TestRuntimeHelperProcess(t *testing.T) {
 		}
 	}
 	switch mode {
+	case "environment":
+		_, _ = os.Stdout.WriteString(strings.Join([]string{
+			"project=" + os.Getenv("OMG_PROJECT"),
+			"session=" + os.Getenv("OMG_SESSION_ID"),
+			"task=" + os.Getenv("OMG_TASK_ID"),
+			"workspace=" + os.Getenv("OMG_WORKSPACE"),
+			"store=" + os.Getenv("OMG_STORE_PATH"),
+			"color=" + os.Getenv("OMG_COLOR_SCHEME"),
+		}, ";"))
+		os.Exit(0)
 	case "stdio":
 		input, _ := io.ReadAll(os.Stdin)
 		_, _ = os.Stdout.WriteString("out:" + string(input))

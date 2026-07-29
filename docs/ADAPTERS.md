@@ -33,6 +33,8 @@ omg run --runtime shell -- /absolute/path/to/agent [args...]
 
 The `--runtime` value is bounded provenance metadata. The first token after `--` is the only executable request. OMG resolves and executes that argv directly without a shell, preserves stdin/stdout/stderr, propagates cancellation, and reports how the executable was resolved without exposing its filesystem path.
 
+Nested runtimes do not inherit the caller's OMG project, workspace, store, session, task, controller, human, runtime, or role variables. This is especially important for `chatgpt2codex`, which may enter a clone or a different repository: the child must discover that repository's root or receive a fresh worker bootstrap explicitly. Presentation variables such as `OMG_COLOR_SCHEME` remain available.
+
 Never pass a command assembled from a task title, prompt, message, handoff, or model output. Validate and construct argv in the invoking integration.
 
 ## Instruction-file integration

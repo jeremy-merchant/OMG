@@ -8,11 +8,13 @@ import (
 
 func TestSummarizeAndIntegrationQueueExposeBottleneckAndEvidence(t *testing.T) {
 	now := time.Date(2026, time.July, 28, 2, 0, 0, 0, time.UTC)
+	staleHeartbeat := now.Add(-2 * time.Hour)
 	snapshot := BoardSnapshot{
+		GeneratedAt: now,
 		Sessions: []IdentityView{
-			{ID: "alive", Liveness: SessionLivenessAlive},
+			{ID: "alive", Liveness: SessionLivenessAlive, HeartbeatAt: &now},
 			{ID: "unknown-runtime", Liveness: SessionLivenessNoSignal},
-			{ID: "stale", Liveness: SessionLivenessStale},
+			{ID: "stale", Liveness: SessionLivenessStale, HeartbeatAt: &staleHeartbeat},
 		},
 		Tasks: []TaskView{
 			{ID: "wc-1", State: "WORK_COMPLETE"}, {ID: "wc-2", State: "WORK_COMPLETE"},
@@ -26,7 +28,7 @@ func TestSummarizeAndIntegrationQueueExposeBottleneckAndEvidence(t *testing.T) {
 		Reservations: []ReservationView{{ID: "r1", ConflictIDs: []string{"r2"}}, {ID: "r2", ConflictIDs: []string{"r1"}}},
 	}
 	summary := Summarize(snapshot)
-	if summary.ActiveSessions != 2 || summary.StaleSessions != 1 || summary.Conflicts != 1 || summary.IntegrationQueue != 2 {
+	if summary.ActiveSessions != 3 || summary.StaleSessions != 1 || summary.Conflicts != 1 || summary.IntegrationQueue != 2 {
 		t.Fatalf("summary = %#v", summary)
 	}
 	if !reflect.DeepEqual(summary.Bottlenecks, []BottleneckView{{From: "WORK_COMPLETE", To: "VERIFIED_DONE", Waiting: 2, Done: 1}}) {
@@ -38,5 +40,17 @@ func TestSummarizeAndIntegrationQueueExposeBottleneckAndEvidence(t *testing.T) {
 	}
 	if queue[1].HandoffID != "missing" || !reflect.DeepEqual(queue[1].MissingEvidence, []string{"source_commit", "source_tree"}) {
 		t.Fatalf("missing evidence queue item = %#v", queue[1])
+	}
+}
+
+func TestSummarizeIgnoresConflictsWithInactiveReservations(t *testing.T) {
+	snapshot := BoardSnapshot{Reservations: []ReservationView{
+		{ID: "active", Lifecycle: "active", ConflictIDs: []string{"overridden", "released", "expired"}},
+		{ID: "overridden", Lifecycle: "overridden", ConflictIDs: []string{"active"}},
+		{ID: "released", Lifecycle: "released", ConflictIDs: []string{"active"}},
+		{ID: "expired", Lifecycle: "expired", ConflictIDs: []string{"active"}},
+	}}
+	if got := Summarize(snapshot).Conflicts; got != 0 {
+		t.Fatalf("inactive reservation conflicts = %d, want 0", got)
 	}
 }

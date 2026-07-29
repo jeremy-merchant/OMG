@@ -345,6 +345,20 @@ func (s *Service) ResolveProjectRoot(ctx context.Context, selection Selection) (
 	return resolved.ProjectRoot, domain.DomainError{}
 }
 
+// WorktreeBelongsToProject verifies that a worktree resolves to the same
+// canonical project identity as the selected store. Linked Git worktrees share
+// a common project identity; nested clones and unrelated repositories do not.
+func (s *Service) WorktreeBelongsToProject(ctx context.Context, worktree string, project domain.ProjectID) bool {
+	if worktree == "" {
+		return true
+	}
+	if s == nil || s.resolver == nil || project == "" {
+		return false
+	}
+	resolved, err := s.resolver.Resolve(ctx, ports.ResolveRequest{ProjectPath: worktree})
+	return err == nil && resolved.Project != "" && resolved.Project == project
+}
+
 // WithCurrentStore opens an existing selected local store for one application
 // operation and closes it before returning. Coordination services use this
 // boundary so transports never own database lifecycle or private store paths.

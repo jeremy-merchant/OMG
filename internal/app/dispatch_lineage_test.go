@@ -111,6 +111,34 @@ func TestDispatchLineageSessionCreateStillRejectsUnknownFields(t *testing.T) {
 	}
 }
 
+func TestDispatchLineageSessionRejectsForeignWorktreeButAcceptsSelectedProject(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	createdHuman, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "human.create", IdempotencyKey: "worktree-scope-human",
+		Payload: []byte(`{"id":"worktree-scope-human","display_name":"Operator","confidence":"verified"}`),
+	}, selection)
+	if !handled || createdHuman.Error.Code != "" {
+		t.Fatalf("human.create outcome=%+v handled=%t", createdHuman, handled)
+	}
+
+	accepted, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "session.create", IdempotencyKey: "worktree-scope-selected",
+		Payload: []byte(`{"id":"worktree-scope-selected","human_id":"worktree-scope-human","runtime":"test","role":"worker","worktree_ref":"` + selection.Project + `","native_access_state":"unsupported"}`),
+	}, selection)
+	if !handled || accepted.Error.Code != "" {
+		t.Fatalf("selected worktree outcome=%+v handled=%t", accepted, handled)
+	}
+
+	foreign := t.TempDir()
+	rejected, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "session.create", IdempotencyKey: "worktree-scope-foreign",
+		Payload: []byte(`{"id":"worktree-scope-foreign","human_id":"worktree-scope-human","runtime":"chatgpt2codex","role":"worker","worktree_ref":"` + foreign + `","native_access_state":"unsupported"}`),
+	}, selection)
+	if !handled || rejected.Error.Code != domain.CodeInvalidArgument || rejected.Error.Message != "worktree_ref is outside the selected project" {
+		t.Fatalf("foreign worktree outcome=%+v handled=%t", rejected, handled)
+	}
+}
+
 func TestDispatchLineageSessionCreateReportsUnknownHumanWithoutStoreFailure(t *testing.T) {
 	ctx, dispatcher, selection := lineageDispatcher(t)
 	outcome, handled := dispatcher.dispatchLineage(ctx, Request{

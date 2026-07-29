@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -117,6 +118,7 @@ func Run(ctx context.Context, request RunRequest, dependencies Dependencies) (Ru
 	command := exec.CommandContext(ctx, resolved, argv[1:]...)
 	command.Args = argv
 	command.Dir = request.Directory
+	command.Env = childEnvironment(os.Environ())
 	command.Stdin = dependencies.Stdin
 	command.Stdout = dependencies.Stdout
 	command.Stderr = dependencies.Stderr
@@ -147,6 +149,35 @@ func Run(ctx context.Context, request RunRequest, dependencies Dependencies) (Ru
 	result.Status = StatusSucceeded
 	result.ExitCode = 0
 	return result, nil
+}
+
+// childEnvironment prevents a nested runtime from inheriting the caller's OMG
+// project and worker identity. A child must discover or receive coordination
+// scope for its own working repository explicitly.
+func childEnvironment(environment []string) []string {
+	blocked := map[string]struct{}{
+		"OMG_PROJECT": {}, "OMG_WORKSPACE": {}, "OMG_STORE_PATH": {},
+		"OMG_SESSION_ID": {}, "OMG_TASK_ID": {}, "OMG_CONTROLLER_SESSION_ID": {},
+		"OMG_HUMAN_ID": {}, "OMG_RUNTIME": {}, "OMG_ROLE": {},
+	}
+	filtered := make([]string, 0, len(environment))
+	for _, entry := range environment {
+		name, _, found := strings.Cut(entry, "=")
+		if !found {
+			continue
+		}
+		blockedName := false
+		for candidate := range blocked {
+			if strings.EqualFold(name, candidate) {
+				blockedName = true
+				break
+			}
+		}
+		if !blockedName {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
 }
 
 func validateRequest(request RunRequest) error {
