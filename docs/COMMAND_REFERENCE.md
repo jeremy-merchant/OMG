@@ -38,6 +38,8 @@ omg agent uninstall [--json]
 
 The agent command family is global and therefore rejects project, workspace, store, payload, output, runtime, task, and session selectors. `install` creates or updates only OMG-managed user-level instruction blocks and exact managed skills. `status` classifies each surface as `installed`, `missing`, `drifted`, or `unsafe`; `doctor` reports `healthy` only when every surface is installed and safe; `uninstall` removes only exact OMG-managed content. Human output uses semantic status glyphs and a width-bounded discovery tree. JSON uses the stable envelope and renders user-home paths with `~`. Set `OMG_AGENT_HOME` only for isolated tests or managed portable installations.
 
+These global commands are also the bootstrap and self-repair escape hatch. They do not require project preflight and must remain callable when managed surfaces are missing or drifted. Consumers must not use `agent doctor` as a universal command gate: a harness problem can block coordinated repository mutation that depends on OMG, but not `version`, `agent status|doctor|install|uninstall`, diagnosis, or unrelated host-level package installation and login.
+
 ## Foundation
 
 ```text

@@ -125,7 +125,7 @@ func TestInstallUpdatesPreviousManagedSkill(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	previous := strings.Replace(string(SkillContent()), "schemaVersion: 6", "schemaVersion: 5", 1)
+	previous := strings.Replace(string(SkillContent()), "schemaVersion: 7", "schemaVersion: 6", 1)
 	if err := os.WriteFile(path, []byte(previous), 0o640); err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +189,7 @@ func TestStatusRejectsSymlinkParent(t *testing.T) {
 
 func TestSkillContentIsAlwaysApplyAndSecretFree(t *testing.T) {
 	content := string(SkillContent())
-	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 6", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "OBSERVE", "WORK_LITE", "FULL", "OMG records coordination risk, not every action", "every exact pending migration", "plan-bound backup", "do not wait for human approval", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg board actionable", "omg example show session-create", "omg message inbox", "instruction_source", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
+	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 7", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "OBSERVE", "WORK_LITE", "FULL", "OMG records coordination risk, not every action", "Host-level tool installation", "not OMG project work", "Never use agent-harness health as a universal shell gate", "omg agent status|doctor|install|uninstall", "must not block diagnosis", "every exact pending migration", "plan-bound backup", "do not wait for human approval", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg board actionable", "omg example show session-create", "omg message inbox", "instruction_source", "payload-free `omg git diff", "project-scoped", "VERIFIED_DONE"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf("skill missing %q", required)
 		}

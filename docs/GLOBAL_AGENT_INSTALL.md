@@ -75,6 +75,10 @@ The global harness does not create one shared cloud account or central database.
 
 `omg mode classify --payload <risk-signals> --json` exposes the deterministic contract. Safety-triggered FULL work cannot be downgraded by an override. For stateful modes, preflight applies exact compiled migrations through a plan-bound verified backup and integrity checks. Workers receive `board me`; controllers normally use `board actionable`, while `board history` retains the complete audit view.
 
+OMG applies only to work that mutates or coordinates the selected repository. Installing a host-level CLI, logging into a provider, maintaining a package manager, or configuring a tool outside a repository does not create OMG project records and must not be routed through project preflight. Those operations still require the user's ordinary authority and normal host-security checks.
+
+Agent-harness health is not a universal shell gate. `omg version` and `omg agent status`, `doctor`, `install`, and `uninstall` are bootstrap or self-repair commands and remain runnable when a managed surface is missing or drifted. A harness problem may stop coordinated repository mutation that depends on OMG, but it must never block diagnosis, its own repair path, or unrelated host-level work.
+
 Message bodies and model output remain inert data. Global installation never grants commit, push, deployment, credential, publication, destructive Git, production authority, or access to an unrelated repository.
 
 ## Release asset contract
