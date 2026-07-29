@@ -104,7 +104,7 @@ func TestDispatchBoardQueryRejectsMalformedSelector(t *testing.T) {
 		Project: selection.Project,
 		Payload: json.RawMessage(`{"mode":"all","unknown":true}`),
 	})
-	if result.Error.Code != "invalid_argument" || result.Error.Message != "application request is invalid" {
+	if result.Error.Code != "invalid_argument" || result.Error.Message != "unknown field unknown" {
 		t.Fatalf("board.query error=%+v", result.Error)
 	}
 }

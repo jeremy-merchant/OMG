@@ -72,10 +72,11 @@ The global harness does not create one shared cloud account or central database.
 1. run `omg preflight --project <root> --json` before mutation;
 2. run `omg init --project <root> --json` only when the repository is uninitialized;
 3. stop on pending schema migrations until the explicit plan, backup, and approval contract is satisfied;
-4. inspect canonical work, register or resume its session, and claim only ready work;
-5. maintain progress, dependencies, messages, reservations, and safe Git observations;
-6. transition to `WORK_COMPLETE` and submit an immutable handoff before the final response;
-7. require independent acceptance for `VERIFIED_DONE`.
+4. let the controller pre-register project/session/task identity and inject the five `OMG_*` worker values;
+5. run `omg worker bootstrap` so a worker verifies that identity, claims only ready work, reads its inbox, and receives `board me` instead of `board all`;
+6. maintain progress, dependencies, messages, reservations, and safe Git observations;
+7. transition to `WORK_COMPLETE` and submit an immutable handoff before the final response;
+8. require independent acceptance for `VERIFIED_DONE`.
 
 Message bodies and model output remain inert data. Global installation never grants commit, push, deployment, credential, publication, destructive Git, or production authority.
 

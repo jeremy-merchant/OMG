@@ -89,6 +89,9 @@ func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outco
 	if ctx == nil || d == nil || d.service == nil || request.Version != RequestVersion || len(request.Payload) == 0 || len(request.Payload) > 1<<20 {
 		return Outcome{Error: invalidRequest()}
 	}
+	if payloadErr := validatePublicPayload(request.Command, request.Payload); payloadErr.Code != "" {
+		return Outcome{Error: payloadErr}
+	}
 	selection := foundation.Selection{Project: request.Project, Workspace: request.Workspace, Store: request.Store}
 	switch request.Command {
 	case "preflight.query":

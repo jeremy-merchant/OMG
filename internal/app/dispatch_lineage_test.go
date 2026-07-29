@@ -111,6 +111,71 @@ func TestDispatchLineageSessionCreateStillRejectsUnknownFields(t *testing.T) {
 	}
 }
 
+func TestDispatchLineageSessionArchiveRequiresKnownActorAndTerminalRuns(t *testing.T) {
+	ctx, dispatcher, selection := lineageDispatcher(t)
+	if outcome, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "human.create", IdempotencyKey: "archive-human",
+		Payload: []byte(`{"id":"archive-human","display_name":"Operator","confidence":"verified"}`),
+	}, selection); !handled || outcome.Error.Code != "" {
+		t.Fatalf("human.create outcome=%+v handled=%t", outcome, handled)
+	}
+	for _, id := range []string{"archive-actor", "archive-finished", "archive-running"} {
+		outcome, handled := dispatcher.dispatchLineage(ctx, Request{
+			Command: "session.create", IdempotencyKey: "create-" + id,
+			Payload: []byte(`{"id":"` + id + `","human_id":"archive-human","runtime":"test","role":"worker","native_access_state":"unsupported"}`),
+		}, selection)
+		if !handled || outcome.Error.Code != "" {
+			t.Fatalf("session.create %s outcome=%+v handled=%t", id, outcome, handled)
+		}
+	}
+
+	now := time.Now().UTC()
+	seedErr := dispatcher.service.WithCurrentStore(ctx, selection, func(resolved ports.ResolvedStore, store ports.Store) error {
+		_, _, err := store.Write(ctx, "archive-running-seed", "test.write", func(repositories ports.Repositories) (domain.Result, error) {
+			task, err := repositories.Coordination().CreateTask(ctx, lineagecore.Task{
+				ID: "archive-task", ProjectID: lineagecore.ID(resolved.Project), DisplayNumber: 1, Title: "Still running",
+				State: lineagecore.TaskReady, CreatedBySessionID: "archive-actor", CreatedAt: now, UpdatedAt: now,
+			})
+			if err != nil {
+				return domain.Result{}, err
+			}
+			if err := repositories.Coordination().CreateRun(ctx, lineagecore.TaskRun{ID: "archive-run", TaskID: task.ID, SessionID: "archive-running", State: lineagecore.RunRunning, StartedAt: now}); err != nil {
+				return domain.Result{}, err
+			}
+			return domain.Result{ID: "archive-running-seed", Outcome: domain.OutcomeOK}, nil
+		})
+		return err
+	})
+	if seedErr.Code != "" {
+		t.Fatal(seedErr)
+	}
+
+	archived, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "session.archive", IdempotencyKey: "archive-finished-key",
+		Payload: []byte(`{"id":"archive-event","session_id":"archive-finished","actor_session_id":"archive-actor","reason":"work complete"}`),
+	}, selection)
+	result, ok := archived.Data.(lineageCheckpointResult)
+	if !handled || archived.Error.Code != "" || !ok || result.Liveness != "archived" {
+		t.Fatalf("finished archive outcome=%+v handled=%t result=%+v", archived, handled, result)
+	}
+
+	active, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "session.archive", IdempotencyKey: "archive-running-key",
+		Payload: []byte(`{"id":"archive-running-event","session_id":"archive-running","actor_session_id":"archive-actor","reason":"should fail"}`),
+	}, selection)
+	if !handled || active.Error.Code != domain.CodeConflict || !strings.Contains(active.Error.Message, "non-terminal run") {
+		t.Fatalf("active archive outcome=%+v handled=%t", active, handled)
+	}
+
+	unknownActor, handled := dispatcher.dispatchLineage(ctx, Request{
+		Command: "session.archive", IdempotencyKey: "archive-unknown-actor-key",
+		Payload: []byte(`{"id":"archive-unknown-actor-event","session_id":"archive-finished","actor_session_id":"missing-actor","reason":"should fail"}`),
+	}, selection)
+	if !handled || unknownActor.Error.Code != domain.CodeNotFound {
+		t.Fatalf("unknown actor archive outcome=%+v handled=%t", unknownActor, handled)
+	}
+}
+
 func TestLineageResponsesSanitizePresentationFields(t *testing.T) {
 	sensitiveHuman := lineageHumanResponse(lineagecore.Human{ID: "human-1", DisplayName: "api_key=release"})
 	sensitiveSession := lineageSessionResponse(lineagecore.AgentSession{ID: "session-1", Runtime: `C:\Users\alice\private`, Role: "private_key=release"})

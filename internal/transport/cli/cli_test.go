@@ -272,18 +272,62 @@ func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
 		t.Fatalf("example show alias exit=%d output=%s", exit, output)
 	}
 	var shown struct {
-		Topic   string `json:"topic"`
-		Command string `json:"command"`
-		Usage   string `json:"usage"`
+		Topic          string         `json:"topic"`
+		Command        string         `json:"command"`
+		Usage          string         `json:"usage"`
+		PayloadSchema  map[string]any `json:"payload_schema"`
+		ExamplePayload map[string]any `json:"example_payload"`
 	}
 	decodeData(t, output, &shown)
 	if shown.Topic != "reserve-add" || shown.Command != "omg reserve add" {
 		t.Fatalf("unexpected shown example metadata: %+v", shown)
 	}
+	if shown.PayloadSchema["type"] != "object" || shown.PayloadSchema["additionalProperties"] != false || shown.ExamplePayload["session_id"] != "WORKER_SESSION_ID" {
+		t.Fatalf("reserve example omits structured payload contract: %+v", shown)
+	}
 	for _, want := range []string{"OMG / RESERVE / ADD", "human_id", "session_id", "task_id", "run_id"} {
 		if !strings.Contains(shown.Usage, want) {
 			t.Errorf("shown reserve example missing %q: %+v", want, shown)
 		}
+	}
+}
+
+func TestRequiredWorkerExamplesExposeStructuredPayloads(t *testing.T) {
+	for _, topic := range []string{"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add"} {
+		t.Run(topic, func(t *testing.T) {
+			exit, output := run(t, "example", "show", topic, "--json")
+			if exit != ExitSuccess {
+				t.Fatalf("example show exit=%d output=%s", exit, output)
+			}
+			var shown struct {
+				PayloadSchema  map[string]any `json:"payload_schema"`
+				ExamplePayload map[string]any `json:"example_payload"`
+			}
+			decodeData(t, output, &shown)
+			if shown.PayloadSchema["type"] != "object" || len(shown.ExamplePayload) == 0 {
+				t.Fatalf("%s structured contract = %#v / %#v", topic, shown.PayloadSchema, shown.ExamplePayload)
+			}
+		})
+	}
+}
+
+func TestLegacyCommandGuidanceAndVersionAlias(t *testing.T) {
+	for _, test := range []struct {
+		args []string
+		want string
+	}{
+		{args: []string{"inbox"}, want: "omg message inbox"},
+		{args: []string{"git", "inventory", "--project", t.TempDir(), "--json"}, want: "omg git current"},
+		{args: []string{"schema"}, want: "omg migration"},
+	} {
+		exit, output := run(t, test.args...)
+		if exit == ExitSuccess || !strings.Contains(output, test.want) {
+			t.Fatalf("legacy guidance %v exit=%d output=%s", test.args, exit, output)
+		}
+	}
+	exit, output := run(t, "--version")
+	if exit != ExitSuccess || !strings.Contains(output, "test-version") {
+		t.Fatalf("--version alias exit=%d output=%s", exit, output)
 	}
 }
 
@@ -300,6 +344,27 @@ func TestDecodeStillRejectsMissingCommandForInternalCallers(t *testing.T) {
 	request, err := Decode(nil)
 	if !reflect.DeepEqual(request, Request{}) || err.Code == "" || err.Message != "a command is required" {
 		t.Fatalf("Decode(nil) = (%+v, %+v)", request, err)
+	}
+}
+
+func TestBoardMeUsesWorkerEnvironmentDefaults(t *testing.T) {
+	t.Setenv("OMG_PROJECT", "/project/from-environment")
+	t.Setenv("OMG_SESSION_ID", "worker-from-environment")
+	model, modelErr := query.NewViewModel("board", "cursor", []byte(`{}`))
+	if modelErr != nil {
+		t.Fatal(modelErr)
+	}
+	dispatcher := &recordingDispatcher{outcome: app.Outcome{Data: model}}
+	service := bootstrap.CLIService(bootstrap.Foundation())
+	service.Dispatcher = dispatcher
+	var output bytes.Buffer
+	exit := RunWithApplication(context.Background(), []string{"board", "me", "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+	if exit != ExitSuccess || len(dispatcher.requests) != 1 || dispatcher.requests[0].Project != "/project/from-environment" {
+		t.Fatalf("board me environment exit=%d requests=%+v output=%s", exit, dispatcher.requests, output.String())
+	}
+	var payload query.BoardRequest
+	if json.Unmarshal(dispatcher.requests[0].Payload, &payload) != nil || payload.SessionID != "worker-from-environment" || payload.Mode != query.BoardMe {
+		t.Fatalf("board me environment payload=%+v", payload)
 	}
 }
 
@@ -918,6 +983,51 @@ func TestBoardAndStaticExportUseCurrentCanonicalStore(t *testing.T) {
 	exit = RunWithService([]string{"task", "create", "--project", root, "--idempotency-key", "task-create-cli", "--payload", taskPayload, "--json"}, "test-version", &output, service)
 	if exit != ExitSuccess || output.String() != firstTaskOutput || taskResult.ID == "" {
 		t.Fatalf("task replay exit=%d: %s", exit, output.String())
+	}
+
+	bootstrapParent, evalErr := filepath.EvalSymlinks(t.TempDir())
+	if evalErr != nil || os.Chmod(bootstrapParent, 0o700) != nil {
+		t.Fatalf("prepare private bootstrap parent: %v", evalErr)
+	}
+	bootstrapFile := filepath.Join(bootstrapParent, "worker-cli.env")
+	output.Reset()
+	exit = RunWithService([]string{
+		"worker", "bootstrap", "--project", root, "--session", "worker-cli", "--task", taskResult.ID,
+		"--controller-session", "session-cli", "--human", "human-cli", "--idempotency-key", "worker-bootstrap-cli",
+		"--output", bootstrapFile, "--json",
+	}, "test-version", &output, service)
+	if exit != ExitSuccess {
+		t.Fatalf("worker bootstrap exit=%d: %s", exit, output.String())
+	}
+	var worker struct {
+		Healthy        bool              `json:"healthy"`
+		SessionID      string            `json:"session_id"`
+		TaskID         string            `json:"task_id"`
+		SessionCreated bool              `json:"session_created"`
+		TaskClaimed    bool              `json:"task_claimed"`
+		Environment    map[string]string `json:"environment"`
+		BootstrapFile  string            `json:"bootstrap_file"`
+	}
+	decodeData(t, output.String(), &worker)
+	if !worker.Healthy || !worker.SessionCreated || !worker.TaskClaimed || worker.SessionID != "worker-cli" || worker.TaskID != taskResult.ID || worker.Environment["OMG_CONTROLLER_SESSION_ID"] != "session-cli" || worker.BootstrapFile != bootstrapFile {
+		t.Fatalf("worker bootstrap result = %+v", worker)
+	}
+	info, statErr := os.Stat(bootstrapFile)
+	if statErr != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("worker bootstrap file stat=%v info=%v", statErr, info)
+	}
+	bootstrapBytes, readErr := os.ReadFile(bootstrapFile)
+	if readErr != nil || !strings.Contains(string(bootstrapBytes), "export OMG_SESSION_ID='worker-cli'") || !strings.Contains(string(bootstrapBytes), "export OMG_TASK_ID='") {
+		t.Fatalf("worker bootstrap file read=%v content=%q", readErr, bootstrapBytes)
+	}
+	output.Reset()
+	exit = RunWithService([]string{
+		"worker", "bootstrap", "--project", root, "--session", "worker-cli", "--task", taskResult.ID,
+		"--controller-session", "session-cli", "--human", "human-cli", "--idempotency-key", "worker-bootstrap-cli-replay",
+		"--output", bootstrapFile, "--json",
+	}, "test-version", &output, service)
+	if exit == ExitSuccess || !strings.Contains(output.String(), "destination must be a new") {
+		t.Fatalf("worker bootstrap overwrote output exit=%d: %s", exit, output.String())
 	}
 
 	messagePayload := `{"id":"message-cli","type":"NOTICE","thread_id":"thread-cli","sender_session_id":"session-cli","recipients":[{"session_id":"session-cli"}],"subject":"Parity","body":"inert body","related_task_id":"` + taskResult.ID + `"}`
