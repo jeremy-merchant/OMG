@@ -1,45 +1,47 @@
+<div align="center">
+
 # OMG
 
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+### The local coordination layer for AI coding agents.
 
-**Local-first coordination and recovery for people and AI coding agents.**
+**Coordinate parallel work. Recover context. Verify completion.**
 
-OMG keeps agent lineage, task state, progress, dependencies, messages, handoffs, path reservations, and observed Git state in one local SQLite ledger. It is daemonless by default, runtime-neutral, and designed for mixed Codex, Claude, ChatGPT2Codex, GJC, and shell-agent workflows.
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](go.mod)
+[![License](https://img.shields.io/badge/license-Apache--2.0-4C1.svg)](LICENSE)
+![Local first](https://img.shields.io/badge/local--first-SQLite-7B61FF)
+![Daemonless](https://img.shields.io/badge/runtime-daemonless-00A67E)
+![Status](https://img.shields.io/badge/status-pre--1.0-F0AD45)
 
-> Project status: **open-source source code** under Apache-2.0. No stable binary release has been published yet; build from source and treat `main` as pre-1.0.
+<sub>Codex · Claude Code · OMP · OpenCode · Gemini · Cursor · Windsurf · Cline · shell agents</sub>
 
-## What it does
+[Quickstart](#quickstart) · [Why OMG](#why-omg) · [How it works](#how-it-works) · [Safety](#safety-boundary) · [Documentation](#documentation)
 
-- Records who instructed each agent and how delegated or resumed sessions relate.
-- Separates `WORK_COMPLETE` from independently accepted `VERIFIED_DONE`.
-- Provides durable task, progress, dependency, mailbox, handoff, and reservation state without a daemon.
-- Observes Git repositories and worktrees without committing, merging, rebasing, pushing, resetting, cleaning, or deleting them.
-- Renders the same redacted canonical snapshot as TTY, JSON, Markdown, or self-contained HTML.
-- Installs always-on OMG skills and bounded global instructions for Claude, Codex, Gemini, Cursor, Windsurf, Cline, OpenCode, OMP, and the generic `.agents` ecosystem.
-- Adds and removes bounded project instruction blocks without taking over existing files.
-- Exposes the CLI through a thin MCP stdio adapter and can explicitly wrap an existing agent executable.
+</div>
 
-OMG does **not** grant an agent commit, push, deploy, credential, production, deletion, publication, or destructive Git authority. Messages and model output are untrusted data, never approval.
+> [!IMPORTANT]
+> OMG is open-source under Apache-2.0 and currently pre-1.0. No stable binary release has been published yet; install from source and treat `main` as an evolving contract.
 
-## Install once, use from every agent
+OMG is **not another coding agent**. It is the durable coordination and recovery layer beneath the agents you already use.
 
-After the first tagged release is published, the normal installation is one command. The installer verifies the release checksum, installs the binary atomically, updates the user PATH, and runs `omg agent install` automatically.
+It keeps lineage, tasks, runs, progress, dependencies, messages, handoffs, advisory path reservations, and observed Git state in one local SQLite ledger—without replacing your runtime, copying native transcripts, or taking control of Git.
 
-### macOS and Linux
+## Why OMG
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install | sh
-```
+Coding agents are fast. Multi-agent work is not automatically coordinated.
 
-### Windows PowerShell
+| Without OMG | With OMG |
+| --- | --- |
+| Session context disappears when a chat ends. | Resumed and delegated sessions retain explicit lineage and handoff history. |
+| Parallel workers silently overlap. | Advisory path reservations and dependency state make conflicts visible. |
+| “Done” can mean “the agent stopped typing.” | `WORK_COMPLETE` stays separate from independently accepted `VERIFIED_DONE`. |
+| Tasks, messages, Git state, and evidence live in different tools. | One canonical ledger renders the same redacted state as TTY, JSON, Markdown, or HTML. |
+| Coordination logic is coupled to one harness. | Runtime-neutral commands work across Codex, Claude Code, OMP, OpenCode, MCP clients, and shell agents. |
 
-```powershell
-& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install.ps1)))
-```
+## Quickstart
 
-The global harness installs always-on OMG skills and bounded instructions into the supported agent discovery locations. After installation, the coding agent performs OMG preflight, coordination, progress, and handoff itself; the human does not run routine project lifecycle commands for the agent.
+### 1. Install from source
 
-No stable binary release has been published yet. Until release assets exist, install the current source explicitly and then enable the global harness once:
+Requires Go 1.26 or the version declared in [`go.mod`](go.mod).
 
 ```bash
 go install github.com/jeremy-merchant/OMG/cmd/omg@main
@@ -47,19 +49,138 @@ omg agent install
 omg agent doctor
 ```
 
-See [`docs/GLOBAL_AGENT_INSTALL.md`](docs/GLOBAL_AGENT_INSTALL.md) for the discovery surfaces, offline reviewed-candidate path, uninstall behavior, release asset contract, and terminal design.
+`omg agent install` adds bounded OMG instructions and always-on skills to supported agent discovery locations. The agent—not the human—then performs routine preflight, coordination, progress, and handoff steps.
 
-Controllers launching parallel OMP lanes can pre-register each worker and inject its exact project/session/task/controller/human identity. The worker then starts with one bounded command instead of reconstructing OMG payloads:
+### 2. Initialize a project safely
+
+Fresh initialization never applies schema changes implicitly. On an already initialized store, `preflight` may automatically upgrade only when every pending migration is compiled as `auto-safe`; OMG first creates and verifies the exact backup, applies the migration atomically, and checks integrity. Fresh, mixed, unknown, and risky plans remain behind a separate, exact, short-lived human approval.
 
 ```bash
-omg worker bootstrap --idempotency-key bootstrap-worker-1 --output /absolute/private/worker-1.env --json
+PROJECT=/absolute/path/to/your/project
+
+omg init --project "$PROJECT" --json
+omg migration plan \
+  --project "$PROJECT" \
+  --output "$PROJECT/.omg/migration-plan.json" \
+  --json
+omg backup create \
+  --project "$PROJECT" \
+  --plan-file "$PROJECT/.omg/migration-plan.json" \
+  --json
 ```
 
-See [`docs/WORKER_BOOTSTRAP.md`](docs/WORKER_BOOTSTRAP.md) for the controller contract and a shell-safe cmux/OMP launch pattern.
+For fresh initialization or any non-eligible plan, review the plan and verified backup before applying the migration. The exact approval-file contract, automatic-safe policy, and recovery procedure are documented in the [operator guide](docs/OPERATIONS.md#initialization-and-schema-lifecycle).
+
+### 3. See the project
+
+```bash
+omg preflight --project "$PROJECT"
+omg board all --project "$PROJECT" --format tty
+omg export html --project "$PROJECT" --output "$PROJECT/omg-board.html"
+```
+
+The HTML board is static, self-contained, network-free, and written only to a new destination.
+
+## What OMG tracks
+
+| Surface | What it preserves |
+| --- | --- |
+| **Lineage** | Human root, controller, delegated workers, continuations, and native-session references. |
+| **Work** | Tasks, runs, progress, dependencies, blockers, and acceptance state. |
+| **Coordination** | Typed messages, inbox state, acknowledgements, and advisory path reservations. |
+| **Handoffs** | Immutable summaries, changed files, verification evidence, remaining risks, and suggested next actions. |
+| **Git observation** | Repository, branch, worktree, dirty/ahead/behind state, ownership signals, and classifications. |
+| **Recovery** | Durable checkpoints and canonical state that survive interrupted or resumed sessions. |
+
+## How it works
+
+```mermaid
+flowchart LR
+    H[Human owner] --> A[Codex · Claude Code · OMP · OpenCode · other agents]
+    A <--> O[(OMG local SQLite ledger)]
+    O --> V[TTY · JSON · Markdown · HTML]
+    O --> M[MCP stdio]
+    O -. read-only observation .-> G[Git repositories and worktrees]
+```
+
+- **Local-first:** canonical mutable state lives outside Git in an owner-scoped SQLite store.
+- **Daemonless by default:** no background service, cloud account, Node runtime, Python runtime, or shared SQLite library is required.
+- **Runtime-neutral:** agents can use the global discovery harness, explicit wrappers, shell helpers, or the MCP stdio adapter.
+- **One projection:** every renderer starts from the same canonical, redacted snapshot.
+
+## Use it from any harness
+
+Install once, then let supported agents discover OMG automatically:
+
+```bash
+omg agent install
+omg agent status
+```
+
+Wrap an existing runtime explicitly when you need a bounded entry point:
+
+```bash
+omg run --runtime codex -- codex
+omg run --runtime claude -- claude
+```
+
+Expose the same command policy over newline-delimited MCP JSON-RPC 2.0:
+
+```bash
+omg mcp serve --stdio
+```
+
+Controllers launching parallel OMP lanes can pre-register each worker and inject exact project, session, task, controller, and human identity:
+
+```bash
+omg worker bootstrap \
+  --idempotency-key bootstrap-worker-1 \
+  --output /absolute/private/worker-1.env \
+  --json
+```
+
+See the [worker bootstrap guide](docs/WORKER_BOOTSTRAP.md) for the controller contract and shell-safe cmux/OMP launch pattern.
+
+## Command map
+
+| Goal | Command |
+| --- | --- |
+| Check health before work | `omg preflight` |
+| See active work and blockers | `omg board all` |
+| Inspect one worker's scope | `omg board me` |
+| Inspect one task | `omg board task --task TASK_ID` |
+| Diagnose the global harness | `omg agent doctor` |
+| Generate shell helpers | `omg shell-init bash` |
+| Generate completions | `omg completion zsh` |
+| Export a reviewable board | `omg export html --output board.html` |
+
+Running `omg` with no arguments prints a concise discovery view. A bare namespace such as `omg task` or `omg board` opens contextual help; `omg --help` prints the full global contract.
+
+## Safety boundary
+
+OMG coordinates and observes. It does **not** silently acquire authority.
+
+| OMG does | OMG does not |
+| --- | --- |
+| Record lineage, work, messages, handoffs, reservations, and evidence. | Grant commit, push, deploy, credential, production, deletion, or publication authority. |
+| Observe repositories and worktrees. | Commit, merge, rebase, push, reset, clean, delete, or remove branches/worktrees. |
+| Redact raw prompts, message bodies, final output, tokens, private paths, and secret-like values by default. | Treat messages, model output, handoffs, tokens, or `VERIFIED_DONE` as human approval. |
+| Distinguish self-reported completion from independent verification. | Collapse `WORK_COMPLETE` and `VERIFIED_DONE` into one state. |
+
+Additional guarantees:
+
+- Automatic schema changes are limited to an already initialized, backup-bound incremental plan whose every compiled migration is explicitly `auto-safe`; all other plans remain human-gated.
+
+- Native conversation transcripts remain in their source runtime.
+- `.omg/` contains only tracked-safe configuration and operator-created plan/approval files; canonical mutable state stays outside Git.
+- File output is owner-only and refuses to overwrite an existing path.
+- `SAFE_TO_REMOVE` is a classification, never authorization.
+
+Read the [security policy](SECURITY.md), [privacy contract](docs/PRIVACY.md), and [threat model](docs/THREAT_MODEL.md) before integrating OMG into automated workflows.
 
 ## Build from this checkout
 
-Requirements: Go 1.26 or the version declared in `go.mod`. Release binaries are built with `CGO_ENABLED=0` and require no Node, Python, shared SQLite library, daemon, or cloud account.
+Release binaries are built with `CGO_ENABLED=0`.
 
 ```bash
 go build -trimpath -o ./bin/omg ./cmd/omg
@@ -69,125 +190,31 @@ go build -trimpath -o ./bin/omg ./cmd/omg
 
 The expected source status is `SOURCE PUBLISHED`; `stable_release` remains `false` until a tagged stable release is created.
 
-## Fresh-project quickstart
-
-Fresh initialization remains explicit: it creates the local project configuration and state location, then reports pending schema migrations. Review the exact plan and verified backup before creating the separate approval file. On an already initialized store, `preflight` may automatically upgrade only when every pending migration is compiled as `auto-safe`; OMG first creates and verifies an exact backup, applies the migration atomically, and checks integrity. Mixed, unknown, and risky plans remain human-gated.
+The deterministic hostile-input preview exercises every presentation without touching canonical state:
 
 ```bash
-PROJECT=/absolute/path/to/your/project
-OMG=/absolute/path/to/this/checkout/bin/omg
-
-"$OMG" init --project "$PROJECT" --json
-"$OMG" migration plan --project "$PROJECT" --output "$PROJECT/.omg/migration-plan.json" --json
-"$OMG" backup create --project "$PROJECT" --plan-file "$PROJECT/.omg/migration-plan.json" --json
-```
-
-The backup command returns `data.checksum`. Review `.omg/migration-plan.json`, confirm its project, schema versions, checksums, and `backup_location`, then create `.omg/migration-approval.json` with this exact shape:
-
-```json
-{
-  "approval_id": "UNIQUE ONE-TIME APPROVAL ID",
-  "approved_by": "YOUR NAME",
-  "evidence_reference": "local quickstart approval",
-  "plan_id": "COPY plan.id",
-  "project": "COPY plan.project",
-  "from_version": "COPY plan.from_version",
-  "to_version": "COPY plan.to_version",
-  "checksums": ["COPY every plan checksum in order"],
-  "backup_location": "COPY plan.backup_location",
-  "backup_checksum": "COPY backup data.checksum",
-  "command": "omg migration apply",
-  "timestamp": "CURRENT UTC RFC3339 TIMESTAMP ENDING IN Z",
-  "expires_at": "UTC RFC3339 TIMESTAMP ENDING IN Z, AFTER timestamp AND NO MORE THAN 15 MINUTES LATER"
-}
-```
-
-`approval_id` is consumed by the successful apply and cannot be replayed. Generate it locally, keep the approval evidence bounded and secret-free, and execute before `expires_at`; approvals older than 15 minutes are rejected.
-
-Before applying, restrict the approval file to the current user. On POSIX systems run `chmod 600 "$PROJECT/.omg/migration-approval.json"`; on Windows use an owner-only ACL. The CLI rejects approval files that other users can read or replace.
-
-Apply only after that explicit review:
-
-```bash
-"$OMG" migration apply \
-  --project "$PROJECT" \
-  --plan-file "$PROJECT/.omg/migration-plan.json" \
-  --approval-file "$PROJECT/.omg/migration-approval.json" \
-  --json
-
-"$OMG" doctor --project "$PROJECT" --integrity --json
-"$OMG" board all --project "$PROJECT" --format tty
-"$OMG" export html --project "$PROJECT" --output "$PROJECT/omg-board.html"
-```
-
-The board is empty until sessions and work are registered. The HTML export is static, self-contained, network-free, and created only at a new destination.
-
-## Optional project instruction integration
-
-Global agent discovery is installed by `omg agent install`. Project instruction integration is optional and adds a repository-local managed block when a team wants the rule visible in the checkout. Always inspect before mutation. Apply inserts only the OMG managed block; remove deletes only that block.
-
-```bash
-"$OMG" integration plan --project "$PROJECT" --json
-"$OMG" integration apply --project "$PROJECT" --json
-"$OMG" integration status --project "$PROJECT" --json
-"$OMG" integration remove --project "$PROJECT" --status --json
-```
-
-## Agent and MCP adapters
-
-Run an existing executable explicitly; OMG never shadows its binary name:
-
-```bash
-omg run --runtime codex -- codex
-omg run --runtime claude -- claude
-```
-
-Serve the same command policy over newline-delimited MCP JSON-RPC 2.0 on stdio:
-
-```bash
-omg mcp serve --stdio
-```
-
-Running `omg` with no arguments prints a concise, non-dispatching discovery view. A bare namespace such as `omg task` or `omg board` opens that family's contextual help; explicit `omg --help` remains the full global contract.
-
-Shell helpers are generated, not installed automatically. Initialization adds bounded `preflight`, `board`, and `checkpoint` helpers. Completion is description-rich, traverses command/subcommand paths, and uses native directory/file/format candidates for typed option values:
-
-```bash
-omg shell-init bash
-omg completion zsh
-omg completion powershell
-```
-
-The deterministic hostile-input preview can exercise every presentation without touching canonical state:
-
-```bash
-go run ./examples/board-preview --format html --output board-preview.html
 go run ./examples/board-preview --format tty --output -
+go run ./examples/board-preview --format html --output board-preview.html
 go run ./examples/board-preview --format markdown --output board-preview.md
 go run ./examples/board-preview --format json --output board-preview.json
 ```
 
-File output is owner-only and refuses to overwrite an existing path. `--output -` is the explicit stdout mode for terminal QA. Human TTY output is grapheme-aware and supports `OMG_COLOR_SCHEME=light|dark`; a conventional light `COLORFGBG` value is used only as a fallback, while `NO_COLOR` and `TERM=dumb` remain authoritative plain-output controls.
-
 ## Documentation
 
-- [Operator guide](docs/OPERATIONS.md): storage, migrations, backup/recovery, watch, MCP, privacy, and troubleshooting.
-- [Command reference](docs/COMMAND_REFERENCE.md): supported command syntax, payloads, JSON envelopes, and stable exit codes.
-- [Worker bootstrap guide](docs/WORKER_BOOTSTRAP.md): controller pre-registration, worker-scoped startup, and atomic cmux/OMP prompt delivery.
-- [Adapter guide](docs/ADAPTERS.md): runtime wrappers, contextual shell helpers/completion, instruction surfaces, watch, MCP, and native-session metadata.
-- [2026 interface research](docs/INTERFACE_RESEARCH_2026.md): official trend research, OMP source audit, accessibility decisions, and browser measurements.
-- [Product specification](docs/PRODUCT_SPEC.md) and [acceptance matrix](docs/ACCEPTANCE_MATRIX.md).
-- [Security policy](docs/SECURITY.md), [privacy contract](docs/PRIVACY.md), and [threat model](docs/THREAT_MODEL.md).
+| Guide | Covers |
+| --- | --- |
+| [Operator guide](docs/OPERATIONS.md) | Storage, migrations, backup/recovery, watch, MCP, privacy, and troubleshooting. |
+| [Command reference](docs/COMMAND_REFERENCE.md) | Command syntax, payloads, JSON envelopes, and stable exit codes. |
+| [Global agent installation](docs/GLOBAL_AGENT_INSTALL.md) | Discovery surfaces, offline candidates, uninstall behavior, and release contract. |
+| [Worker bootstrap](docs/WORKER_BOOTSTRAP.md) | Controller registration, worker startup, and cmux/OMP launch patterns. |
+| [Adapter guide](docs/ADAPTERS.md) | Runtime wrappers, shell integration, watch, MCP, and native-session metadata. |
+| [Interface research](docs/INTERFACE_RESEARCH_2026.md) | 2026 CLI research, OMP source audit, accessibility decisions, and measurements. |
+| [Product specification](docs/PRODUCT_SPEC.md) | Product scope, ontology, release gates, and acceptance requirements. |
+| [Acceptance matrix](docs/ACCEPTANCE_MATRIX.md) | Executable product, safety, portability, and recovery evidence. |
 
-## Safety summary
+## Contributing
 
-- Canonical mutable state is outside Git. `.omg/` contains only tracked-safe configuration and operator-created plan/approval files.
-- Private runtime homes and opaque native-session locators are excluded from default output and exports.
-- OMG does not copy native conversation transcripts.
-- Raw prompts, message bodies, final output, private paths, tokens, and secret-like values are hidden or redacted by default.
-- `SAFE_TO_REMOVE` is a classification, not authorization. v0.1 has no destructive Git command.
-
-See the [security policy](SECURITY.md) before integrating OMG into automated workflows. Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report sensitive issues through [`SECURITY.md`](SECURITY.md).
 
 ## License
 
