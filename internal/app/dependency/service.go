@@ -6,11 +6,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 type Service struct {
@@ -226,6 +226,14 @@ func (s *Service) TransitionAndReconcile(ctx context.Context, key domain.Idempot
 // TransitionAndReconcileRepositories performs the task transition inside an
 // existing store transaction. It is shared by compound lifecycle operations so
 // dependency notifications cannot be committed separately from completion.
+// TransitionAndReconcileInTransaction applies a task transition and dependency
+// reconciliation inside an existing store transaction. Compound lifecycle
+// commands use it so task completion, reservation release, and archival commit
+// together or not at all.
+func TransitionAndReconcileInTransaction(ctx context.Context, r ports.Repositories, now time.Time, project, task, actorSession string, to lineage.TaskState, evidence []byte) (lineage.Task, error) {
+	return TransitionAndReconcileRepositories(ctx, r, now, project, task, actorSession, to, evidence)
+}
+
 func TransitionAndReconcileRepositories(ctx context.Context, r ports.Repositories, now time.Time, project, task, actorSession string, to lineage.TaskState, evidence []byte) (lineage.Task, error) {
 	if actorSession != "" {
 		actor, ok, err := r.Coordination().GetSession(ctx, lineage.ID(actorSession))
@@ -245,6 +253,14 @@ func TransitionAndReconcileRepositories(ctx context.Context, r ports.Repositorie
 	}
 	if !ok || string(pre.ProjectID) != project {
 		return lineage.Task{}, missing()
+	}
+	if !lineage.CanTransitionTask(pre.State, to, evidence) {
+		return lineage.Task{}, domain.NewError(domain.CodeConflict, "invalid task transition", false)
+	}
+	if to == lineage.TaskVerifiedDone {
+		if err := requiredChildrenVerified(ctx, r.Coordination(), project, pre); err != nil {
+			return lineage.Task{}, err
+		}
 	}
 	pre, err = r.Coordination().TransitionTask(ctx, pre.ID, to, evidence, now)
 	if err != nil {
@@ -295,6 +311,25 @@ func TransitionAndReconcileRepositories(ctx context.Context, r ports.Repositorie
 		}
 	}
 	return pre, nil
+}
+
+func requiredChildrenVerified(ctx context.Context, repository ports.CoordinationRepository, project string, task lineage.Task) error {
+	if lineage.EffectiveTaskCompletionPolicy(task.CompletionPolicy) != lineage.TaskCompletionAllRequiredChildrenVerified {
+		return nil
+	}
+	tasks, err := repository.ListTasks(ctx, domain.ProjectID(project))
+	if err != nil {
+		return err
+	}
+	for _, child := range tasks {
+		if child.ParentTaskID != task.ID || lineage.EffectiveTaskParentRequirement(child.ParentRequirement) != lineage.TaskParentRequired {
+			continue
+		}
+		if child.State != lineage.TaskVerifiedDone {
+			return domain.NewError(domain.CodeConflict, "required child tasks are not verified", false)
+		}
+	}
+	return nil
 }
 
 func resumeState(task lineage.Task) lineage.TaskState {

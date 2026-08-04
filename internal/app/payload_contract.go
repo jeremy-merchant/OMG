@@ -11,8 +11,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 type publicPayloadContract struct {
@@ -82,6 +82,10 @@ func publicPayloadContracts() map[string]publicPayloadContract {
 			prototype: func() any { return &lineageFinishLitePayload{} },
 			required:  map[string]string{"task_id": "string", "run_id": "string", "session_id": "string", "actor_session_id": "string", "archive_event_id": "string", "evidence": "string"},
 		},
+		"candidate.close": {
+			prototype: func() any { return &candidateClosePayload{} },
+			required:  map[string]string{"handoff_id": "string", "actor_session_id": "string", "archive_event_id": "string", "evidence": "string"},
+		},
 		"message.inbox": {
 			prototype: func() any { return &coordinationInboxPayload{} },
 			required:  map[string]string{"recipient": "object"},
@@ -110,6 +114,18 @@ func publicPayloadContracts() map[string]publicPayloadContract {
 		"reserve.add": {
 			prototype: func() any { return &reserveAddPayload{} },
 			required:  map[string]string{"id": "string", "pattern_kind": "string", "pattern": "string", "case_sensitivity": "string", "mode": "string", "human_id": "string", "session_id": "string", "task_id": "string", "run_id": "string", "intent": "string", "ttl_seconds": "integer"},
+		},
+		"reserve.batch-add": {
+			prototype: func() any { return &reserveBatchAddPayload{} },
+			required:  map[string]string{"human_id": "string", "session_id": "string", "task_id": "string", "run_id": "string", "items": "array"},
+		},
+		"worker.setup": {
+			prototype: func() any { return &workerSetupPayload{} },
+			required: map[string]string{
+				"human_id": "string", "controller_session_id": "string", "session_id": "string",
+				"runtime": "string", "role": "string", "task_id": "string", "task_title": "string",
+				"run_id": "string", "reservations": "array",
+			},
 		},
 	}
 }

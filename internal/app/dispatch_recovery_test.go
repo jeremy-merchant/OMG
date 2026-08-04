@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	res "github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/store/sqlite"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	res "github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/store/sqlite"
 )
 
 type recoveryScanner struct{ calls int }

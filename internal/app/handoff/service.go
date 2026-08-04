@@ -4,11 +4,11 @@ package handoff
 import (
 	"context"
 	"errors"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 	"time"
 )
 
@@ -287,6 +287,21 @@ func (s *Service) Decide(ctx context.Context, key domain.IdempotencyKey, id, dec
 }
 
 func (s *Service) Advance(ctx context.Context, key domain.IdempotencyKey, event coord.HandoffLifecycleEvent) (coord.HandoffLifecycleEvent, error) {
+	return s.advance(ctx, key, event, false)
+}
+
+// AdvanceLocalCanary preserves the global strict lifecycle graph while
+// permitting one narrow transition for a Git-verified local rolling canary.
+// Acceptance remains mandatory; only the missing INTEGRATED ledger event is
+// tolerated by this entry point.
+func (s *Service) AdvanceLocalCanary(ctx context.Context, key domain.IdempotencyKey, event coord.HandoffLifecycleEvent) (coord.HandoffLifecycleEvent, error) {
+	if event.State != coord.IntegrationCanaryRunning {
+		return coord.HandoffLifecycleEvent{}, invalid()
+	}
+	return s.advance(ctx, key, event, true)
+}
+
+func (s *Service) advance(ctx context.Context, key domain.IdempotencyKey, event coord.HandoffLifecycleEvent, allowLocalCanary bool) (coord.HandoffLifecycleEvent, error) {
 	if !domain.IsSecretFreeStableMetadata(string(key)) || safety.RejectPrefixed(key, event) != nil {
 		return coord.HandoffLifecycleEvent{}, invalid()
 	}
@@ -322,7 +337,7 @@ func (s *Service) Advance(ctx context.Context, key domain.IdempotencyKey, event 
 		if hasDecision {
 			decisionPtr = &decision
 		}
-		if coord.ValidateIntegrationTransition(events, decisionPtr, event.State) != nil {
+		if coord.ValidateIntegrationTransition(events, decisionPtr, event.State) != nil && !validLocalCanaryTransition(allowLocalCanary, events, decisionPtr, event) {
 			return domain.Result{}, invalid()
 		}
 		if createErr := r.Coordination().CreateHandoffLifecycleEvent(ctx, event); createErr != nil {
@@ -350,6 +365,10 @@ func (s *Service) Advance(ctx context.Context, key domain.IdempotencyKey, event 
 		return coord.HandoffLifecycleEvent{}, mapErr(err)
 	}
 	return out, nil
+}
+
+func validLocalCanaryTransition(allowed bool, events []coord.HandoffLifecycleEvent, decision *coord.HandoffDecision, event coord.HandoffLifecycleEvent) bool {
+	return allowed && event.State == coord.IntegrationCanaryRunning && decision != nil && decision.Decision == coord.HandoffAccepted && coord.CurrentIntegrationState(events, decision) == coord.IntegrationAccepted
 }
 
 func (s *Service) Lifecycle(ctx context.Context, handoffID string) ([]coord.HandoffLifecycleEvent, error) {

@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"time"
 
-	canaryapp "github.com/jeremy-merchant/OMG/internal/app/canary"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	gitapp "github.com/jeremy-merchant/OMG/internal/app/git"
-	handoffapp "github.com/jeremy-merchant/OMG/internal/app/handoff"
-	reservationapp "github.com/jeremy-merchant/OMG/internal/app/reservation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	res "github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	canaryapp "github.com/jeremy-merchant/oh-my-group/internal/app/canary"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	gitapp "github.com/jeremy-merchant/oh-my-group/internal/app/git"
+	handoffapp "github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	reservationapp "github.com/jeremy-merchant/oh-my-group/internal/app/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	res "github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 type reserveAddPayload struct {
@@ -31,6 +31,22 @@ type reserveAddPayload struct {
 	RunID           string `json:"run_id"`
 	Intent          string `json:"intent"`
 	TTLSeconds      int64  `json:"ttl_seconds"`
+}
+type reserveBatchAddItemPayload struct {
+	ID              string `json:"id"`
+	PatternKind     string `json:"pattern_kind"`
+	Pattern         string `json:"pattern"`
+	CaseSensitivity string `json:"case_sensitivity"`
+	Mode            string `json:"mode"`
+	Intent          string `json:"intent"`
+	TTLSeconds      int64  `json:"ttl_seconds"`
+}
+type reserveBatchAddPayload struct {
+	HumanID   string                       `json:"human_id"`
+	SessionID string                       `json:"session_id"`
+	TaskID    string                       `json:"task_id"`
+	RunID     string                       `json:"run_id"`
+	Items     []reserveBatchAddItemPayload `json:"items"`
 }
 type reserveIDPayload struct {
 	ReservationID string `json:"reservation_id"`
@@ -72,6 +88,8 @@ type canaryStartPayload struct {
 	HandoffID              string `json:"handoff_id"`
 	ActorSessionID         string `json:"actor_session_id"`
 	IntegrationRef         string `json:"integration_ref"`
+	Mode                   string `json:"mode,omitempty"`
+	CandidateSHA           string `json:"candidate_sha,omitempty"`
 	VerificationCommand    string `json:"verification_command"`
 	ExecutionKind          string `json:"execution_kind"`
 	EnvironmentFingerprint string `json:"environment_fingerprint"`
@@ -102,6 +120,10 @@ type ReservationResult struct {
 type ReservationMutationResult struct {
 	ReservationID string   `json:"reservation_id"`
 	Warnings      []string `json:"warnings,omitempty"`
+}
+type ReservationBatchMutationResult struct {
+	ReservationIDs []string `json:"reservation_ids"`
+	Warnings       []string `json:"warnings,omitempty"`
 }
 type ReservationHistoryResult struct {
 	ID           string `json:"id"`
@@ -141,7 +163,7 @@ type GitAdoptionResult struct {
 }
 
 func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Request, selection foundation.Selection) (Outcome, bool) {
-	mutating := request.Command == "reserve.add" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" || request.Command == "git.inventory" || request.Command == "git.adopt" || request.Command == "canary.start" || request.Command == "canary.finish"
+	mutating := request.Command == "reserve.add" || request.Command == "reserve.batch-add" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" || request.Command == "git.inventory" || request.Command == "git.adopt" || request.Command == "canary.start" || request.Command == "canary.finish"
 	query := request.Command == "reserve.list" || request.Command == "reserve.active" || request.Command == "reserve.history" || request.Command == "git.current" || request.Command == "git.latest" || request.Command == "git.history" || request.Command == "git.diff" || request.Command == "git.cleanup-plan" || request.Command == "git.reconcile" || request.Command == "orphan.scan"
 	if !mutating && !query {
 		return Outcome{}, false
@@ -157,8 +179,8 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 	var result any
 	err := withStore(ctx, selection, func(resolved ports.ResolvedStore, store ports.Store) error {
 		project := domain.ProjectID(resolved.Project)
-		if request.Command == "reserve.add" || request.Command == "reserve.list" || request.Command == "reserve.active" || request.Command == "reserve.history" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" {
-			svc := reservationapp.New(store, nil)
+		if request.Command == "reserve.add" || request.Command == "reserve.batch-add" || request.Command == "reserve.list" || request.Command == "reserve.active" || request.Command == "reserve.history" || request.Command == "reserve.renew" || request.Command == "reserve.release" || request.Command == "reserve.override" {
+			svc := reservationapp.NewWithOptions(store, nil, reservationapp.Options{StrictConflicts: d.strictReservationConflicts})
 			switch request.Command {
 			case "reserve.add":
 				var p reserveAddPayload
@@ -174,6 +196,31 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 					return e
 				}
 				result = ReservationMutationResult{ReservationID: string(out.ID), Warnings: out.Warnings}
+			case "reserve.batch-add":
+				var p reserveBatchAddPayload
+				if !decodePayload(request.Payload, &p) || p.HumanID == "" || p.SessionID == "" || p.TaskID == "" || p.RunID == "" || len(p.Items) == 0 {
+					return invalidRequest()
+				}
+				items := make([]reservationapp.BatchCreateItem, len(p.Items))
+				for i, item := range p.Items {
+					pattern, e := res.NewPattern(res.PatternKind(item.PatternKind), item.Pattern, res.CaseSensitivity(item.CaseSensitivity))
+					if e != nil {
+						return invalidRequest()
+					}
+					items[i] = reservationapp.BatchCreateItem{ID: item.ID, Pattern: pattern, Mode: res.Mode(item.Mode), Intent: item.Intent, TTL: durationFromSeconds(item.TTLSeconds)}
+				}
+				out, e := svc.BatchCreate(ctx, domain.IdempotencyKey(request.IdempotencyKey), reservationapp.BatchCreateRequest{ProjectID: project, Owner: res.Owner{HumanID: p.HumanID, SessionID: p.SessionID, TaskID: p.TaskID, RunID: p.RunID}, Items: items})
+				if e != nil {
+					return e
+				}
+				data, ok := out.Data.(reservationapp.BatchCreateData)
+				if !ok {
+					encoded, marshalErr := json.Marshal(out.Data)
+					if marshalErr != nil || json.Unmarshal(encoded, &data) != nil {
+						return domain.NewError(domain.CodeInternal, "reservation batch result is invalid", false)
+					}
+				}
+				result = ReservationBatchMutationResult{ReservationIDs: data.ReservationIDs, Warnings: out.Warnings}
 			case "reserve.list", "reserve.active":
 				var p struct{}
 				if !decodePayload(request.Payload, &p) {
@@ -243,18 +290,24 @@ func (d *ServiceDispatcher) dispatchRecovery(ctx context.Context, request Reques
 		switch request.Command {
 		case "canary.start":
 			var p canaryStartPayload
-			if !decodePayload(request.Payload, &p) || d.verifier == nil {
+			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
 			}
-			item, e := canaryapp.New(store, d.verifier, nil).Start(ctx, domain.IdempotencyKey(request.IdempotencyKey), canaryapp.StartRequest{ProjectID: project, Directory: resolved.ProjectRoot, HandoffID: p.HandoffID, ActorSessionID: p.ActorSessionID, IntegrationRef: p.IntegrationRef, Command: p.VerificationCommand, ExecutionKind: p.ExecutionKind, EnvironmentFingerprint: p.EnvironmentFingerprint})
+			if d.verifier == nil {
+				return domain.NewError(domain.CodeUnavailable, "canary Git verifier is unavailable", true)
+			}
+			item, e := canaryapp.New(store, d.verifier, nil).Start(ctx, domain.IdempotencyKey(request.IdempotencyKey), canaryapp.StartRequest{ProjectID: project, Directory: resolved.ProjectRoot, HandoffID: p.HandoffID, ActorSessionID: p.ActorSessionID, IntegrationRef: p.IntegrationRef, Mode: p.Mode, CandidateSHA: p.CandidateSHA, Command: p.VerificationCommand, ExecutionKind: p.ExecutionKind, EnvironmentFingerprint: p.EnvironmentFingerprint})
 			if e != nil {
 				return e
 			}
 			result = safeCoordinationLifecycle(item)
 		case "canary.finish":
 			var p canaryFinishPayload
-			if !decodePayload(request.Payload, &p) || d.verifier == nil {
+			if !decodePayload(request.Payload, &p) {
 				return invalidRequest()
+			}
+			if d.verifier == nil {
+				return domain.NewError(domain.CodeUnavailable, "canary Git verifier is unavailable", true)
 			}
 			item, e := canaryapp.New(store, d.verifier, nil).Finish(ctx, domain.IdempotencyKey(request.IdempotencyKey), canaryapp.FinishRequest{ProjectID: project, Directory: resolved.ProjectRoot, CanaryRunID: p.CanaryRunID, ActorSessionID: p.ActorSessionID, ExitCode: p.ExitCode, PassedCount: p.PassedCount, FailedCount: p.FailedCount, SkippedCount: p.SkippedCount, EvidencePath: p.EvidencePath})
 			if e != nil {

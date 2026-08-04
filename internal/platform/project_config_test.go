@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/platform"
+	"github.com/jeremy-merchant/oh-my-group/internal/platform"
 )
 
 func TestProjectConfigInitializerCreatesPrivateProjectConfig(t *testing.T) {

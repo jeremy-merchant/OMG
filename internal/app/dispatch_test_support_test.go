@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/platform"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/store/sqlite"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/platform"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/store/sqlite"
 )
 
 func dispatcherTestDependencies(resolver ports.StoreResolver) foundation.Dependencies {

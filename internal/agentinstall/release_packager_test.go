@@ -20,7 +20,7 @@ import (
 
 func TestReleasePackagerBuildsVerifiedTarAndZipAssets(t *testing.T) {
 	root := repositoryRoot(t)
-	output := filepath.Join(root, "internal", "agentinstall", ".release-fixture")
+	output := filepath.Join(t.TempDir(), "release-fixture")
 	if err := os.RemoveAll(output); err != nil {
 		t.Fatal(err)
 	}

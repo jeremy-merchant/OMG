@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/config"
+	"github.com/jeremy-merchant/oh-my-group/internal/config"
 	"golang.org/x/sys/unix"
 )
 

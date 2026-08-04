@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 const GitObservationRevision = gitobs.ObservationRevision

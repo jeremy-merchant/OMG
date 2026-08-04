@@ -10,17 +10,17 @@ import (
 	"testing"
 	"time"
 
-	appgit "github.com/jeremy-merchant/OMG/internal/app/git"
-	"github.com/jeremy-merchant/OMG/internal/app/handoff"
-	messageapp "github.com/jeremy-merchant/OMG/internal/app/message"
-	"github.com/jeremy-merchant/OMG/internal/app/progress"
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	gitdomain "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	appgit "github.com/jeremy-merchant/oh-my-group/internal/app/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	messageapp "github.com/jeremy-merchant/oh-my-group/internal/app/message"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/progress"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	gitdomain "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func boardActor(caps ...domain.Capability) domain.ActorContext {

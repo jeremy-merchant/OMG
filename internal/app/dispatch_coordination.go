@@ -6,16 +6,16 @@ import (
 	"encoding/hex"
 	"time"
 
-	dependencyapp "github.com/jeremy-merchant/OMG/internal/app/dependency"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	handoffapp "github.com/jeremy-merchant/OMG/internal/app/handoff"
-	messageapp "github.com/jeremy-merchant/OMG/internal/app/message"
-	progressapp "github.com/jeremy-merchant/OMG/internal/app/progress"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	lineage "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	dependencyapp "github.com/jeremy-merchant/oh-my-group/internal/app/dependency"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	handoffapp "github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	messageapp "github.com/jeremy-merchant/oh-my-group/internal/app/message"
+	progressapp "github.com/jeremy-merchant/oh-my-group/internal/app/progress"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	lineage "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 func (d *ServiceDispatcher) dispatchCoordination(ctx context.Context, request Request, selection foundation.Selection) (Outcome, bool) {

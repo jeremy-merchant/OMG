@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 // RenderPreflightTTY presents the canonical preflight projection for operators.
@@ -21,10 +21,13 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 	theme := newViewTerminalTheme(color, width)
 	var out strings.Builder
 	state := presentStatus("verified")
-	headline := "Ready to coordinate"
+	headline := "Ready for bounded mutation"
 	if !preflight.Healthy {
 		state = presentStatus("warning")
 		headline = "Startup attention required"
+	} else if !preflight.MutationAllowed {
+		state = presentStatus("warning")
+		headline = "Repository mutation blocked"
 	}
 	out.WriteString(theme.bold("OMG") + theme.accent("  OPERATOR LEDGER") + theme.dim(" / PREFLIGHT") + "\n")
 	writeTTYStatusLine(&out, theme, "", "", state, headline, "startup readiness snapshot")
@@ -32,6 +35,10 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 
 	writeTTYHeading(&out, theme, "State", "operator summary")
 	writeTTYStatusLine(&out, theme, "  ", "", presentStatus(map[bool]string{true: "verified", false: "warning"}[preflight.Healthy]), "Healthy: "+fmt.Sprint(preflight.Healthy), "")
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus(map[bool]string{true: "verified", false: "warning"}[preflight.MutationAllowed]), "Mutation allowed: "+fmt.Sprint(preflight.MutationAllowed), "")
+	if len(preflight.BlockingReasons) != 0 {
+		writeTTYStatusLine(&out, theme, "  ", "", presentStatus("warning"), "Blocking reasons: "+strings.Join(preflight.BlockingReasons, ", "), "")
+	}
 	migrationState := presentStatus("verified")
 	if preflight.PendingMigrations != 0 {
 		migrationState = presentStatus("warning")
@@ -46,8 +53,32 @@ func RenderPreflightTTYWithOptions(preflight app.PreflightView, width int, color
 		}
 		writeTTYStatusLine(&out, theme, "  ", "", state, status, "plan="+automatic.PlanID)
 	}
-	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Active sessions: "+fmt.Sprint(preflight.ActiveSessions), "stale="+fmt.Sprint(preflight.StaleSessions))
-	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Conflicts: "+fmt.Sprint(preflight.Conflicts), "integration_queue="+fmt.Sprint(preflight.IntegrationQueue))
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Active sessions: "+fmt.Sprint(preflight.ActiveSessions), "open="+fmt.Sprint(preflight.OpenSessions))
+	ownershipState := presentStatus("verified")
+	if preflight.OwnershipConflicts != 0 {
+		ownershipState = presentStatus("warning")
+	}
+	writeTTYStatusLine(&out, theme, "  ", "", ownershipState, "Ownership conflicts: "+fmt.Sprint(preflight.OwnershipConflicts), "")
+	gitRiskState := presentStatus("info")
+	if preflight.GitRisks != 0 {
+		gitRiskState = presentStatus("warning")
+	}
+	writeTTYStatusLine(&out, theme, "  ", "", gitRiskState, "Git risks: "+fmt.Sprint(preflight.GitRisks), "non-blocking unless reflected in an ownership or preflight failure")
+	writeTTYStatusLine(&out, theme, "  ", "", presentStatus("info"), "Housekeeping", fmt.Sprintf("stale=%d runtime_unobservable=%d finished_unclosed=%d integration_queue=%d", preflight.Housekeeping.StaleSessions, preflight.Housekeeping.RuntimeUnobservableSessions, preflight.Housekeeping.FinishedUnclosedSessions, preflight.Housekeeping.IntegrationQueue))
+	if inbox := preflight.InboxSummary; inbox != nil {
+		inboxState := presentStatus("info")
+		if inbox.Actionable > 0 {
+			inboxState = presentStatus("warning")
+		}
+		writeTTYStatusLine(&out, theme, "  ", "", inboxState, "Inbox: "+fmt.Sprint(inbox.Pending)+" pending", "unread="+fmt.Sprint(inbox.Unread)+" actionable="+fmt.Sprint(inbox.Actionable))
+		for index, item := range inbox.Items {
+			connector := "├─ "
+			if index == len(inbox.Items)-1 {
+				connector = "└─ "
+			}
+			writeTTYStatusLine(&out, theme, "    ", connector, presentStatus("info"), "["+text(item.Type)+"] "+text(item.Subject), "from="+text(item.SenderSessionID)+" message="+text(item.MessageID))
+		}
+	}
 	if preflight.Details == nil {
 		return out.String()
 	}

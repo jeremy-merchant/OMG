@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 func TestApplyCreatesCanonicalRecordsAndReplaysIdempotently(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 func TestTTYBoardUsesExplicitLightAndDarkSemanticPalettes(t *testing.T) {

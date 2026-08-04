@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 type integrationScanner struct {

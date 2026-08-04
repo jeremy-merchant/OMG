@@ -5,15 +5,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	shellgen "github.com/jeremy-merchant/OMG/internal/shell"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	shellgen "github.com/jeremy-merchant/oh-my-group/internal/shell"
 )
 
 func TestCommandHelpCatalogIsUniqueAndComplete(t *testing.T) {
 	wantCommands := []string{
 		"init", "preflight", "status", "stale", "doctor", "migration", "backup", "release", "version", "agent", "worker", "mode",
-		"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve",
+		"human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "candidate", "reserve",
 		"board", "git", "orphan", "canary", "export", "import", "integration", "watch", "run", "example", "shell-init", "completion", "mcp", "receipt",
 	}
 	if got := commandNames(); !reflect.DeepEqual(got, wantCommands) {
@@ -88,6 +88,24 @@ func TestReserveAddHelpExposesRequiredLineageAndCopyablePayload(t *testing.T) {
 	} {
 		if !strings.Contains(output, want) {
 			t.Errorf("reserve add help missing %q:\n%s", want, output)
+		}
+	}
+}
+
+func TestReserveBatchAddHelpExposesOneCallAtomicContract(t *testing.T) {
+	exit, output := run(t, "reserve", "batch-add", "--help")
+	if exit != ExitSuccess {
+		t.Fatalf("reserve batch-add help exit=%d: %s", exit, output)
+	}
+	for _, want := range []string{
+		"Atomically add multiple reservations for one owner in one request.",
+		"Supply one owner and 1-128 items.",
+		"omg reserve batch-add",
+		"--payload-file",
+		"reservations.json",
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("reserve batch-add help missing %q:\n%s", want, output)
 		}
 	}
 }
@@ -192,7 +210,7 @@ func TestGlobalHelpIsWorkflowFirstAndCompact(t *testing.T) {
 		t.Fatalf("global help exit=%d: %s", exit, output)
 	}
 	for _, want := range []string{
-		"36 commands",
+		"37 commands",
 		"WORKFLOWS",
 		"Choose scope",
 		"Start work",
@@ -201,7 +219,7 @@ func TestGlobalHelpIsWorkflowFirstAndCompact(t *testing.T) {
 		"omg mode classify",
 		"START + VERIFY · 12",
 		"COORDINATE WORK · 10",
-		"INSPECT + INTEGRATE · 14",
+		"INSPECT + INTEGRATE · 15",
 		"Record or inspect done / doing / next.",
 	} {
 		if !strings.Contains(output, want) {
@@ -268,7 +286,7 @@ func TestNarrowGlobalHelpUsesCompactCommandGrid(t *testing.T) {
 	for _, want := range []string{
 		"init · preflight · status · stale",
 		"human · session · delegate",
-		"board · git · orphan · canary · export",
+		"candidate · board · git · orphan",
 		"Open one family with: omg <command>",
 	} {
 		if !strings.Contains(output, want) {

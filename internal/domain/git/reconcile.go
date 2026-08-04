@@ -8,6 +8,17 @@ type RevisionEvidence struct {
 	RefFingerprint string `json:"ref_fingerprint,omitempty"`
 }
 
+// LocalIntegrationEvidence is the Git source of truth for local rolling and
+// test-staging verification. CandidateReachable proves the explicitly named
+// candidate is contained in Rolling; WorktreeClean covers tracked and
+// untracked changes in the rolling worktree.
+type LocalIntegrationEvidence struct {
+	Candidate          RevisionEvidence `json:"candidate"`
+	Rolling            RevisionEvidence `json:"rolling"`
+	CandidateReachable bool             `json:"candidate_reachable"`
+	WorktreeClean      bool             `json:"worktree_clean"`
+}
+
 type IntegrationMethod string
 
 const (

@@ -12,13 +12,16 @@ import (
 	"time"
 
 	"crypto/pbkdf2"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
-const tokenIterations = 100000
+const (
+	tokenIterations       = 100000
+	maxTaskHierarchyDepth = 16
+)
 
 type Options struct {
 	MaxDelegationDepth int
@@ -73,6 +76,10 @@ func unavailable() error {
 
 func terminalTask(state core.TaskState) bool {
 	return state == core.TaskVerifiedDone || state == core.TaskCancelled || state == core.TaskFailed || state == core.TaskAbandoned
+}
+
+func closedTaskParent(state core.TaskState) bool {
+	return state == core.TaskWorkComplete || terminalTask(state)
 }
 
 func terminalSession(session core.AgentSession) bool {
@@ -219,22 +226,8 @@ func (s *Service) createSession(ctx context.Context, key domain.IdempotencyKey, 
 	if e := x.Validate(); e != nil {
 		return x, invalid()
 	}
-	if x.HumanID != "" {
-		var found bool
-		readErr := s.store.Read(ctx, func(r ports.Repositories) error {
-			_, exists, err := r.Coordination().GetHuman(ctx, x.HumanID)
-			found = exists
-			return err
-		})
-		if readErr != nil {
-			return x, mapErr(readErr)
-		}
-		if !found {
-			return x, humanNotFound()
-		}
-	}
 	_, result, e := s.store.Write(ctx, key, operation, func(r ports.Repositories) (domain.Result, error) {
-		e := r.Coordination().CreateSession(ctx, x)
+		e := CreateSessionInTransaction(ctx, r, x)
 		return domain.Result{ID: domain.ResultID(x.ID), Outcome: domain.OutcomeOK, Data: sessionSummary(x)}, e
 	})
 	if e != nil {
@@ -621,6 +614,12 @@ func (s *Service) CreateTask(ctx context.Context, key domain.IdempotencyKey, t c
 	}
 	now := s.now().UTC()
 	t.State = core.TaskReady
+	t.CompletionPolicy = core.EffectiveTaskCompletionPolicy(t.CompletionPolicy)
+	if t.ParentTaskID == "" {
+		t.ParentRequirement = core.TaskParentOptional
+	} else if t.ParentRequirement == "" {
+		t.ParentRequirement = core.TaskParentRequired
+	}
 	t.CreatedAt = now
 	t.UpdatedAt = now
 	t.DisplayNumber = 1
@@ -630,13 +629,44 @@ func (s *Service) CreateTask(ctx context.Context, key domain.IdempotencyKey, t c
 	var out core.Task
 	_, result, e := s.store.Write(ctx, key, "task.create", func(r ports.Repositories) (domain.Result, error) {
 		var e error
-		out, e = r.Coordination().CreateTask(ctx, t)
+		out, e = CreateTaskInTransaction(ctx, r, t)
 		return domain.Result{ID: domain.ResultID(out.ID), Outcome: domain.OutcomeOK, Data: taskSummary(out)}, e
 	})
 	if e != nil {
 		return out, mapErr(e)
 	}
 	return s.Task(ctx, core.ID(result.ID))
+}
+
+func validateTaskParent(ctx context.Context, repository ports.CoordinationRepository, task core.Task) error {
+	if task.ParentTaskID == "" {
+		return nil
+	}
+	seen := map[core.ID]struct{}{task.ID: {}}
+	currentID := task.ParentTaskID
+	for depth := 1; ; depth++ {
+		if depth >= maxTaskHierarchyDepth {
+			return domain.NewError(domain.CodeConflict, "task hierarchy exceeds maximum depth", false)
+		}
+		if _, exists := seen[currentID]; exists {
+			return domain.NewError(domain.CodeConflict, "task hierarchy contains a cycle", false)
+		}
+		seen[currentID] = struct{}{}
+		parent, ok, err := repository.GetTask(ctx, currentID)
+		if err != nil {
+			return err
+		}
+		if !ok || parent.ProjectID != task.ProjectID {
+			return domain.NewError(domain.CodeNotFound, "parent task was not found in the selected project", false)
+		}
+		if closedTaskParent(parent.State) {
+			return domain.NewError(domain.CodeConflict, "cannot attach work below a closed task", false)
+		}
+		if parent.ParentTaskID == "" {
+			return nil
+		}
+		currentID = parent.ParentTaskID
+	}
 }
 func (s *Service) Task(ctx context.Context, id core.ID) (core.Task, error) {
 	var out core.Task
@@ -662,7 +692,7 @@ func (s *Service) Claim(ctx context.Context, key domain.IdempotencyKey, task, se
 	_, result, e := s.store.Write(ctx, key, "task.claim", func(r ports.Repositories) (domain.Result, error) {
 		var winner bool
 		var e error
-		out, winner, e = r.Coordination().ClaimTask(ctx, task, session, s.now().UTC())
+		out, winner, e = ClaimTaskInTransaction(ctx, r, s.now().UTC(), task, session)
 		if e != nil {
 			return domain.Result{}, e
 		}
@@ -717,27 +747,7 @@ func (s *Service) CreateRun(ctx context.Context, key domain.IdempotencyKey, r co
 		return r, invalid()
 	}
 	_, result, e := s.store.Write(ctx, key, "task.run-create", func(p ports.Repositories) (domain.Result, error) {
-		task, ok, e := p.Coordination().GetTask(ctx, r.TaskID)
-		if e != nil {
-			return domain.Result{}, e
-		}
-		if !ok {
-			return domain.Result{}, notFound()
-		}
-		if terminalTask(task.State) {
-			return domain.Result{}, conflict()
-		}
-		session, ok, e := p.Coordination().GetSession(ctx, r.SessionID)
-		if e != nil {
-			return domain.Result{}, e
-		}
-		if !ok {
-			return domain.Result{}, notFound()
-		}
-		if terminalSession(session) {
-			return domain.Result{}, conflict()
-		}
-		e = p.Coordination().CreateRun(ctx, r)
+		e := CreateRunInTransaction(ctx, p, r)
 		return domain.Result{ID: domain.ResultID(r.ID), Outcome: domain.OutcomeOK, Data: runSummary(r)}, e
 	})
 	if e != nil {

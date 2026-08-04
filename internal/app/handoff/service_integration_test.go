@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	appgit "github.com/jeremy-merchant/OMG/internal/app/git"
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	appgit "github.com/jeremy-merchant/oh-my-group/internal/app/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 type adoptionScanner struct{ observation gitobs.Observation }

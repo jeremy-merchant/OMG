@@ -4,7 +4,7 @@
 
 **Status:** complete
 
-- Authorized the canonical public repository and Go module identity as `github.com/jeremy-merchant/OMG`.
+- Authorized the canonical public repository and Go module identity as `github.com/jeremy-merchant/oh-my-group`.
 - Confirmed Apache License 2.0 and updated README, contribution, governance, support, security, conduct, naming, brand, command, and release-status contracts.
 - Changed `omg release status --json` to report `SOURCE PUBLISHED`, `Apache-2.0`, the canonical repository, and `stable_release: false`.
 - Removed generated acceptance evidence and obsolete local RC binaries from the public source tree; future evidence and artifacts are local or CI outputs and must be regenerated from a pinned public revision.

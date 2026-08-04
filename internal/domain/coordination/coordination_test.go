@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 func utcTime() time.Time { return time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC) }

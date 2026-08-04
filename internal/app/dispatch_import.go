@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	importapp "github.com/jeremy-merchant/OMG/internal/app/importrecord"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	importapp "github.com/jeremy-merchant/oh-my-group/internal/app/importrecord"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 // dispatchImport handles the "import.record" command. Returns (Outcome{}, false)

@@ -30,11 +30,20 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 		schema  map[string]any
 		payload any
 	}{
+		"worker-setup": {
+			objectSchema([]string{"human_id", "controller_session_id", "session_id", "runtime", "role", "task_id", "task_title", "run_id", "reservations"}, map[string]any{
+				"human_id": stringProperty("Worker owner."), "controller_session_id": stringProperty("Live controller."), "session_id": stringProperty("Worker session."),
+				"runtime": stringProperty("Runtime."), "role": stringProperty("Role."), "task_id": stringProperty("Task."), "task_title": stringProperty("Title."),
+				"run_id": stringProperty("Run."), "reservations": map[string]any{"type": "array", "maxItems": 128},
+			}),
+			map[string]any{"human_id": "human-1", "controller_session_id": "controller-1", "session_id": "worker-1", "runtime": "runtime-1", "role": "worker", "task_id": "task-1", "task_title": "Bounded change", "run_id": "run-1", "reservations": []any{}},
+		},
 		"mode-classify": {
 			objectSchema(nil, map[string]any{
 				"mutates_files": booleanProperty("The work edits repository files."), "creates_branch": booleanProperty("The work creates a branch."),
 				"creates_worktree": booleanProperty("The work creates a worktree."), "uses_multiple_agents": booleanProperty("More than one agent participates."),
-				"touches_production": booleanProperty("The work changes production state."), "touches_auth_or_payment": booleanProperty("The work affects authentication, authorization, or payment."),
+				"touches_production": booleanProperty("The work changes production state."), "touches_database": booleanProperty("The work changes a database schema, migration, or persistent data."),
+				"touches_auth_or_payment":       booleanProperty("The work affects authentication, authorization, or payment."),
 				"changes_user_visible_behavior": booleanProperty("The work changes user-visible behavior."), "external_side_effects": booleanProperty("The work has non-repository side effects."),
 				"release_or_canary": booleanProperty("The work publishes, releases, or runs a canary."), "requires_handoff": booleanProperty("Ownership must cross sessions."),
 				"expected_duration_minutes": map[string]any{"type": "integer", "minimum": 0, "description": "Expected duration used to decide whether progress is required."},
@@ -61,9 +70,11 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 		"task-create": {
 			objectSchema([]string{"title", "created_by_session_id"}, map[string]any{
 				"title": stringProperty("Concise task title."), "created_by_session_id": stringProperty("Controller session creating the task."),
-				"parent_task_id": stringProperty("Optional parent task ID."),
+				"parent_task_id":     stringProperty("Optional parent task ID."),
+				"completion_policy":  stringProperty("Optional INDEPENDENT or ALL_REQUIRED_CHILDREN_VERIFIED policy."),
+				"parent_requirement": stringProperty("Optional REQUIRED or OPTIONAL relationship to the parent."),
 			}),
-			map[string]any{"title": "Implement bounded change", "created_by_session_id": "CONTROLLER_SESSION_ID"},
+			map[string]any{"title": "Implement bounded change", "created_by_session_id": "CONTROLLER_SESSION_ID", "completion_policy": "INDEPENDENT"},
 		},
 		"task-get": {
 			objectSchema([]string{"task_id"}, map[string]any{"task_id": stringProperty("Task ID.")}),
@@ -101,6 +112,13 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 				"archive_event_id": stringProperty("Unique append-only session archive heartbeat ID."), "evidence": stringProperty("Safe completion and verification evidence."),
 			}),
 			map[string]any{"task_id": "TASK_ID", "run_id": "RUN_ID", "session_id": "SESSION_ID", "actor_session_id": "SESSION_ID", "archive_event_id": "ARCHIVE_EVENT_ID", "evidence": "targeted verification passed"},
+		},
+		"candidate-close": {
+			objectSchema([]string{"handoff_id", "actor_session_id", "archive_event_id", "evidence"}, map[string]any{
+				"handoff_id": stringProperty("Candidate handoff ID."), "actor_session_id": stringProperty("Controller session closing the lifecycle."),
+				"archive_event_id": stringProperty("Unique source-session archive heartbeat ID."), "evidence": stringProperty("Safe exact-Canary and cleanup closure evidence."),
+			}),
+			map[string]any{"handoff_id": "HANDOFF_ID", "actor_session_id": "CONTROLLER_SESSION_ID", "archive_event_id": "ARCHIVE_EVENT_ID", "evidence": "exact real Canary passed and source cleanup verified"},
 		},
 		"message-inbox": {
 			objectSchema([]string{"recipient"}, map[string]any{"recipient": recipient}),
@@ -143,6 +161,20 @@ func examplePayloadContract(topic string) (map[string]any, any, bool) {
 				"ttl_seconds": map[string]any{"type": "integer", "minimum": 1, "description": "Reservation lifetime."},
 			}),
 			map[string]any{"id": "RESERVATION_ID", "pattern_kind": "glob", "pattern": "internal/example/**", "case_sensitivity": "sensitive", "mode": "exclusive", "human_id": "HUMAN_ID", "session_id": "WORKER_SESSION_ID", "task_id": "TASK_ID", "run_id": "RUN_ID", "intent": "edit worker bootstrap", "ttl_seconds": 3600},
+		},
+		"reserve-batch-add": {
+			objectSchema([]string{"human_id", "session_id", "task_id", "run_id", "items"}, map[string]any{
+				"human_id": stringProperty("Canonical human ID."), "session_id": stringProperty("Worker session ID."), "task_id": stringProperty("Task ID."), "run_id": stringProperty("Run ID."),
+				"items": map[string]any{"type": "array", "minItems": 1, "maxItems": 128, "items": objectSchema([]string{"id", "pattern_kind", "pattern", "case_sensitivity", "mode", "intent", "ttl_seconds"}, map[string]any{
+					"id": stringProperty("Unique reservation ID."), "pattern_kind": stringProperty("exact, directory_prefix, or glob."), "pattern": stringProperty("Project-relative path pattern."),
+					"case_sensitivity": stringProperty("sensitive or insensitive."), "mode": stringProperty("exclusive or shared."), "intent": stringProperty("Bounded edit intent."),
+					"ttl_seconds": map[string]any{"type": "integer", "minimum": 1, "description": "Reservation lifetime."},
+				})},
+			}),
+			map[string]any{"human_id": "HUMAN_ID", "session_id": "WORKER_SESSION_ID", "task_id": "TASK_ID", "run_id": "RUN_ID", "items": []any{
+				map[string]any{"id": "RESERVATION_A", "pattern_kind": "exact", "pattern": "internal/app/a.go", "case_sensitivity": "sensitive", "mode": "exclusive", "intent": "edit application logic", "ttl_seconds": 3600},
+				map[string]any{"id": "RESERVATION_B", "pattern_kind": "exact", "pattern": "internal/app/a_test.go", "case_sensitivity": "sensitive", "mode": "exclusive", "intent": "add regression tests", "ttl_seconds": 3600},
+			}},
 		},
 	}
 	contract, ok := contracts[topic]

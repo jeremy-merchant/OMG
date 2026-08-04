@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 // Foundation is the narrow application capability required by CLI commands.

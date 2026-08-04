@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"unsafe"
 
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/windowsacl"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/windowsacl"
 	"golang.org/x/sys/windows"
 )
 

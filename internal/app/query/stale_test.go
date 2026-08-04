@@ -90,7 +90,7 @@ func TestSummarizeDoesNotCountClosedStaleSessionsAsActionable(t *testing.T) {
 	}
 
 	got := Summarize(snapshot)
-	if got.ActiveSessions != 1 || got.StaleSessions != 1 {
+	if got.ActiveSessions != 0 || got.OpenSessions != 1 || got.StaleSessions != 1 {
 		t.Fatalf("summary = %#v", got)
 	}
 }

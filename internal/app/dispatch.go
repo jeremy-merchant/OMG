@@ -7,15 +7,15 @@ import (
 	"io"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	handoffapp "github.com/jeremy-merchant/OMG/internal/app/handoff"
-	lineageapp "github.com/jeremy-merchant/OMG/internal/app/lineage"
-	messageapp "github.com/jeremy-merchant/OMG/internal/app/message"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	lineagecore "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	handoffapp "github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	lineageapp "github.com/jeremy-merchant/oh-my-group/internal/app/lineage"
+	messageapp "github.com/jeremy-merchant/oh-my-group/internal/app/message"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	lineagecore "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 const RequestVersion = 1
@@ -57,8 +57,9 @@ func safeReceipt(receipt domain.Receipt) ReceiptView {
 
 // Outcome is a transport-neutral result. Each transport owns its envelope.
 type Outcome struct {
-	Data  any
-	Error domain.DomainError
+	Data   any
+	Error  domain.DomainError
+	Detail *ErrorDetail
 }
 
 // Dispatcher is the application boundary shared by all transports.
@@ -66,15 +67,24 @@ type Dispatcher interface {
 	Dispatch(context.Context, Request) Outcome
 }
 
+type DispatcherOptions struct {
+	StrictReservationConflicts bool
+}
+
 type ServiceDispatcher struct {
-	service       *foundation.Service
-	scanner       ports.Scanner
-	verifier      ports.GitVerifier
-	pathInspector ports.PathInspector
+	service                    *foundation.Service
+	scanner                    ports.Scanner
+	verifier                   ports.GitVerifier
+	pathInspector              ports.PathInspector
+	strictReservationConflicts bool
 }
 
 func NewDispatcher(service *foundation.Service) *ServiceDispatcher {
-	return NewDispatcherWithGitScanner(service, nil, nil)
+	return NewDispatcherWithOptions(service, DispatcherOptions{})
+}
+
+func NewDispatcherWithOptions(service *foundation.Service, options DispatcherOptions) *ServiceDispatcher {
+	return NewDispatcherWithGitToolsAndOptions(service, nil, nil, nil, options)
 }
 
 func NewDispatcherWithGitScanner(service *foundation.Service, scanner ports.Scanner, pathInspector ports.PathInspector) *ServiceDispatcher {
@@ -82,10 +92,18 @@ func NewDispatcherWithGitScanner(service *foundation.Service, scanner ports.Scan
 }
 
 func NewDispatcherWithGitTools(service *foundation.Service, scanner ports.Scanner, verifier ports.GitVerifier, pathInspector ports.PathInspector) *ServiceDispatcher {
-	return &ServiceDispatcher{service: service, scanner: scanner, verifier: verifier, pathInspector: pathInspector}
+	return NewDispatcherWithGitToolsAndOptions(service, scanner, verifier, pathInspector, DispatcherOptions{})
 }
 
-func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outcome {
+func NewDispatcherWithGitToolsAndOptions(service *foundation.Service, scanner ports.Scanner, verifier ports.GitVerifier, pathInspector ports.PathInspector, options DispatcherOptions) *ServiceDispatcher {
+	return &ServiceDispatcher{
+		service: service, scanner: scanner, verifier: verifier, pathInspector: pathInspector,
+		strictReservationConflicts: options.StrictReservationConflicts,
+	}
+}
+
+func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) (result Outcome) {
+	defer func() { d.enrichErrorOutcome(ctx, request, &result) }()
 	if ctx == nil || d == nil || d.service == nil || request.Version != RequestVersion || len(request.Payload) == 0 || len(request.Payload) > 1<<20 {
 		return Outcome{Error: invalidRequest()}
 	}
@@ -162,9 +180,9 @@ func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outco
 		}
 		var result TaskResult
 		err := d.service.WithCurrentStore(ctx, selection, func(resolved ports.ResolvedStore, store ports.Store) error {
-			task, err := lineageapp.New(store, nil).CreateTask(ctx, domain.IdempotencyKey(request.IdempotencyKey), lineagecore.Task{ProjectID: lineagecore.ID(resolved.Project), Title: payload.Title, CreatedBySessionID: lineagecore.ID(payload.CreatedBySessionID), ParentTaskID: lineagecore.ID(payload.ParentTaskID)})
+			task, err := lineageapp.New(store, nil).CreateTask(ctx, domain.IdempotencyKey(request.IdempotencyKey), lineagecore.Task{ProjectID: lineagecore.ID(resolved.Project), Title: payload.Title, CreatedBySessionID: lineagecore.ID(payload.CreatedBySessionID), ParentTaskID: lineagecore.ID(payload.ParentTaskID), CompletionPolicy: lineagecore.TaskCompletionPolicy(payload.CompletionPolicy), ParentRequirement: lineagecore.TaskParentRequirement(payload.ParentRequirement)})
 			if err == nil {
-				result = TaskResult{ID: string(task.ID), DisplayNumber: task.DisplayNumber, State: string(task.State)}
+				result = TaskResult{ID: string(task.ID), DisplayNumber: task.DisplayNumber, State: string(task.State), CompletionPolicy: string(task.CompletionPolicy), ParentRequirement: string(task.ParentRequirement)}
 			}
 			return err
 		})
@@ -211,6 +229,12 @@ func (d *ServiceDispatcher) Dispatch(ctx context.Context, request Request) Outco
 		}
 		return Outcome{Error: invalidRequest()}
 	default:
+		if outcome, handled := d.dispatchWorker(ctx, request, selection); handled {
+			return outcome
+		}
+		if outcome, handled := d.dispatchCandidate(ctx, request, selection); handled {
+			return outcome
+		}
 		if outcome, handled := d.dispatchLineage(ctx, request, selection); handled {
 			return outcome
 		}
@@ -249,6 +273,8 @@ type TaskCreate struct {
 	Title              string `json:"title"`
 	CreatedBySessionID string `json:"created_by_session_id"`
 	ParentTaskID       string `json:"parent_task_id,omitempty"`
+	CompletionPolicy   string `json:"completion_policy,omitempty"`
+	ParentRequirement  string `json:"parent_requirement,omitempty"`
 }
 type Recipient struct {
 	SessionID string `json:"session_id,omitempty"`
@@ -290,9 +316,11 @@ type HandoffCreate struct {
 	SuggestedActions     []string   `json:"suggested_actions,omitempty"`
 }
 type TaskResult struct {
-	ID            string `json:"id"`
-	DisplayNumber int64  `json:"display_number"`
-	State         string `json:"state"`
+	ID                string `json:"id"`
+	DisplayNumber     int64  `json:"display_number"`
+	State             string `json:"state"`
+	CompletionPolicy  string `json:"completion_policy"`
+	ParentRequirement string `json:"parent_requirement"`
 }
 type MessageResult struct {
 	ID       string `json:"id"`

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 type semanticState string

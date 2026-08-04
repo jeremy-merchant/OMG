@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/terminalstyle"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/terminalstyle"
 )
 
 type terminalTheme struct {

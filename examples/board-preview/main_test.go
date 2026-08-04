@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/view"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/view"
 )
 
 func TestParsePreviewFormat(t *testing.T) {

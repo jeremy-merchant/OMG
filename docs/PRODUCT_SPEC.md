@@ -2,7 +2,7 @@
 
 > **Implementation authority mirror.** This document is the stable public-English mirror of the authoritative OMG product contract. It intentionally omits interview metadata, transcripts, private session locations, and hidden working paths; it does not weaken, reinterpret, or replace the contract.
 >
-> **Public identity and release status:** OMG (**Oh My Group**), CLI `omg`, tracked configuration directory `.omg/`, environment prefix `OMG_`, and **OMG Coordination Protocol (OMGCP)** are published as open-source project identifiers. The canonical Go module is `github.com/jeremy-merchant/OMG`. This is not a trademark-clearance claim. Source is public under Apache-2.0; no stable binary release exists yet.
+> **Public identity and release status:** OMG (**Oh My Group**), CLI `omg`, tracked configuration directory `.omg/`, environment prefix `OMG_`, and **OMG Coordination Protocol (OMGCP)** are published as open-source project identifiers. The canonical Go module is `github.com/jeremy-merchant/oh-my-group`. This is not a trademark-clearance claim. Source is public under Apache-2.0; no stable binary release exists yet.
 
 ## Purpose and scope
 

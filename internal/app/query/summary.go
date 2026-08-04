@@ -23,8 +23,13 @@ func Summarize(snapshot BoardSnapshot) OperatorSummary {
 		Bottlenecks:     []BottleneckView{},
 	}
 	sessions := ClassifySessions(snapshot)
-	summary.ActiveSessions = len(sessions.Sessions)
+	summary.OpenSessions = len(sessions.Sessions)
+	summary.AliveSessions = sessions.Counts.Alive
+	summary.IdleSessions = sessions.Counts.Idle
+	summary.ActiveSessions = summary.AliveSessions + summary.IdleSessions
 	summary.StaleSessions = sessions.Counts.Stale
+	summary.RuntimeUnobservableSessions = sessions.Counts.RuntimeUnobservable
+	summary.FinishedUnclosedSessions = sessions.Counts.FinishedUnclosed
 	for _, task := range snapshot.Tasks {
 		summary.TasksByState[task.State]++
 	}
@@ -41,7 +46,7 @@ func Summarize(snapshot BoardSnapshot) OperatorSummary {
 			activeReservations[reservation.ID] = struct{}{}
 		}
 	}
-	conflicts := map[string]struct{}{}
+	ownershipConflicts := map[string]struct{}{}
 	for _, reservation := range snapshot.Reservations {
 		if _, active := activeReservations[reservation.ID]; !active {
 			continue
@@ -52,15 +57,24 @@ func Summarize(snapshot BoardSnapshot) OperatorSummary {
 			}
 			pair := []string{reservation.ID, other}
 			sort.Strings(pair)
-			conflicts[pair[0]+"\x00"+pair[1]] = struct{}{}
+			ownershipConflicts[pair[0]+"\x00"+pair[1]] = struct{}{}
 		}
 	}
+	gitRisks := map[string]struct{}{}
 	for _, warning := range snapshot.Warnings {
 		if strings.HasPrefix(warning, "git_risk:") {
-			conflicts[warning] = struct{}{}
+			gitRisks[warning] = struct{}{}
 		}
 	}
-	summary.Conflicts = len(conflicts)
+	summary.OwnershipConflicts = len(ownershipConflicts)
+	summary.GitRisks = len(gitRisks)
+	summary.Conflicts = summary.OwnershipConflicts + summary.GitRisks
+	summary.Housekeeping = HousekeepingView{
+		StaleSessions:               summary.StaleSessions,
+		RuntimeUnobservableSessions: summary.RuntimeUnobservableSessions,
+		FinishedUnclosedSessions:    summary.FinishedUnclosedSessions,
+		IntegrationQueue:            summary.IntegrationQueue,
+	}
 	workComplete := summary.TasksByState["WORK_COMPLETE"]
 	verifiedDone := summary.TasksByState["VERIFIED_DONE"]
 	if workComplete != 0 || verifiedDone != 0 {

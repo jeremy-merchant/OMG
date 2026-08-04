@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/config"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/config"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestStableIDNormalizesWindowsPathCase(t *testing.T) {

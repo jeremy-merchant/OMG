@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestDispatchBoardQueryReturnsCanonicalViewModel(t *testing.T) {

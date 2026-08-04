@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	queryapp "github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	queryapp "github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestV4ToV11ScopedReceiptsAuditHumansAndLifecycleUpgradePreservesReferencedRows(t *testing.T) {
@@ -77,11 +77,11 @@ func TestV4ToV11ScopedReceiptsAuditHumansAndLifecycleUpgradePreservesReferencedR
 	}
 
 	plan, _, approval := migrationApproval(t, store, "upgrade-project")
-	if plan.FromVersion != 4 || plan.ToVersion != 11 {
-		t.Fatalf("upgrade plan = v%d to v%d; want v4 to v11", plan.FromVersion, plan.ToVersion)
+	if plan.FromVersion != 4 || plan.ToVersion != 12 {
+		t.Fatalf("upgrade plan = v%d to v%d; want v4 to v12", plan.FromVersion, plan.ToVersion)
 	}
 	if err := store.ApplyMigrations(ctx, plan, approval); err != nil {
-		t.Fatalf("upgrade to v11: %v", err)
+		t.Fatalf("upgrade to v12: %v", err)
 	}
 
 	var receiptProject string

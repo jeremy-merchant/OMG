@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
 )
 
 func TestReceiptCommandsRequireSafeQueryShape(t *testing.T) {

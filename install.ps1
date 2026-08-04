@@ -5,7 +5,7 @@ function Fail([string]$Message) {
     throw "OMG install: $Message"
 }
 
-$Repository = if ($env:OMG_REPOSITORY) { $env:OMG_REPOSITORY } else { "jeremy-merchant/OMG" }
+$Repository = if ($env:OMG_REPOSITORY) { $env:OMG_REPOSITORY } else { "jeremy-merchant/oh-my-group" }
 $Version = if ($env:OMG_VERSION) { $env:OMG_VERSION } else { "latest" }
 $InstallDir = if ($env:OMG_INSTALL_DIR) { $env:OMG_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA "OMG\bin" }
 $SourceBinary = $env:OMG_INSTALL_SOURCE

@@ -2,12 +2,12 @@ package progress
 
 import (
 	"context"
-	dep "github.com/jeremy-merchant/OMG/internal/app/dependency"
-	ho "github.com/jeremy-merchant/OMG/internal/app/handoff"
-	msg "github.com/jeremy-merchant/OMG/internal/app/message"
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
+	dep "github.com/jeremy-merchant/oh-my-group/internal/app/dependency"
+	ho "github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	msg "github.com/jeremy-merchant/oh-my-group/internal/app/message"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
 	"testing"
 	"time"
 )

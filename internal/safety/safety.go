@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 	"reflect"
 	"regexp"
 	"sort"

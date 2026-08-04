@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 // Format identifies a supported board presentation.

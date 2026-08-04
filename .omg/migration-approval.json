@@ -1,0 +1,17 @@
+{
+  "approval_id": "approval-v0.1.0-rc.2-migration-20260729T003806Z",
+  "approved_by": "kiunlee",
+  "evidence_reference": "explicit user approval for plan fea4bcc19c27c67a283f8a65edec5b3e and v0.1.0-rc.2 deployment",
+  "plan_id": "fea4bcc19c27c67a283f8a65edec5b3e",
+  "project": "eda2c8c5a80914bc33756da02e284c90",
+  "from_version": 9,
+  "to_version": 10,
+  "checksums": [
+    "d9af7dcf64e2413ace38412a2d0c124792050f47156a0f6b514847ba146a8ea5"
+  ],
+  "backup_location": "/var/folders/24/bqppccs57sx8w46vkn1hrgjw0000gn/0/omg/git/eda2c8c5a80914bc33756da02e284c90/backups/migration-fea4bcc19c27c67a283f8a65edec5b3e.db",
+  "backup_checksum": "ea02b050bdcd50a23889c7989c85c117ff52995b7a3c95d486cf7aa753499f6e",
+  "command": "omg migration apply",
+  "timestamp": "2026-07-29T00:38:06Z",
+  "expires_at": "2026-07-29T00:53:06Z"
+}

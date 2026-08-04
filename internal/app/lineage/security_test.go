@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/store/sqlite"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/store/sqlite"
 	_ "modernc.org/sqlite"
 )
 

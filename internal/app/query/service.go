@@ -13,15 +13,15 @@ import (
 	"strings"
 	"time"
 
-	appgit "github.com/jeremy-merchant/OMG/internal/app/git"
+	appgit "github.com/jeremy-merchant/oh-my-group/internal/app/git"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	gitdomain "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	gitdomain "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 // Service constructs canonical, authorized board snapshots. It deliberately
@@ -639,7 +639,7 @@ func sessionLiveness(session lineage.AgentSession) SessionLiveness {
 	return SessionLivenessAlive
 }
 func taskView(v lineage.Task) TaskView {
-	return TaskView{ID: string(v.ID), DisplayNumber: v.DisplayNumber, Title: safeText(v.Title), State: string(v.State), CreatedBySessionID: string(v.CreatedBySessionID), ClaimedBySessionID: string(v.ClaimedBySessionID), ParentTaskID: string(v.ParentTaskID), CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt}
+	return TaskView{ID: string(v.ID), DisplayNumber: v.DisplayNumber, Title: safeText(v.Title), State: string(v.State), CreatedBySessionID: string(v.CreatedBySessionID), ClaimedBySessionID: string(v.ClaimedBySessionID), ParentTaskID: string(v.ParentTaskID), CompletionPolicy: string(lineage.EffectiveTaskCompletionPolicy(v.CompletionPolicy)), ParentRequirement: string(lineage.EffectiveTaskParentRequirement(v.ParentRequirement)), CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt}
 }
 func runView(v lineage.TaskRun) RunView {
 	return RunView{ID: string(v.ID), TaskID: string(v.TaskID), SessionID: string(v.SessionID), State: string(v.State), StartedAt: v.StartedAt, EndedAt: v.EndedAt, ParentLostAt: v.ParentLostAt}

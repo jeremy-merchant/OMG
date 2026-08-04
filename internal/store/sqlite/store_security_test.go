@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestApplyMigrationsRejectsFutureIssuedApprovalWithoutMutation(t *testing.T) {

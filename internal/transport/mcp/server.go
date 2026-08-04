@@ -9,8 +9,9 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 const (
@@ -34,7 +35,8 @@ var allowedCommands = []string{
 	"progress.add", "progress.history", "dependency.add", "dependency.list",
 	"message.send", "message.inbox", "message.thread", "message.deliver", "message.read", "message.ack",
 	"handoff.create", "handoff.show", "handoff.history", "handoff.lifecycle", "handoff.advance", "handoff.supersede", "handoff.accept", "handoff.reject", "handoff.adopt",
-	"reserve.add", "reserve.list", "reserve.active", "reserve.history", "reserve.renew", "reserve.release", "reserve.override",
+	"candidate.close", "worker.setup",
+	"reserve.add", "reserve.batch-add", "reserve.list", "reserve.active", "reserve.history", "reserve.renew", "reserve.release", "reserve.override",
 	"git.inventory", "git.current", "git.latest", "git.history", "git.diff", "git.cleanup-plan", "git.reconcile", "git.adopt", "orphan.scan",
 	"canary.start", "canary.finish",
 	"board.query", "preflight.query", "receipt.get", "receipt.list",
@@ -51,6 +53,7 @@ type request struct {
 type rpcError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 type response struct {
@@ -209,8 +212,12 @@ func handleToolCall(ctx context.Context, output io.Writer, req request, dispatch
 	if !validJSONDepth(params.Arguments) {
 		return writeError(output, req.ID, invalidParamsCode)
 	}
-	if decodeStrict(params.Arguments, &arguments) != nil || !validRequest(arguments.Request) {
+	if decodeStrict(params.Arguments, &arguments) != nil {
 		return writeError(output, req.ID, invalidParamsCode)
+	}
+	if !validRequest(arguments.Request) {
+		detail := app.NewErrorDetail(arguments.Request, domain.NewError(domain.CodeInvalidArgument, "MCP application payload is invalid", false))
+		return writeErrorWithData(output, req.ID, invalidParamsCode, map[string]any{"details": detail})
 	}
 	if dispatcher == nil {
 		return writeError(output, req.ID, internalErrorCode)
@@ -227,15 +234,17 @@ func handleToolCall(ctx context.Context, output io.Writer, req request, dispatch
 		result.StructuredContent = struct {
 			OK    bool `json:"ok"`
 			Error struct {
-				Code      string `json:"code"`
-				Message   string `json:"message"`
-				Retryable bool   `json:"retryable"`
+				Code      string           `json:"code"`
+				Message   string           `json:"message"`
+				Retryable bool             `json:"retryable"`
+				Details   *app.ErrorDetail `json:"details,omitempty"`
 			} `json:"error"`
 		}{OK: false, Error: struct {
-			Code      string `json:"code"`
-			Message   string `json:"message"`
-			Retryable bool   `json:"retryable"`
-		}{Code: string(outcome.Error.Code), Message: outcome.Error.Message, Retryable: outcome.Error.Retryable}}
+			Code      string           `json:"code"`
+			Message   string           `json:"message"`
+			Retryable bool             `json:"retryable"`
+			Details   *app.ErrorDetail `json:"details,omitempty"`
+		}{Code: string(outcome.Error.Code), Message: outcome.Error.Message, Retryable: outcome.Error.Retryable, Details: outcome.Detail}}
 	} else {
 		result.StructuredContent = struct {
 			OK   bool `json:"ok"`
@@ -446,7 +455,11 @@ func writeResult(output io.Writer, id json.RawMessage, result any) error {
 }
 
 func writeError(output io.Writer, id json.RawMessage, code int) error {
-	return json.NewEncoder(output).Encode(response{JSONRPC: "2.0", ID: id, Error: &rpcError{Code: code, Message: errorMessage(code)}})
+	return writeErrorWithData(output, id, code, nil)
+}
+
+func writeErrorWithData(output io.Writer, id json.RawMessage, code int, data any) error {
+	return json.NewEncoder(output).Encode(response{JSONRPC: "2.0", ID: id, Error: &rpcError{Code: code, Message: errorMessage(code), Data: data}})
 }
 
 func errorMessage(code int) string {

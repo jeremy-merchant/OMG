@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-repository="${OMG_REPOSITORY:-jeremy-merchant/OMG}"
+repository="${OMG_REPOSITORY:-jeremy-merchant/oh-my-group}"
 version="${OMG_VERSION:-latest}"
 install_dir="${OMG_INSTALL_DIR:-$HOME/.local/bin}"
 source_binary="${OMG_INSTALL_SOURCE:-}"

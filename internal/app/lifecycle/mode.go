@@ -33,6 +33,7 @@ type Input struct {
 	CreatesWorktree            bool   `json:"creates_worktree"`
 	UsesMultipleAgents         bool   `json:"uses_multiple_agents"`
 	TouchesProduction          bool   `json:"touches_production"`
+	TouchesDatabase            bool   `json:"touches_database"`
 	TouchesAuthOrPayment       bool   `json:"touches_auth_or_payment"`
 	ChangesUserVisibleBehavior bool   `json:"changes_user_visible_behavior"`
 	ExternalSideEffects        bool   `json:"external_side_effects"`
@@ -44,17 +45,28 @@ type Input struct {
 
 // Contract is the complete policy decision returned to an agent or adapter.
 type Contract struct {
-	Mode                            Mode              `json:"mode"`
-	SessionRequired                 bool              `json:"session_required"`
-	TaskRequired                    bool              `json:"task_required"`
-	RunRequired                     bool              `json:"run_required"`
-	ProgressRequired                bool              `json:"progress_required"`
-	ReservationRequired             bool              `json:"reservation_required"`
-	HandoffRequired                 bool              `json:"handoff_required"`
-	IndependentVerificationRequired bool              `json:"independent_verification_required"`
-	AutoArchive                     bool              `json:"auto_archive"`
-	VerificationLevel               VerificationLevel `json:"verification_level"`
-	Reasons                         []string          `json:"reasons"`
+	Mode                             Mode              `json:"mode"`
+	LedgerRole                       string            `json:"ledger_role"`
+	PreflightRequired                bool              `json:"preflight_required"`
+	StartRegistrationRequired        bool              `json:"start_registration_required"`
+	FinishRegistrationRequired       bool              `json:"finish_registration_required"`
+	IntermediateLedgerWritesRequired bool              `json:"intermediate_ledger_writes_required"`
+	ControllerProvidesCommands       bool              `json:"controller_provides_commands"`
+	CommandDiscoveryAllowed          bool              `json:"command_discovery_allowed"`
+	NonSafetyErrorsAreWarnings       bool              `json:"non_safety_errors_are_warnings"`
+	FailClosedOnPreflightFailure     bool              `json:"fail_closed_on_preflight_failure"`
+	FailClosedOnOwnershipConflict    bool              `json:"fail_closed_on_ownership_conflict"`
+	SessionRequired                  bool              `json:"session_required"`
+	TaskRequired                     bool              `json:"task_required"`
+	RunRequired                      bool              `json:"run_required"`
+	ProgressRequired                 bool              `json:"progress_required"`
+	ReservationRequired              bool              `json:"reservation_required"`
+	HandoffRequired                  bool              `json:"handoff_required"`
+	IndependentVerificationRequired  bool              `json:"independent_verification_required"`
+	AutoArchive                      bool              `json:"auto_archive"`
+	VerificationLevel                VerificationLevel `json:"verification_level"`
+	SourceOfTruth                    []string          `json:"source_of_truth"`
+	Reasons                          []string          `json:"reasons"`
 }
 
 // Classify applies conservative, deterministic risk rules. Explicit overrides
@@ -70,7 +82,7 @@ func Classify(input Input) (Contract, error) {
 
 	mode := WorkLite
 	reasons := make([]string, 0, 6)
-	fullRisk := input.UsesMultipleAgents || input.TouchesProduction || input.TouchesAuthOrPayment || input.ReleaseOrCanary || input.RequiresHandoff
+	fullRisk := input.UsesMultipleAgents || input.TouchesProduction || input.TouchesDatabase || input.TouchesAuthOrPayment || input.ReleaseOrCanary || input.RequiresHandoff
 	readOnly := !input.MutatesFiles && !input.CreatesBranch && !input.CreatesWorktree && !input.ChangesUserVisibleBehavior && !input.ExternalSideEffects && !fullRisk
 	switch {
 	case fullRisk:
@@ -92,12 +104,26 @@ func Classify(input Input) (Contract, error) {
 		reasons = append(reasons, "unsafe_downgrade_ignored")
 	}
 
-	contract := Contract{Mode: mode, Reasons: reasons}
+	contract := Contract{
+		Mode:                       mode,
+		Reasons:                    reasons,
+		CommandDiscoveryAllowed:    false,
+		NonSafetyErrorsAreWarnings: true,
+		SourceOfTruth:              []string{"git_sha", "clean_tree", "diff", "reachability"},
+	}
 	switch mode {
 	case Observe:
+		contract.LedgerRole = "none"
 		contract.AutoArchive = true
 		contract.VerificationLevel = VerificationNone
 	case WorkLite:
+		contract.LedgerRole = "integration_boundary"
+		contract.PreflightRequired = true
+		contract.StartRegistrationRequired = true
+		contract.FinishRegistrationRequired = true
+		contract.ControllerProvidesCommands = true
+		contract.FailClosedOnPreflightFailure = true
+		contract.FailClosedOnOwnershipConflict = true
 		contract.SessionRequired = true
 		contract.TaskRequired = true
 		contract.RunRequired = true
@@ -109,6 +135,14 @@ func Classify(input Input) (Contract, error) {
 			contract.VerificationLevel = VerificationMedium
 		}
 	case Full:
+		contract.LedgerRole = "full_coordination"
+		contract.PreflightRequired = true
+		contract.StartRegistrationRequired = true
+		contract.FinishRegistrationRequired = true
+		contract.IntermediateLedgerWritesRequired = true
+		contract.ControllerProvidesCommands = true
+		contract.FailClosedOnPreflightFailure = true
+		contract.FailClosedOnOwnershipConflict = true
 		contract.SessionRequired = true
 		contract.TaskRequired = true
 		contract.RunRequired = true
@@ -142,12 +176,15 @@ func parseOverride(value string) (Mode, error) {
 }
 
 func fullReasons(input Input) []string {
-	reasons := make([]string, 0, 5)
+	reasons := make([]string, 0, 6)
 	if input.UsesMultipleAgents {
 		reasons = append(reasons, "multiple_agents")
 	}
 	if input.TouchesProduction {
 		reasons = append(reasons, "production")
+	}
+	if input.TouchesDatabase {
+		reasons = append(reasons, "database")
 	}
 	if input.TouchesAuthOrPayment {
 		reasons = append(reasons, "auth_or_payment")

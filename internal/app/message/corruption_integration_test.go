@@ -2,8 +2,8 @@ package message
 
 import (
 	"context"
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
 	"testing"
 	"time"
 )

@@ -10,14 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	res "github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	res "github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
-const maxTTL = 24 * time.Hour
+const (
+	maxTTL              = 24 * time.Hour
+	maxReservationBatch = 128
+)
 
 type Options struct{ StrictConflicts bool }
 type Service struct {
@@ -44,6 +47,26 @@ type CreateRequest struct {
 	Owner     res.Owner
 	Intent    string
 	TTL       time.Duration
+}
+type BatchCreateItem struct {
+	ID      string
+	Pattern res.Pattern
+	Mode    res.Mode
+	Intent  string
+	TTL     time.Duration
+}
+type BatchCreateRequest struct {
+	ProjectID domain.ProjectID
+	Owner     res.Owner
+	Items     []BatchCreateItem
+}
+type BatchCreateData struct {
+	ReservationIDs []string `json:"reservation_ids"`
+}
+type PreparedBatch struct {
+	ProjectID    domain.ProjectID
+	Owner        res.Owner
+	reservations []res.Reservation
 }
 type RenewRequest struct {
 	ProjectID                   domain.ProjectID
@@ -138,6 +161,138 @@ func (s *Service) Create(ctx context.Context, key domain.IdempotencyKey, q Creat
 	})
 	return out, mapErr(e)
 }
+
+// BatchCreate records a bounded set of reservations in one Store.Write
+// transaction. Every item is validated and conflict-checked before the first
+// repository insert, so strict conflicts and storage failures cannot leave a
+// partial batch behind.
+func (s *Service) BatchCreate(ctx context.Context, key domain.IdempotencyKey, q BatchCreateRequest) (domain.Result, error) {
+	if !domain.IsSecretFreeStableMetadata(string(key)) || safety.RejectPrefixed(key, q) != nil || q.ProjectID == "" || len(q.Items) == 0 || len(q.Items) > maxReservationBatch {
+		return domain.Result{}, invalid()
+	}
+	at := s.now().UTC()
+	prepared, err := PrepareBatch(at, q)
+	if err != nil {
+		return domain.Result{}, err
+	}
+	_, out, err := s.store.Write(ctx, key, "reserve.batch-add", func(r ports.Repositories) (domain.Result, error) {
+		data, warnings, err := CreatePreparedBatchInTransaction(ctx, r, at, s.strict, prepared)
+		if err != nil {
+			return domain.Result{}, err
+		}
+		return domain.Result{ID: domain.ResultID(data.ReservationIDs[0]), Outcome: domain.OutcomeOK, Data: data, Warnings: warnings}, nil
+	})
+	return out, mapErr(err)
+}
+
+// PrepareBatch normalizes and validates every reservation before a transaction
+// mutates canonical state. The returned value is opaque outside this package and
+// can be safely passed to CreatePreparedBatchInTransaction.
+func PrepareBatch(at time.Time, q BatchCreateRequest) (PreparedBatch, error) {
+	if q.ProjectID == "" || len(q.Items) == 0 || len(q.Items) > maxReservationBatch {
+		return PreparedBatch{}, invalid()
+	}
+	prepared := make([]res.Reservation, 0, len(q.Items))
+	seenIDs := make(map[string]struct{}, len(q.Items))
+	seenPatterns := make(map[string]struct{}, len(q.Items))
+	for _, item := range q.Items {
+		if strings.TrimSpace(item.ID) == "" || !domain.IsSecretFreeStableMetadata(item.ID) || !validTTL(item.TTL) {
+			return PreparedBatch{}, invalid()
+		}
+		if _, exists := seenIDs[item.ID]; exists {
+			return PreparedBatch{}, invalid()
+		}
+		seenIDs[item.ID] = struct{}{}
+		value, err := res.New(res.ReservationInput{ID: item.ID, Pattern: item.Pattern, Mode: item.Mode, Owner: q.Owner, Intent: item.Intent, ExpiresAt: at.Add(item.TTL)})
+		if err != nil {
+			return PreparedBatch{}, invalid()
+		}
+		patternKey := string(value.Pattern.Kind) + "\x00" + value.Pattern.Value + "\x00" + string(value.Pattern.CaseSensitivity) + "\x00" + string(value.Mode)
+		if _, exists := seenPatterns[patternKey]; exists {
+			return PreparedBatch{}, invalid()
+		}
+		seenPatterns[patternKey] = struct{}{}
+		prepared = append(prepared, value)
+	}
+	return PreparedBatch{ProjectID: q.ProjectID, Owner: q.Owner, reservations: prepared}, nil
+}
+
+// CreatePreparedBatchInTransaction conflict-checks and persists a prepared
+// batch inside an existing Store.Write callback. It performs no nested writes.
+func CreatePreparedBatchInTransaction(ctx context.Context, repositories ports.Repositories, at time.Time, strict bool, prepared PreparedBatch) (BatchCreateData, []string, error) {
+	return createPreparedBatchInTransaction(ctx, repositories, at, strict, false, prepared)
+}
+
+// EnsurePreparedBatchInTransaction is the worker-setup variant. An active
+// reservation with the same ID and identical owner/pattern/mode/intent is reused
+// instead of inserted again; every other ID collision fails closed.
+func EnsurePreparedBatchInTransaction(ctx context.Context, repositories ports.Repositories, at time.Time, strict bool, prepared PreparedBatch) (BatchCreateData, []string, error) {
+	return createPreparedBatchInTransaction(ctx, repositories, at, strict, true, prepared)
+}
+
+func createPreparedBatchInTransaction(ctx context.Context, repositories ports.Repositories, at time.Time, strict, reuseExact bool, prepared PreparedBatch) (BatchCreateData, []string, error) {
+	if len(prepared.reservations) == 0 || prepared.ProjectID == "" {
+		return BatchCreateData{}, nil, invalid()
+	}
+	if err := sameProject(ctx, repositories, prepared.ProjectID, prepared.Owner); err != nil {
+		return BatchCreateData{}, nil, err
+	}
+	existing, err := repositories.Reservations().List(ctx, prepared.ProjectID)
+	if err != nil {
+		return BatchCreateData{}, nil, err
+	}
+	existingByID := make(map[string]res.Reservation, len(existing))
+	for _, record := range existing {
+		existingByID[record.ID] = record
+	}
+	reused := make(map[string]bool, len(prepared.reservations))
+	warnings := make([]string, 0)
+	for i, candidate := range prepared.reservations {
+		if record, found := existingByID[candidate.ID]; found {
+			if !reuseExact || record.LifecycleAt(at) != res.Active || record.Pattern != candidate.Pattern || record.Mode != candidate.Mode || record.Owner != candidate.Owner || record.Intent != candidate.Intent {
+				return BatchCreateData{}, nil, conflict()
+			}
+			reused[candidate.ID] = true
+		}
+		for _, other := range existing {
+			if reused[candidate.ID] && other.ID == candidate.ID {
+				continue
+			}
+			decision := res.Decide(candidate, other, at)
+			if !decision.Conflict {
+				continue
+			}
+			warnings = append(warnings, candidate.ID+": "+warning(other.ID, decision.Overlap))
+			if strict && other.LifecycleAt(at) != res.Overridden {
+				return BatchCreateData{}, nil, conflict()
+			}
+		}
+		for _, other := range prepared.reservations[:i] {
+			decision := res.Decide(candidate, other, at)
+			if !decision.Conflict {
+				continue
+			}
+			warnings = append(warnings, candidate.ID+": "+warning(other.ID, decision.Overlap))
+			if strict {
+				return BatchCreateData{}, nil, conflict()
+			}
+		}
+	}
+	for _, candidate := range prepared.reservations {
+		if reused[candidate.ID] {
+			continue
+		}
+		if err := repositories.Reservations().Create(ctx, prepared.ProjectID, candidate, at); err != nil {
+			return BatchCreateData{}, nil, err
+		}
+	}
+	ids := make([]string, len(prepared.reservations))
+	for i := range prepared.reservations {
+		ids[i] = prepared.reservations[i].ID
+	}
+	return BatchCreateData{ReservationIDs: ids}, warnings, nil
+}
+
 func sameProject(ctx context.Context, r ports.Repositories, p domain.ProjectID, o res.Owner) error {
 	c := r.Coordination()
 	se, ok, e := c.GetSession(ctx, lineage.ID(o.SessionID))

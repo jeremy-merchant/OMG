@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestGitInventoryMigratedRoundTripAndCanonicalReplay(t *testing.T) {

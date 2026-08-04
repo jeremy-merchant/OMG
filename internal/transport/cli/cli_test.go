@@ -15,15 +15,15 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/bootstrap"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/platform"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/store/sqlite"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/bootstrap"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/platform"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/store/sqlite"
 )
 
 type recordingDispatcher struct {
@@ -127,7 +127,11 @@ func TestModeClassifyIsReadOnlyAndProportional(t *testing.T) {
 	if exit != ExitSuccess {
 		t.Fatalf("mode classify exit=%d output=%s", exit, output.String())
 	}
-	if !strings.Contains(output.String(), `"mode":"WORK_LITE"`) || !strings.Contains(output.String(), `"handoff_required":false`) {
+	if !strings.Contains(output.String(), `"mode":"WORK_LITE"`) || !strings.Contains(output.String(), `"handoff_required":false`) ||
+		!strings.Contains(output.String(), `"ledger_role":"integration_boundary"`) || !strings.Contains(output.String(), `"start_registration_required":true`) ||
+		!strings.Contains(output.String(), `"finish_registration_required":true`) || !strings.Contains(output.String(), `"intermediate_ledger_writes_required":false`) ||
+		!strings.Contains(output.String(), `"controller_provides_commands":true`) || !strings.Contains(output.String(), `"command_discovery_allowed":false`) ||
+		!strings.Contains(output.String(), `"source_of_truth":["git_sha","clean_tree","diff","reachability"]`) {
 		t.Fatalf("unexpected mode contract: %s", output.String())
 	}
 	if len(dispatcher.requests) != 0 {
@@ -138,6 +142,12 @@ func TestModeClassifyIsReadOnlyAndProportional(t *testing.T) {
 	exit = RunWithApplication(context.Background(), []string{"mode", "classify", "--payload", `{"touches_production":true,"override":"observe"}`, "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
 	if exit != ExitSuccess || !strings.Contains(output.String(), `"mode":"FULL"`) || !strings.Contains(output.String(), "unsafe_downgrade_ignored") {
 		t.Fatalf("unsafe mode downgrade was not rejected: exit=%d output=%s", exit, output.String())
+	}
+
+	output.Reset()
+	exit = RunWithApplication(context.Background(), []string{"mode", "classify", "--payload", `{"touches_database":true}`, "--json"}, "test-version", strings.NewReader(""), &output, io.Discard, service)
+	if exit != ExitSuccess || !strings.Contains(output.String(), `"mode":"FULL"`) || !strings.Contains(output.String(), `"reasons":["database"]`) {
+		t.Fatalf("database mode did not require FULL: exit=%d output=%s", exit, output.String())
 	}
 }
 
@@ -181,7 +191,7 @@ func TestParentCommandWithAdditionalIntentStillUsesValidation(t *testing.T) {
 	}
 }
 
-func TestDirectCanaryOptionsBuildStrictApplicationPayloads(t *testing.T) {
+func TestDirectCanaryOptionsBuildApplicationPayloads(t *testing.T) {
 	project := t.TempDir()
 	for _, test := range []struct {
 		name    string
@@ -196,6 +206,16 @@ func TestDirectCanaryOptionsBuildStrictApplicationPayloads(t *testing.T) {
 			assert: func(t *testing.T, payload map[string]any) {
 				if payload["handoff_id"] != "handoff-1" || payload["integration_ref"] != "main" || payload["verification_command"] != "go test ./..." {
 					t.Fatalf("start payload = %#v", payload)
+				}
+			},
+		},
+		{
+			name:    "local integration start",
+			args:    []string{"canary", "start", "--project", project, "--handoff", "handoff-1", "--session", "session-1", "--integration-ref", "refs/heads/rolling", "--canary-mode", "local_integration", "--candidate-sha", "candidate-sha", "--verification-command", "go test ./...", "--execution-kind", "real", "--environment-fingerprint", "env-1", "--idempotency-key", "local-start-key", "--json"},
+			command: "canary.start",
+			assert: func(t *testing.T, payload map[string]any) {
+				if payload["mode"] != "local_integration" || payload["candidate_sha"] != "candidate-sha" || payload["integration_ref"] != "refs/heads/rolling" {
+					t.Fatalf("local start payload = %#v", payload)
 				}
 			},
 		},
@@ -228,6 +248,27 @@ func TestDirectCanaryOptionsBuildStrictApplicationPayloads(t *testing.T) {
 	}
 }
 
+func TestDirectCanaryModeValidationPreservesStrictDefault(t *testing.T) {
+	project := t.TempDir()
+	base := []string{"canary", "start", "--project", project, "--handoff", "handoff-1", "--session", "session-1", "--integration-ref", "main", "--verification-command", "go test ./...", "--execution-kind", "real", "--environment-fingerprint", "env-1", "--idempotency-key", "start-key", "--json"}
+	for _, extra := range [][]string{
+		{"--canary-mode", "local_integration"},
+		{"--candidate-sha", "candidate-sha"},
+		{"--canary-mode", "release_or_production", "--candidate-sha", "candidate-sha"},
+		{"--canary-mode", "unknown"},
+	} {
+		args := append(append([]string{}, base...), extra...)
+		dispatcher := &recordingDispatcher{}
+		service := bootstrap.CLIService(bootstrap.Foundation())
+		service.Dispatcher = dispatcher
+		var output bytes.Buffer
+		exit := RunWithApplication(context.Background(), args, "test-version", strings.NewReader(""), &output, io.Discard, service)
+		if exit == ExitSuccess || len(dispatcher.requests) != 0 {
+			t.Fatalf("invalid canary mode dispatched: args=%v exit=%d requests=%+v output=%s", args, exit, dispatcher.requests, output.String())
+		}
+	}
+}
+
 func TestLegacyReservationArgumentsReturnActionableRecovery(t *testing.T) {
 	exit, output := run(t,
 		"reserve",
@@ -248,8 +289,8 @@ func TestLegacyReservationArgumentsReturnActionableRecovery(t *testing.T) {
 	}
 	warnings := strings.Join(envelope.Warnings, "\n")
 	for _, want := range []string{
-		"hint: reservations require `reserve add` with a strict lineage payload",
-		"next: omg reserve add --help",
+		"hint: use `reserve batch-add` for multiple paths, or `reserve add` for one path",
+		"next: omg reserve batch-add --help",
 	} {
 		if !strings.Contains(warnings, want) {
 			t.Errorf("legacy reserve recovery missing %q: %s", want, output)
@@ -289,8 +330,8 @@ func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
 		Topics []string `json:"topics"`
 	}
 	decodeData(t, output, &listed)
-	if !containsString(listed.Topics, "reserve-add") {
-		t.Fatalf("example topics omit reserve-add: %v", listed.Topics)
+	if !containsString(listed.Topics, "reserve-add") || !containsString(listed.Topics, "reserve-batch-add") {
+		t.Fatalf("example topics omit reservation examples: %v", listed.Topics)
 	}
 
 	exit, output = run(t, "example", "show", "reservation-add", "--json")
@@ -320,7 +361,7 @@ func TestExampleCommandListsAndShowsLiveHelpExamples(t *testing.T) {
 
 func TestRequiredWorkerExamplesExposeStructuredPayloads(t *testing.T) {
 	for _, topic := range []string{
-		"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add",
+		"message-inbox", "progress-add", "handoff-create", "handoff-accept", "checkpoint-record", "reserve-add", "reserve-batch-add",
 		"task-create", "task-get", "task-claim", "task-transition", "task-run-create", "task-run-transition", "task-finish-lite",
 	} {
 		t.Run(topic, func(t *testing.T) {
@@ -871,7 +912,7 @@ func TestReleaseStatusAndBoardPreconditions(t *testing.T) {
 		StableRelease bool   `json:"stable_release"`
 	}
 	decodeData(t, output, &data)
-	if data.Status != "SOURCE PUBLISHED" || data.Repository != "github.com/jeremy-merchant/OMG" || data.License != "Apache-2.0" || data.StableRelease {
+	if data.Status != "SOURCE PUBLISHED" || data.Repository != "github.com/jeremy-merchant/oh-my-group" || data.License != "Apache-2.0" || data.StableRelease {
 		t.Fatalf("release status=%+v", data)
 	}
 	exit, output = run(t, "board", "--json")
@@ -1009,7 +1050,7 @@ func TestBoardAndStaticExportUseCurrentCanonicalStore(t *testing.T) {
 	for _, args := range [][]string{{"status", "--project", root, "--json"}, {"board", "summary", "--project", root, "--json"}} {
 		output.Reset()
 		exit = RunWithService(args, "test-version", &output, service)
-		if exit != ExitSuccess || !strings.Contains(output.String(), `"active_sessions":1`) || !strings.Contains(output.String(), `"tasks_by_state":{"READY":1}`) {
+		if exit != ExitSuccess || !strings.Contains(output.String(), `"active_sessions":0`) || !strings.Contains(output.String(), `"open_sessions":1`) || !strings.Contains(output.String(), `"finished_unclosed_sessions":1`) || !strings.Contains(output.String(), `"tasks_by_state":{"READY":1}`) {
 			t.Fatalf("operator summary %v exit=%d: %s", args, exit, output.String())
 		}
 	}

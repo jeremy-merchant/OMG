@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jeremy-merchant/OMG/internal/platform"
+	"github.com/jeremy-merchant/oh-my-group/internal/platform"
 
 	"golang.org/x/sys/windows"
 )

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 var ErrInvalid = errors.New("coordination: invalid record")

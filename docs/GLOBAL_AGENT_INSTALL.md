@@ -9,13 +9,13 @@ After a tagged release is published, the intended installation is one command.
 ### macOS and Linux
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install | sh
+curl -fsSL https://raw.githubusercontent.com/jeremy-merchant/oh-my-group/main/install | sh
 ```
 
 ### Windows PowerShell
 
 ```powershell
-& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/jeremy-merchant/OMG/main/install.ps1)))
+& ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/jeremy-merchant/oh-my-group/main/install.ps1)))
 ```
 
 The installer:
@@ -69,11 +69,11 @@ Set `OMG_AGENT_HOME` only for isolated testing or managed portable environments.
 
 The global harness does not create one shared cloud account or central database. When an agent enters a repository, it selects one lifecycle:
 
-1. `OBSERVE`: read-only inspection with no file mutation or external side effect. It creates no session, task, run, reservation, progress, or handoff and does not run preflight solely to answer a question.
-2. `WORK_LITE`: a single-owner repository change. It runs preflight, records session/task/run plus changed-path reservations, records progress only when long-running or blocked, then completes and archives without a handoff by default.
-3. `FULL`: multi-agent, release/canary, production, auth/payment, or ownership-transfer work. It uses the complete handoff, independent review, exact-SHA integration/canary, and source-cleanup lifecycle.
+1. `OBSERVE`: read-only diagnosis, log inspection, review, or status lookup. It creates no OMG record and does not run project preflight solely to inspect.
+2. `WORK_LITE`: one branch, one worker, and one bounded mutation. The controller supplies one complete start command and one complete finish command; normal diagnosis, RED/GREEN work, and Git verification happen between them without intermediate OMG writes by default.
+3. `FULL`: multiple workers or candidates, shared rolling ownership, cross-session handoff, exact-SHA integration/Canary, deploy/release, database, authentication, authorization, or payment. It uses the complete independent-review and source-cleanup lifecycle.
 
-`omg mode classify --payload <risk-signals> --json` exposes the deterministic contract. Safety-triggered FULL work cannot be downgraded by an override. For stateful modes, preflight applies exact compiled migrations through a plan-bound verified backup and integrity checks. Workers receive `board me`; controllers normally use `board actionable`, while `board history` retains the complete audit view.
+`omg mode classify --payload <risk-signals> --json` exposes the deterministic boundary contract, including whether preflight/start/finish/intermediate writes are required, whether the controller must provide commands, and the Git source-of-truth fields. Safety-triggered FULL work cannot be downgraded. In stateful modes, preflight fails closed when execution or schema health fails or an ownership conflict exists. Git risks and historical `stale_sessions`, `runtime_unobservable_sessions`, `finished_unclosed_sessions`, and `integration_queue` counts are warnings/housekeeping rather than automatic blockers. Historical closure and reconciliation use separate controller operations.
 
 OMG applies only to work that mutates or coordinates the selected repository. Installing a host-level CLI, logging into a provider, maintaining a package manager, or configuring a tool outside a repository does not create OMG project records and must not be routed through project preflight. Those operations still require the user's ordinary authority and normal host-security checks.
 

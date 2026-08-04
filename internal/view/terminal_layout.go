@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jeremy-merchant/OMG/internal/terminaltext"
+	"github.com/jeremy-merchant/oh-my-group/internal/terminaltext"
 )
 
 const (

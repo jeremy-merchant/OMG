@@ -4,7 +4,7 @@ This workflow lets a controller complete OMG registration before a cmux/OMP lane
 
 ## Controller preparation
 
-The controller creates the human, task, and a task-bound worker session through the normal strict payload commands. A delegated session should be registered through `delegate issue`/`delegate register`; a human-direct session can be created with `session create`. The session must carry the same `human_id` and `task_id` that bootstrap will receive.
+The canonical owner and a live controller session must exist first. When the worker session, Task, active run, and initial reservations do not yet exist, run `omg example show worker-setup --json`, save that strict payload, and call `omg worker setup --project /absolute/project --idempotency-key worker-setup-1 --payload-file worker-setup.json --json`. This performs one canonical transaction: it creates or validates the worker session, creates or validates and claims the Task, creates or validates the active run, and ensures the initial reservations. Any hierarchy, controller, ownership, run, reservation, or storage conflict rolls back the whole execution unit. Identical idempotency replay creates no duplicates; changed normalized intent under the same key is rejected. A delegated session should still be registered through `delegate issue`/`delegate register` when exact delegated lineage is required.
 
 Create a private directory and environment destination, then run bootstrap before launching the runtime:
 
@@ -52,3 +52,45 @@ omg message inbox --payload '{"recipient":{"session_id":"'"$OMG_SESSION_ID"'"}}'
 ```
 
 The controller may use `omg board all` and `omg integration queue`; workers should not need either command to begin their assigned task.
+
+## Reserve the initial edit scope in one call
+
+After `omg task run-create` returns the canonical run ID, place that value in `run_id`, collect the currently known project-relative paths, and reserve them with one atomic request. Do not issue one `reserve add` command per file.
+
+```bash
+cat >"$bootstrap_dir/reservations.json" <<'JSON'
+{
+  "human_id": "HUMAN_ID",
+  "session_id": "WORKER_SESSION_ID",
+  "task_id": "TASK_ID",
+  "run_id": "RUN_ID",
+  "items": [
+    {
+      "id": "reservation-app",
+      "pattern_kind": "exact",
+      "pattern": "internal/app/service.go",
+      "case_sensitivity": "sensitive",
+      "mode": "exclusive",
+      "intent": "edit application logic",
+      "ttl_seconds": 3600
+    },
+    {
+      "id": "reservation-test",
+      "pattern_kind": "exact",
+      "pattern": "internal/app/service_test.go",
+      "case_sensitivity": "sensitive",
+      "mode": "exclusive",
+      "intent": "add regression coverage",
+      "ttl_seconds": 3600
+    }
+  ]
+}
+JSON
+
+omg reserve batch-add --project "$OMG_PROJECT" \
+  --idempotency-key "reserve-batch-$OMG_TASK_ID-$OMG_SESSION_ID" \
+  --payload-file "$bootstrap_dir/reservations.json" \
+  --json
+```
+
+The operation validates the entire bounded batch and checks every conflict before the first insert. A strict conflict or storage failure commits none of the items. Use `reserve add` only when the scope is genuinely one path. If inspection later reveals more paths, collect the newly discovered paths and submit one additional batch rather than calling once per file.

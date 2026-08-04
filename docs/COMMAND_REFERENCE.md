@@ -54,11 +54,23 @@ omg status [selection] [--json]
 omg stale [selection] [--json]
 ```
 
-`version` and `mode` are available without state. `mode classify` accepts strict risk signals and returns the required records, handoff/review policy, automatic archival policy, and verification level. OBSERVE creates no ledger records; WORK_LITE uses session/task/run but no handoff by default; FULL protects multi-agent, production, auth/payment, release/canary, and ownership-transfer work. A risky FULL classification cannot be downgraded by `override`. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns compact operator counts and includes `automatic_migration` when it evaluated a pending upgrade; `--verbose` adds the detailed canonical projection. `status` shows the same operator counts plus task/handoff state totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck. `stale` classifies only open sessions as `alive`, `idle`, `stale`, `runtime_unobservable`, or `finished_unclosed`; it reports the last heartbeat, elapsed time, run states, and a recommended operator action. Closed and interrupted historical sessions do not inflate the actionable stale count. The default idle and stale thresholds are reported in every response (15 minutes and 1 hour in v0.1).
+`version` and `mode` are available without state. `mode classify` accepts strict risk signals and returns the required records, handoff/review policy, automatic archival policy, and verification level. OBSERVE creates no ledger records or preflight call; WORK_LITE is one branch/one worker with one controller-provided start and one finish boundary and no intermediate ledger writes by default; FULL protects multi-candidate integration, shared rolling ownership, exact-SHA Canary, deploy, database, auth/payment, release, and ownership-transfer work. A risky FULL classification cannot be downgraded by `override`. `release status` returns `SOURCE PUBLISHED`, the canonical repository and license, and `stable_release: false` until a stable release exists. `init` is idempotent and reports pending migrations without applying them. `doctor --integrity` performs SQLite integrity verification. `preflight` automatically applies every exact pending migration compiled into the installed binary: it creates and verifies the plan-bound backup, records machine-policy authorization, applies atomically, and verifies integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain pending with an error rather than an approval request. Default `preflight` returns `healthy`, `mutation_allowed`, exact `blocking_reasons`, live `ownership_conflicts`, non-blocking `git_risks`, and a separate `housekeeping` projection for stale/unobservable/finished-unclosed sessions and integration debt; it includes `automatic_migration` when it evaluated a pending upgrade. `--verbose` adds the detailed canonical projection. `status` keeps live ownership signals separate from historical housekeeping, while still showing task/handoff totals and the `WORK_COMPLETE → VERIFIED_DONE` bottleneck. `stale` classifies only open sessions as `alive`, `idle`, `stale`, `runtime_unobservable`, or `finished_unclosed`; it reports the last heartbeat, elapsed time, run states, and a recommended operator action. Closed and interrupted historical sessions do not inflate the actionable stale count. The default idle and stale thresholds are reported in every response (15 minutes and 1 hour in v0.1).
 
-## Worker bootstrap
+## Worker setup and bootstrap
 
-Controllers should create the task and task-bound worker session before launching a worker, then inject these values:
+When the canonical owner and a live controller session already exist, the controller can establish a complete worker execution unit with one application command:
+
+```text
+omg worker setup [selection] --idempotency-key KEY --payload JSON [--json]
+```
+
+The strict payload contains `human_id`, `controller_session_id`, `session_id`, `runtime`, `role`, `task_id`, `task_title`, `run_id`, optional Task hierarchy policy fields, and a `reservations` array containing 0–128 initial path specifications. The command uses one `Store.Write` transaction to create or validate the worker session, create or validate and claim the Task, create or validate an active TaskRun, and ensure the exact initial reservations. A missing parent, foreign or stale controller, ownership mismatch, run mismatch, reservation collision, or storage failure rolls back the entire execution unit, including its command receipt and audit event.
+
+Exact active records may be reused with a new idempotency key when their controller, owner, runtime, role, Task intent and policy, run lineage, and reservation definitions match. Reusing the same key with the same normalized payload replays the original result without duplicates. Reusing the key with changed setup intent returns a non-retryable `idempotency_conflict`; the private payload fingerprint is never exposed in the public result. Reused reservations keep their existing expiry rather than being silently renewed.
+
+`worker setup` prepares canonical execution state. `worker bootstrap` remains the launch-time path that runs preflight and migration checks, creates an optional private environment file, reads the worker inbox, and returns the scoped board and next action.
+
+After `worker setup` succeeds, or after an equivalent execution unit is registered through lower-level commands, inject these values before launching the worker:
 
 ```text
 OMG_PROJECT
@@ -78,6 +90,8 @@ omg worker bootstrap \
 ```
 
 Matching flags (`--project`, `--session`, `--task`, `--controller-session`, and `--human`) override omitted environment values. Bootstrap performs compact preflight, safely applies the exact compiled migration plan through verified backup and integrity checks, stops only on migration or integrity failure, ensures the session exists, verifies its human/controller/task bindings, claims a ready task, reads `message inbox`, and returns a worker-scoped board plus one structured next action. If the controller did not pre-register the session, bootstrap creates a human-direct task-bound fallback; use delegation registration beforehand when exact delegated lineage is required.
+
+A session-scoped `omg preflight` returns a compact `inbox_summary` even without `--verbose`. It counts pending, unread, and actionable messages and previews at most five body-free records (`message_id`, type, subject, sender, and related task), prioritizing QUESTION, DEPENDENCY, CONFLICT, BLOCKED, and HANDOFF. Preflight is observational: it never marks a message delivered, read, or acknowledged. The agent reads the full inbox when needed and acknowledges only after handling the request.
 
 `--output` creates a new shell environment file with mode `0600` and never overwrites. Its parent must be a new or existing owner-only directory. Source only this generated file; never source message bodies or model output.
 
@@ -161,11 +175,15 @@ omg task create [selection] --idempotency-key KEY --payload JSON [--json]
 {
   "title": "Render canonical board",
   "created_by_session_id": "agt-owner",
-  "parent_task_id": "optional-parent-task"
+  "parent_task_id": "optional-parent-task",
+  "completion_policy": "ALL_REQUIRED_CHILDREN_VERIFIED",
+  "parent_requirement": "REQUIRED"
 }
 ```
 
-Result: task internal `id`, atomic `display_number`, and initial `state`.
+Result: task internal `id`, atomic `display_number`, initial `state`, `completion_policy`, and `parent_requirement`.
+
+`parent_task_id` is the canonical Task hierarchy edge; a Subtask is an ordinary Task with that field set. New root tasks default to `completion_policy:INDEPENDENT` and `parent_requirement:OPTIONAL`. New child tasks default to `parent_requirement:REQUIRED`. Existing migrated rows remain `INDEPENDENT/OPTIONAL`, so old parent trees are not retroactively blocked. New parents must exist in the same project, must not be closed, and the resulting ancestry must remain acyclic and at most 16 levels deep. `ALL_REQUIRED_CHILDREN_VERIFIED` blocks the parent's `VERIFIED_DONE` transition until every direct `REQUIRED` child is `VERIFIED_DONE`; optional children and independent legacy parents do not block closure.
 
 ### Send message
 
@@ -261,7 +279,7 @@ Every command takes exactly one payload source as described above; mutations als
 
 `task transition` with `actor_session_id` atomically reconciles dependencies and emits the resulting notifications. Native runtime homes and opaque locator fields are accepted only for adapter linkage and never appear in default views.
 
-`task finish-lite` is the normal WORK_LITE close path. In one idempotent transaction it moves the owned run and task to `WORK_COMPLETE`, reconciles dependency notifications, releases the task's active reservations, verifies that the session owns no other non-terminal run, and appends its archive heartbeat. Its strict payload is `task_id`, `run_id`, `session_id`, matching `actor_session_id`, unique `archive_event_id`, and non-empty `evidence`. It does not create a handoff or imply independent verification.
+`task finish-lite` is the single controller-provided WORK_LITE finish boundary. In one idempotent transaction it moves the owned run and task to `WORK_COMPLETE`, reconciles dependency notifications, releases the task's active reservations, verifies that the session owns no other non-terminal run, and appends its archive heartbeat. Its strict payload is `task_id`, `run_id`, `session_id`, matching `actor_session_id`, unique `archive_event_id`, and non-empty `evidence`. It does not create a handoff or imply independent verification.
 
 `session archive` is append-only: it records an archived/interrupted liveness event and removes the session from active counts only after every owned run is terminal. It requires both the target session and controller actor to exist in the selected project; it never deletes session history.
 
@@ -272,6 +290,7 @@ omg progress add|history
 omg dependency add|list
 omg message send|inbox|thread|deliver|read|ack
 omg handoff create|show|history|lifecycle|advance|supersede|accept|reject|adopt
+omg candidate close
 ```
 
 Mutation/query status and payloads:
@@ -294,15 +313,18 @@ Mutation/query status and payloads:
 | `handoff supersede` | yes | `handoff_id`, `new_id`, `summary` |
 | `handoff accept\|reject` | yes | `handoff_id`, `decision_id?`, `actor_session_id` |
 | `handoff adopt` | yes | `id`, `entity_kind`, `entity_id`, `new_owner_session_id`, `reason` |
+| `candidate close` | conditional | `handoff_id`, `actor_session_id`, `archive_event_id`, `evidence` |
 
 The append-only success path is `SUBMITTED → REVIEWING → ACCEPTED → INTEGRATED → CANARY_RUNNING → CANARY_PASSED → SOURCE_CLEANED`. A canary may instead finish as `CANARY_MOCK_PASSED`, `CANARY_FAILED`, `CANARY_SKIPPED`, or `CANARY_INVALIDATED`; those states may start a new canary, but none permits source cleanup. `CANARY_PASSED` means `PASS_REAL` against the exact recorded SHA/tree with an unchanged ref-history fingerprint. Acceptance and rejection continue through `handoff accept|reject`.
+
+`candidate close` is the bounded FULL-lifecycle finalizer. Before every gate is present it is read-only: it returns `closed:false`, the current integration state, missing evidence, allowed transitions, and a copyable `next_argv` without creating a command receipt. It never executes a Canary, merges or rewrites Git, or deletes a branch or worktree. Only after accepted review, an integration commit, an exact real `CANARY_PASSED` receipt bound to that commit, and an explicit `SOURCE_CLEANED` event with both cleanup flags does it atomically move the source run and task to `VERIFIED_DONE`, release the task reservations, and archive the source session. Reusing the same idempotency key with the same payload replays that single canonical result. Reusing the key with a different `candidate close` payload returns a non-retryable structured `idempotency_conflict`; callers must inspect the canonical receipt and use a new key only for genuinely changed intent.
 
 Recipient objects contain exactly one of `session_id`, `human_id`, `task_id`, or `role`. Adoption entity kinds are `session`, `task`, `handoff`, and `git_asset`.
 
 ### Reservations and Git observations
 
 ```text
-omg reserve add|list|active|history|renew|release|override
+omg reserve add|batch-add|list|active|history|renew|release|override
 omg git inventory|current|latest|history|diff|cleanup-plan|reconcile|adopt
 omg orphan scan
 omg canary start|finish
@@ -311,6 +333,7 @@ omg canary start|finish
 | Command | Mutation | Strict payload fields |
 |---|:---:|---|
 | `reserve add` | yes | `id`, `pattern_kind`, `pattern`, `case_sensitivity`, `mode`, `human_id`, `session_id`, `task_id`, `run_id`, `intent`, `ttl_seconds` |
+| `reserve batch-add` | yes | common `human_id`, `session_id`, `task_id`, `run_id`; `items` array of 1–128 objects containing `id`, `pattern_kind`, `pattern`, `case_sensitivity`, `mode`, `intent`, `ttl_seconds` |
 | `reserve list\|active` | no | `{}` |
 | `reserve history` | no | `reservation_id` |
 | `reserve renew` | yes | `reservation_id`, `checkpoint_id`, `ttl_seconds` |
@@ -327,7 +350,7 @@ omg canary start|finish
 
 Git is authoritative for code, commits, refs, branches, worktrees, diffs, and history. `git current` and `git cleanup-plan` scan the selected repository live and persist nothing. `git inventory` explicitly records point-in-time audit evidence; `latest`, `history`, and OMG's observation `diff` read only that recorded evidence. All Git inspection is bounded to the selected project repository and its linked worktrees and never scans unrelated repositories elsewhere on the machine.
 
-`canary start` takes `--handoff`, `--session`, `--integration-ref`, `--verification-command`, `--execution-kind real|mock`, `--environment-fingerprint`, and an idempotency key. It resolves the latest recorded integration commit and refuses to start if the selected ref is at another SHA. `canary finish` takes `--canary`, `--session`, `--exit-code`, `--passed`, `--failed`, `--skipped`, optional `--evidence-path`, and an idempotency key. OMG records the command and receipt; it does not execute the verification command. A changed SHA, tree, or ref-history fingerprint produces `CANARY_INVALIDATED` even when the supplied test counts otherwise pass.
+`canary start` takes `--handoff`, `--session`, `--integration-ref`, `--verification-command`, `--execution-kind real|mock`, `--environment-fingerprint`, and an idempotency key. The default policy, or explicit `--canary-mode release_or_production`, requires the recorded `INTEGRATED` lifecycle event and refuses to start unless the selected ref is at that exact SHA. `--canary-mode local_integration` additionally requires `--candidate-sha`: OMG permits the local rolling/test canary only when that exact commit is reachable from the selected rolling ref and the rolling worktree is clean. A missing or mismatched integration ledger record is persisted on the receipt as `pending_ledger_reconciliation` with a `ledger_warning`; it does not block this local-only mode. `canary finish` takes `--canary`, `--session`, `--exit-code`, `--passed`, `--failed`, `--skipped`, optional `--evidence-path`, and an idempotency key. OMG records the command and receipt; it does not execute the verification command. A changed rolling SHA, tree, or ref-history fingerprint produces `CANARY_INVALIDATED` even when the supplied test counts otherwise pass. This local exception does not alter production/release/deploy, migration, push, or destructive-cleanup approval gates.
 
 Git reads are project-scoped; do not invent a `session_id` filter. Prefer live inspection for current risk, and use native read-only Git commands for code/history. Recorded-evidence commands are explicit audit surfaces. `git diff` reports selected observation IDs and counts, not a code patch.
 
@@ -340,7 +363,7 @@ omg git diff --project /project --json
 
 Git JSON summaries expose `authoritative_source: "git"`. Live inspection reports `source: "git_live"` and `durable: false`; explicit recorded evidence reports `source: "recorded_evidence"` and `durable: true`. Git commands are observational. `cleanup-plan` is advisory and does not delete, reset, clean, merge, commit, push, or otherwise mutate Git. `git adopt` changes only canonical OMG ownership metadata.
 
-Reservations require complete execution lineage. Create a task run before reserving a path, then supply the same human, session, task, and run IDs:
+Reservations require complete execution lineage. Create a task run before reserving paths, then supply the same human, session, task, and run IDs. For multiple paths, collect the currently known scope and use one `reserve batch-add` request instead of one public command per file. All items are normalized, validated, and conflict-checked before the first insert; a strict conflict or storage failure commits none of the batch. `reserve add` remains the compatibility path for a genuinely single-path scope.
 
 Reservations owned by the exact same `human_id` / `session_id` / `task_id` / `run_id` lineage may overlap without producing a conflict. They describe one execution unit's bounded work, not competing ownership. Overlap with a different lineage remains advisory or strict according to the selected policy.
 
@@ -349,6 +372,11 @@ omg task run-create --project /project --idempotency-key run-1 \
   --payload '{"id":"run-1","task_id":"TASK_ID","session_id":"SESSION_ID"}' --json
 omg reserve add --project /project --idempotency-key reserve-1 \
   --payload '{"id":"reservation-1","pattern_kind":"exact","pattern":"TODO.md","case_sensitivity":"sensitive","mode":"exclusive","human_id":"HUMAN_ID","session_id":"SESSION_ID","task_id":"TASK_ID","run_id":"run-1","intent":"edit TODO","ttl_seconds":3600}' --json
+```
+
+```text
+omg reserve batch-add --project /project --idempotency-key reserve-batch-1 \
+  --payload '{"human_id":"HUMAN_ID","session_id":"SESSION_ID","task_id":"TASK_ID","run_id":"run-1","items":[{"id":"reservation-app","pattern_kind":"exact","pattern":"internal/app/service.go","case_sensitivity":"sensitive","mode":"exclusive","intent":"edit application logic","ttl_seconds":3600},{"id":"reservation-test","pattern_kind":"exact","pattern":"internal/app/service_test.go","case_sensitivity":"sensitive","mode":"exclusive","intent":"add regression tests","ttl_seconds":3600}]}' --json
 ```
 
 ### Generic import
@@ -396,7 +424,7 @@ Example topics are generated from the live help contract, so displayed commands 
 
 The complete task lifecycle is also copyable without reconstructing payloads from prose: `task-create`, `task-get`, `task-claim`, `task-transition`, `task-run-create`, and `task-run-transition` all expose `payload_schema` and `example_payload`.
 
-JSON errors retain the compatibility `warnings` array and additionally expose machine-readable recovery under `error.recovery`:
+JSON errors retain the compatibility `warnings` array and `error.recovery` fields. Application-dispatched lifecycle errors additionally expose the versioned, transport-neutral contract under `error.details`:
 
 ```json
 {
@@ -406,12 +434,38 @@ JSON errors retain the compatibility `warnings` array and additionally expose ma
     "retryable": false,
     "exit_code": 3,
     "recovery": {
-      "hint": "Use the controller-provided OMG_HUMAN_ID; create a human only when establishing a new owner.",
-      "next_command": "omg example show session-create --json"
+      "hint": "Inspect the canonical task state before retrying.",
+      "next_command": "\"omg\" \"board\" \"task\" \"--project\" \"/project\" \"--task\" \"task-1\" \"--json\""
+    },
+    "details": {
+      "schema_version": 1,
+      "reason_code": "invalid_transition",
+      "operation": "task.transition",
+      "cause": "invalid task transition",
+      "current_state": "WORK_COMPLETE",
+      "missing_evidence": [],
+      "prerequisites": ["the current entity state must allow transition to IN_PROGRESS"],
+      "allowed_transitions": ["VERIFIED_DONE"],
+      "recovery_actions": [{
+        "code": "inspect_task",
+        "argv": ["omg", "board", "task", "--project", "/project", "--task", "task-1", "--json"],
+        "command": "\"omg\" \"board\" \"task\" \"--project\" \"/project\" \"--task\" \"task-1\" \"--json\"",
+        "git_mutation": false,
+        "executes_canary": false,
+        "dangerous": false
+      }],
+      "entities": {"project_id": "/project", "task_id": "task-1"},
+      "conflicts": [],
+      "idempotency": {"replay": false, "conflict": false},
+      "git_mutation": false,
+      "executes_canary": false,
+      "dangerous": false
     }
   }
 }
 ```
+
+`error.details.reason_code` is the stable fine-grained classification while the existing top-level `error.code`, exit code, message, retryability, warnings, and `error.recovery` remain compatible. Core lifecycle classifications include `invalid_transition`, `missing_evidence`, `reservation_conflict`, `exact_revision_conflict`, `idempotency_conflict`, `runtime_unobservable`, `finished_unclosed`, `payload_validation`, `entity_not_found`, and `temporarily_unavailable`. Empty arrays are emitted as `[]`, not `null`. `entities` contains only relevant identifiers; `conflicts` carries canonical reservation owners when available. Recovery actions are advisory data and are never executed during error handling. Every action exposes both tokenized `argv` and a copyable shell `command`, plus explicit `git_mutation`, `executes_canary`, and `dangerous` flags. CLI human output renders the same reason, state, entities, evidence, transitions, conflicts, and commands. MCP preserves the same object at `structuredContent.error.details` for allowlisted application-command failures. When a decoded MCP application request is rejected before dispatcher execution, the same contract is returned under the JSON-RPC error's `data.details`; malformed outer JSON-RPC frames remain standard JSON-RPC errors. `reserve.add` and `reserve.batch-add` remain advisory-by-default for compatibility; embedded dispatchers can opt into hard conflicts with `app.DispatcherOptions{StrictReservationConflicts: true}`, in which case the structured response includes canonical conflicting reservations and owner task/run/session identifiers. A strict batch conflict creates no partial reservation state.
 
 Reference lookup failures are not reported as transient store failures. In particular, an unknown `human_id` during `session create` is a non-retryable `not_found`; retryable `unavailable` remains reserved for actual store or runtime availability failures.
 
@@ -449,7 +503,7 @@ A failed `--json` command emits the same stable envelope shape. When a safe reco
 }
 ```
 
-Consumers must branch on `ok`, treat unknown additive fields as forward-compatible unless their own policy forbids them, and use `meta.schema_version`/`command_version` when pinning parsers. Error messages and recovery warnings are bounded and must not be interpreted as approval or executable text.
+Consumers must branch on `ok`, treat unknown additive fields as forward-compatible unless their own policy forbids them, and use `meta.schema_version`/`command_version` plus `error.details.schema_version` when pinning parsers. A successful canonical idempotency replay remains `ok:true`; it must not be inferred from an error. `error.details.idempotency.conflict:true` means the same key was reused incompatibly. Error messages, warnings, and recovery actions are bounded advisory data and must not be interpreted as approval. Shell adapters may display or copy `command`, but error serialization itself never runs it.
 
 ## Stable exit codes
 

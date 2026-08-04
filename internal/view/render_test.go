@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 func TestRenderFormatsExposeEquivalentBoardFacts(t *testing.T) {
@@ -473,8 +473,20 @@ func TestHumanRenderersExposeBoardOwnershipAndSafeAssetFacts(t *testing.T) {
 func TestRenderPreflightTTYShowsSafeOperatorSections(t *testing.T) {
 	now := time.Date(2026, time.July, 23, 12, 0, 0, 0, time.UTC)
 	rendered := RenderPreflightTTY(app.PreflightView{
-		Healthy:           true,
-		PendingMigrations: 0,
+		Healthy:            true,
+		MutationAllowed:    true,
+		PendingMigrations:  0,
+		OwnershipConflicts: 0,
+		GitRisks:           2,
+		Housekeeping: query.HousekeepingView{
+			StaleSessions:               1,
+			RuntimeUnobservableSessions: 3,
+			FinishedUnclosedSessions:    16,
+			IntegrationQueue:            25,
+		},
+		InboxSummary: &app.PreflightInboxSummary{Pending: 1, Unread: 1, Actionable: 1, Items: []app.PreflightInboxItem{{
+			MessageID: "question-1", Type: "QUESTION", Subject: "Need \x07 decision", SenderSessionID: "session-peer", NeedsRead: true, NeedsAck: true,
+		}}},
 		Details: &app.PreflightDetails{
 			Identity:     &query.IdentityView{ID: "session-current", Kind: "agent", Role: "owner", Runtime: "native", StartedAt: now},
 			Sessions:     []query.IdentityView{{ID: "session-peer", Kind: "agent", Role: "worker", Runtime: "native", StartedAt: now}},
@@ -487,7 +499,9 @@ func TestRenderPreflightTTYShowsSafeOperatorSections(t *testing.T) {
 	})
 
 	for _, want := range []string{
-		"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Healthy: true",
+		"OMG  OPERATOR LEDGER / PREFLIGHT", "STATE", "Ready for bounded mutation", "Healthy: true", "Mutation allowed: true",
+		"Ownership conflicts: 0", "Git risks: 2", "Housekeeping", "finished_unclosed=16", "integration_queue=25",
+		"Inbox: 1 pending", "unread=1 actionable=1", "[QUESTION]", "Need", "decision", "question-1",
 		"IDENTITY", "SESSIONS + TASKS", "INBOX", "DEPENDENCIES", "RESERVATIONS", "GIT",
 		"session-current", "session-peer", "task-7", "inbox-2", "dependency-3", "reservation-6", "asset-8",
 	} {
@@ -502,6 +516,33 @@ func TestRenderPreflightTTYShowsSafeOperatorSections(t *testing.T) {
 	}
 	if strings.Contains(rendered, "{Initialized:") {
 		t.Fatalf("preflight output is a Go struct dump: %s", rendered)
+	}
+}
+
+func TestRenderPreflightTTYShowsFailClosedMutationDecision(t *testing.T) {
+	rendered := RenderPreflightTTY(app.PreflightView{
+		Healthy:            true,
+		MutationAllowed:    false,
+		BlockingReasons:    []string{"ownership_conflict"},
+		OwnershipConflicts: 1,
+		GitRisks:           59,
+		Housekeeping: query.HousekeepingView{
+			FinishedUnclosedSessions: 249,
+			IntegrationQueue:         567,
+		},
+	})
+	for _, want := range []string{
+		"Repository mutation blocked",
+		"Mutation allowed: false",
+		"Blocking reasons: ownership_conflict",
+		"Ownership conflicts: 1",
+		"Git risks: 59",
+		"finished_unclosed=249",
+		"integration_queue=567",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("blocked preflight output missing %q:\n%s", want, rendered)
+		}
 	}
 }
 

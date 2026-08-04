@@ -17,12 +17,12 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/jeremy-merchant/OMG/internal/agentinstall"
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	appLifecycle "github.com/jeremy-merchant/OMG/internal/app/lifecycle"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/agentinstall"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	appLifecycle "github.com/jeremy-merchant/oh-my-group/internal/app/lifecycle"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 const (
@@ -48,11 +48,12 @@ type SuccessEnvelope struct {
 	Warnings []string `json:"warnings"`
 }
 type ErrorMetadata struct {
-	Code      string         `json:"code"`
-	Message   string         `json:"message"`
-	Retryable bool           `json:"retryable"`
-	ExitCode  int            `json:"exit_code"`
-	Recovery  *ErrorRecovery `json:"recovery,omitempty"`
+	Code      string           `json:"code"`
+	Message   string           `json:"message"`
+	Retryable bool             `json:"retryable"`
+	ExitCode  int              `json:"exit_code"`
+	Recovery  *ErrorRecovery   `json:"recovery,omitempty"`
+	Details   *app.ErrorDetail `json:"details,omitempty"`
 }
 type ErrorRecovery struct {
 	Hint        string `json:"hint,omitempty"`
@@ -79,6 +80,8 @@ type Request struct {
 	IntegrationBranch              string
 	HandoffID                      string
 	CanaryRunID                    string
+	CanaryMode                     string
+	CandidateSHA                   string
 	VerificationCommand            string
 	ExecutionKind                  string
 	EnvironmentFingerprint         string
@@ -108,6 +111,8 @@ type Request struct {
 	integrationBranchProvided      bool
 	handoffProvided                bool
 	canaryProvided                 bool
+	canaryModeProvided             bool
+	candidateSHAProvided           bool
 	verificationCommandProvided    bool
 	executionKindProvided          bool
 	environmentFingerprintProvided bool
@@ -269,6 +274,12 @@ func Decode(args []string) (Request, domain.DomainError) {
 			case "--canary":
 				request.CanaryRunID = value
 				request.canaryProvided = true
+			case "--canary-mode":
+				request.CanaryMode = value
+				request.canaryModeProvided = true
+			case "--candidate-sha":
+				request.CandidateSHA = value
+				request.candidateSHAProvided = true
 			case "--verification-command":
 				request.VerificationCommand = value
 				request.verificationCommandProvided = true
@@ -315,7 +326,7 @@ func commandTakesSubcommand(name string) bool {
 	switch name {
 	case "migration", "backup", "release", "agent", "worker", "mode", "board", "export", "integration",
 		"shell-init", "completion", "watch", "human", "session", "delegate", "checkpoint",
-		"task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt", "example", "mcp":
+		"task", "progress", "dependency", "message", "handoff", "candidate", "reserve", "git", "orphan", "canary", "import", "receipt", "example", "mcp":
 		return true
 	default:
 		return false
@@ -324,7 +335,7 @@ func commandTakesSubcommand(name string) bool {
 
 func optionTakesValue(arg string) bool {
 	switch arg {
-	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--controller-session", "--human", "--role", "--integration-branch", "--integration-ref", "--handoff", "--canary", "--verification-command", "--execution-kind", "--environment-fingerprint", "--evidence-path", "--exit-code", "--passed", "--failed", "--skipped", "--payload", "--payload-file":
+	case "--project", "--workspace", "--store", "--output", "--plan-file", "--approval-file", "--idempotency-key", "--format", "--session", "--task", "--runtime", "--controller-session", "--human", "--role", "--integration-branch", "--integration-ref", "--handoff", "--canary", "--canary-mode", "--candidate-sha", "--verification-command", "--execution-kind", "--environment-fingerprint", "--evidence-path", "--exit-code", "--passed", "--failed", "--skipped", "--payload", "--payload-file":
 		return true
 	default:
 		return false
@@ -424,12 +435,12 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	if request.Verbose && request.Name != "preflight" {
 		return writeInvalidRequest(output, request, "--verbose is supported only by preflight")
 	}
-	if !request.JSON && applicationCommandName(request.Name) {
+	if !request.JSON && applicationCommandRequest(request) {
 		if message, context, invalidPath := commandPathProblem(request.Name, request.Subcommand); invalidPath {
 			return writeErrorWithContext(output, false, domain.NewError(domain.CodeCommandNotWired, message, false), context)
 		}
 	}
-	if (request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin) && !applicationCommandName(request.Name) && request.Name != "mode" &&
+	if (request.PayloadProvided || request.PayloadFileProvided || request.PayloadStdin) && !applicationCommandRequest(request) && request.Name != "mode" &&
 		!(request.Name == "backup" && request.Subcommand == "restore") {
 		return writeError(output, request.JSON, invalid("payload transport is invalid for this command"))
 	}
@@ -438,6 +449,12 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 	case "agent":
 		return runAgent(output, request)
 	case "worker":
+		if request.Subcommand == "setup" {
+			if request.controllerSessionProvided || request.humanProvided || request.roleProvided || request.runtimeProvided || request.sessionProvided || request.taskProvided {
+				return writeInvalidRequest(output, request, "worker setup identity must be supplied through its strict payload")
+			}
+			return runApplicationCommand(ctx, output, stdin, request, application, selection)
+		}
 		return runWorkerBootstrap(ctx, output, request, application)
 	case "mode":
 		return runLifecycleMode(output, stdin, request)
@@ -457,7 +474,7 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 				StableRelease bool   `json:"stable_release"`
 			}{
 				Status:        "SOURCE PUBLISHED",
-				Repository:    "github.com/jeremy-merchant/OMG",
+				Repository:    "github.com/jeremy-merchant/oh-my-group",
 				License:       "Apache-2.0",
 				StableRelease: false,
 			})
@@ -504,7 +521,7 @@ func runWithContext(ctx context.Context, args []string, version string, output i
 		return runShell(output, request, application)
 	case "watch":
 		return runWatch(ctx, output, request, application, selection)
-	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt":
+	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "candidate", "reserve", "git", "orphan", "canary", "import", "receipt":
 		return runApplicationCommand(ctx, output, stdin, request, application, selection)
 	case "mcp":
 		return runMCP(ctx, stdin, output, request, version, application)
@@ -616,8 +633,8 @@ func decodeRecoveryContext(args []string) terminalErrorContext {
 	}
 	if args[0] == "reserve" {
 		return terminalErrorContext{
-			Hint: "reservations require `reserve add` with a strict lineage payload",
-			Next: "omg reserve add --help",
+			Hint: "use `reserve batch-add` for multiple paths, or `reserve add` for one path",
+			Next: "omg reserve batch-add --help",
 		}
 	}
 	if knownCommand(args[0]) {
@@ -688,7 +705,7 @@ func runMCP(ctx context.Context, input io.Reader, output io.Writer, request Requ
 func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reader, request Request, application app.CLIService, selection foundation.Selection) int {
 	directCanary := request.Name == "canary" && (request.Subcommand == "start" || request.Subcommand == "finish")
 	if len(request.Command) != 0 || request.Output != "" || request.PlanFile != "" ||
-		request.ApprovalFile != "" || request.Format != "" || !directCanary && request.SessionID != "" || request.TaskID != "" ||
+		request.ApprovalFile != "" || request.Format != "" || !directCanary && request.SessionID != "" || !directCanary && (request.canaryModeProvided || request.candidateSHAProvided) || request.TaskID != "" ||
 		request.Runtime != "" || request.Integrity || request.Status || request.Stdio {
 		return writeInvalidRequest(output, request, "application request is invalid")
 	}
@@ -700,12 +717,14 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 			return writeInvalidRequest(output, request, "exact-SHA canary request is invalid")
 		}
 		if request.Subcommand == "start" {
-			if request.HandoffID == "" || request.IntegrationBranch == "" || request.VerificationCommand == "" || request.ExecutionKind == "" || request.EnvironmentFingerprint == "" || request.canaryProvided || request.exitCodeProvided || request.passedCountProvided || request.failedCountProvided || request.skippedCountProvided || request.evidencePathProvided {
+			localMode := request.CanaryMode == "local_integration"
+			strictMode := request.CanaryMode == "" || request.CanaryMode == "release_or_production"
+			if request.HandoffID == "" || request.IntegrationBranch == "" || request.VerificationCommand == "" || request.ExecutionKind == "" || request.EnvironmentFingerprint == "" || !localMode && !strictMode || localMode && request.CandidateSHA == "" || strictMode && request.candidateSHAProvided || request.canaryProvided || request.exitCodeProvided || request.passedCountProvided || request.failedCountProvided || request.skippedCountProvided || request.evidencePathProvided {
 				return writeInvalidRequest(output, request, "canary start request is invalid")
 			}
-			payload, err = json.Marshal(map[string]any{"handoff_id": request.HandoffID, "actor_session_id": request.SessionID, "integration_ref": request.IntegrationBranch, "verification_command": request.VerificationCommand, "execution_kind": request.ExecutionKind, "environment_fingerprint": request.EnvironmentFingerprint})
+			payload, err = json.Marshal(map[string]any{"handoff_id": request.HandoffID, "actor_session_id": request.SessionID, "integration_ref": request.IntegrationBranch, "mode": request.CanaryMode, "candidate_sha": request.CandidateSHA, "verification_command": request.VerificationCommand, "execution_kind": request.ExecutionKind, "environment_fingerprint": request.EnvironmentFingerprint})
 		} else {
-			if request.CanaryRunID == "" || !request.exitCodeProvided || !request.passedCountProvided || !request.failedCountProvided || !request.skippedCountProvided || request.handoffProvided || request.integrationBranchProvided || request.verificationCommandProvided || request.executionKindProvided || request.environmentFingerprintProvided {
+			if request.CanaryRunID == "" || !request.exitCodeProvided || !request.passedCountProvided || !request.failedCountProvided || !request.skippedCountProvided || request.handoffProvided || request.integrationBranchProvided || request.canaryModeProvided || request.candidateSHAProvided || request.verificationCommandProvided || request.executionKindProvided || request.environmentFingerprintProvided {
 				return writeInvalidRequest(output, request, "canary finish request is invalid")
 			}
 			payload, err = json.Marshal(map[string]any{"canary_run_id": request.CanaryRunID, "actor_session_id": request.SessionID, "exit_code": request.ExitCode, "passed_count": request.PassedCount, "failed_count": request.FailedCount, "skipped_count": request.SkippedCount, "evidence_path": request.EvidencePath})
@@ -733,7 +752,7 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 		payload = []byte(loaded)
 	}
 	if err != nil {
-		return writeError(output, request.JSON, invalid("application payload transport is invalid"))
+		return writeInvalidRequest(output, request, "application payload transport is invalid")
 	}
 	subcommand := request.Subcommand
 	if request.Name == "checkpoint" && subcommand == "" {
@@ -746,15 +765,15 @@ func runApplicationCommand(ctx context.Context, output io.Writer, input io.Reade
 	})
 	if outcome.Error.Code != "" {
 		if outcome.Error.Code == domain.CodeInvalidArgument {
-			return writeErrorWithContext(output, request.JSON, outcome.Error, applicationPayloadRecovery(request))
+			return writeErrorWithContextAndDetail(output, request.JSON, outcome.Error, applicationPayloadRecovery(request), outcome.Detail)
 		}
 		if request.Name == "session" && request.Subcommand == "create" && outcome.Error.Code == domain.CodeNotFound {
-			return writeErrorWithContext(output, request.JSON, outcome.Error, terminalErrorContext{
+			return writeErrorWithContextAndDetail(output, request.JSON, outcome.Error, terminalErrorContext{
 				Hint: "Use the controller-provided OMG_HUMAN_ID; create a human only when establishing a new owner.",
 				Next: "omg example show session-create --json",
-			})
+			}, outcome.Detail)
 		}
-		return writeError(output, request.JSON, outcome.Error)
+		return writeErrorWithContextAndDetail(output, request.JSON, outcome.Error, terminalErrorContext{}, outcome.Detail)
 	}
 	return writeSuccess(output, request.JSON, outcome.Data)
 }
@@ -772,11 +791,15 @@ func applicationPayloadRecovery(request Request) terminalErrorContext {
 
 func applicationCommandName(name string) bool {
 	switch name {
-	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "reserve", "git", "orphan", "canary", "import", "receipt":
+	case "human", "session", "delegate", "checkpoint", "task", "progress", "dependency", "message", "handoff", "candidate", "reserve", "git", "orphan", "canary", "import", "receipt":
 		return true
 	default:
 		return false
 	}
+}
+
+func applicationCommandRequest(request Request) bool {
+	return applicationCommandName(request.Name) || request.Name == "worker" && request.Subcommand == "setup"
 }
 
 func runLifecycleMode(output io.Writer, input io.Reader, request Request) int {
@@ -1549,7 +1572,47 @@ func requestErrorContext(request Request) terminalErrorContext {
 }
 
 func writeInvalidRequest(output io.Writer, request Request, message string) int {
-	return writeErrorWithContext(output, request.JSON, invalid(message), requestErrorContext(request))
+	err := invalid(message)
+	context := requestErrorContext(request)
+	return writeErrorWithContextAndDetail(output, request.JSON, err, context, cliValidationDetail(request, err))
+}
+
+func cliValidationDetail(request Request, err domain.DomainError) *app.ErrorDetail {
+	operation := request.Name
+	if request.Subcommand != "" {
+		operation += "." + request.Subcommand
+	}
+	payload, _ := json.Marshal(map[string]string{
+		"task_id":          request.TaskID,
+		"session_id":       request.SessionID,
+		"handoff_id":       request.HandoffID,
+		"canary_run_id":    request.CanaryRunID,
+		"actor_session_id": request.SessionID,
+	})
+	detail := app.NewErrorDetail(app.Request{
+		Version: app.RequestVersion, Command: operation, Project: request.Project, Workspace: request.Workspace,
+		Store: request.Store, IdempotencyKey: request.IdempotencyKey, Payload: payload,
+	}, err)
+	if detail == nil {
+		return nil
+	}
+	argv := []string{"omg"}
+	if request.Name != "" {
+		argv = append(argv, request.Name)
+	}
+	if request.Subcommand != "" {
+		argv = append(argv, request.Subcommand)
+	}
+	argv = append(argv, "--help")
+	command := make([]string, len(argv))
+	for index, argument := range argv {
+		command[index] = shellQuote(argument)
+	}
+	detail.RecoveryActions = []app.RecoveryAction{{
+		Code: "inspect_command_help", Description: "Inspect contextual command help before retrying.",
+		Argv: argv, Command: strings.Join(command, " "),
+	}}
+	return detail
 }
 func ExitCode(err domain.DomainError) int {
 	switch err.Code {
@@ -1604,13 +1667,21 @@ func neutralizeTerminalControls(value string) string {
 }
 
 func writeError(output io.Writer, jsonOutput bool, err domain.DomainError) int {
-	return writeErrorWithContext(output, jsonOutput, err, terminalErrorContext{})
+	return writeErrorWithContextAndDetail(output, jsonOutput, err, terminalErrorContext{}, nil)
 }
 
 func writeErrorWithContext(output io.Writer, jsonOutput bool, err domain.DomainError, context terminalErrorContext) int {
+	return writeErrorWithContextAndDetail(output, jsonOutput, err, context, nil)
+}
+
+func writeErrorWithContextAndDetail(output io.Writer, jsonOutput bool, err domain.DomainError, context terminalErrorContext, detail *app.ErrorDetail) int {
 	exit := ExitCode(err)
+	if context.Next == "" && detail != nil && len(detail.RecoveryActions) != 0 {
+		context.Next = detail.RecoveryActions[0].Command
+	}
 	if !jsonOutput {
 		renderErrorWithContext(output, err, exit, context)
+		renderStructuredErrorDetail(output, detail)
 		return exit
 	}
 	warnings := make([]string, 0, 2)
@@ -1625,7 +1696,7 @@ func writeErrorWithContext(output io.Writer, jsonOutput bool, err domain.DomainE
 		recovery = &ErrorRecovery{Hint: neutralizeTerminalControls(context.Hint), NextCommand: neutralizeTerminalControls(context.Next)}
 	}
 	return writeJSON(output, ErrorEnvelope{OK: false, Error: ErrorMetadata{
-		Code: string(err.Code), Message: err.Message, Retryable: err.Retryable, ExitCode: exit, Recovery: recovery,
+		Code: string(err.Code), Message: err.Message, Retryable: err.Retryable, ExitCode: exit, Recovery: recovery, Details: detail,
 	}, Meta: Metadata{EnvelopeSchemaVersion, CommandSchemaVersion}, Warnings: warnings}, exit)
 }
 func writeJSON(output io.Writer, value any, exit int) int {

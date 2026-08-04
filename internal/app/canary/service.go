@@ -7,14 +7,15 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
-	handoffapp "github.com/jeremy-merchant/OMG/internal/app/handoff"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	handoffapp "github.com/jeremy-merchant/oh-my-group/internal/app/handoff"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 type Service struct {
@@ -29,9 +30,27 @@ type StartRequest struct {
 	HandoffID              string
 	ActorSessionID         string
 	IntegrationRef         string
+	Mode                   string
+	CandidateSHA           string
 	Command                string
 	ExecutionKind          string
 	EnvironmentFingerprint string
+}
+
+type StartMode string
+
+const (
+	ModeLocalIntegration    StartMode = "local_integration"
+	ModeReleaseOrProduction StartMode = "release_or_production"
+)
+
+const (
+	ledgerReconciled = "reconciled"
+	ledgerPending    = "pending_ledger_reconciliation"
+)
+
+type localIntegrationVerifier interface {
+	VerifyLocalIntegration(context.Context, string, string, string) (gitobs.LocalIntegrationEvidence, error)
 }
 
 type FinishRequest struct {
@@ -77,8 +96,22 @@ func eventID(prefix string, key domain.IdempotencyKey) string {
 	return prefix + "-" + hex.EncodeToString(sum[:16])
 }
 
+func startMode(value string) (StartMode, bool) {
+	switch StartMode(value) {
+	case "", ModeReleaseOrProduction:
+		return ModeReleaseOrProduction, true
+	case ModeLocalIntegration:
+		return ModeLocalIntegration, true
+	default:
+		return "", false
+	}
+}
+
 func (s *Service) Start(ctx context.Context, key domain.IdempotencyKey, request StartRequest) (coord.HandoffLifecycleEvent, error) {
-	if s == nil || s.store == nil || s.verifier == nil || !domain.IsSecretFreeStableMetadata(string(key)) || request.ProjectID == "" || request.Directory == "" || request.HandoffID == "" || request.ActorSessionID == "" || request.IntegrationRef == "" || request.Command == "" || request.EnvironmentFingerprint == "" || request.ExecutionKind != "real" && request.ExecutionKind != "mock" || safety.RejectPrefixed(key, request) != nil {
+	mode, validMode := startMode(request.Mode)
+	localCandidateMissing := mode == ModeLocalIntegration && request.CandidateSHA == ""
+	strictCandidateSupplied := mode == ModeReleaseOrProduction && request.CandidateSHA != ""
+	if s == nil || s.store == nil || s.verifier == nil || !validMode || localCandidateMissing || strictCandidateSupplied || !domain.IsSecretFreeStableMetadata(string(key)) || request.ProjectID == "" || request.Directory == "" || request.HandoffID == "" || request.ActorSessionID == "" || request.IntegrationRef == "" || request.Command == "" || request.EnvironmentFingerprint == "" || request.ExecutionKind != "real" && request.ExecutionKind != "mock" || safety.RejectPrefixed(key, request) != nil {
 		return coord.HandoffLifecycleEvent{}, invalid()
 	}
 	startID := eventID("canary-start", key)
@@ -97,15 +130,55 @@ func (s *Service) Start(ctx context.Context, key domain.IdempotencyKey, request 
 			integrationCommit = event.IntegrationCommit
 		}
 	}
-	if integrationCommit == "" {
-		return coord.HandoffLifecycleEvent{}, invalid()
-	}
-	revision, err := s.verifier.ResolveRevision(ctx, request.Directory, request.IntegrationRef)
-	if err != nil {
-		return coord.HandoffLifecycleEvent{}, unavailable()
-	}
-	if revision.Commit != integrationCommit || revision.Tree == "" || revision.RefFingerprint == "" {
-		return coord.HandoffLifecycleEvent{}, domain.NewError(domain.CodeConflict, "integration ref does not match the recorded exact SHA", false)
+	var revision gitobs.RevisionEvidence
+	note := ""
+	if mode == ModeReleaseOrProduction {
+		if integrationCommit == "" {
+			return coord.HandoffLifecycleEvent{}, invalid()
+		}
+		revision, err = s.verifier.ResolveRevision(ctx, request.Directory, request.IntegrationRef)
+		if err != nil {
+			return coord.HandoffLifecycleEvent{}, unavailable()
+		}
+		if revision.Commit != integrationCommit || revision.Tree == "" || revision.RefFingerprint == "" {
+			return coord.HandoffLifecycleEvent{}, domain.NewError(domain.CodeConflict, "integration ref does not match the recorded exact SHA", false)
+		}
+	} else {
+		localVerifier, ok := s.verifier.(localIntegrationVerifier)
+		if !ok {
+			return coord.HandoffLifecycleEvent{}, unavailable()
+		}
+		evidence, verifyErr := localVerifier.VerifyLocalIntegration(ctx, request.Directory, request.CandidateSHA, request.IntegrationRef)
+		if verifyErr != nil {
+			return coord.HandoffLifecycleEvent{}, unavailable()
+		}
+		if evidence.Candidate.Commit != request.CandidateSHA || evidence.Candidate.Tree == "" {
+			return coord.HandoffLifecycleEvent{}, domain.NewError(domain.CodeConflict, "candidate SHA was not supplied as an exact commit", false)
+		}
+		if !evidence.CandidateReachable {
+			return coord.HandoffLifecycleEvent{}, domain.NewError(domain.CodeConflict, "candidate SHA is not reachable from the rolling integration ref", false)
+		}
+		if !evidence.WorktreeClean {
+			return coord.HandoffLifecycleEvent{}, domain.NewError(domain.CodeConflict, "rolling integration worktree is not clean", false)
+		}
+		revision = evidence.Rolling
+		if revision.Commit == "" || revision.Tree == "" || revision.RefFingerprint == "" {
+			return coord.HandoffLifecycleEvent{}, unavailable()
+		}
+		ledgerStatus := ledgerReconciled
+		ledgerWarning := ""
+		switch {
+		case integrationCommit == "":
+			ledgerStatus = ledgerPending
+			ledgerWarning = "missing_integrated_event"
+		case integrationCommit != evidence.Candidate.Commit:
+			ledgerStatus = ledgerPending
+			ledgerWarning = "integration_commit_mismatch"
+		}
+		note = fmt.Sprintf("canary_mode=%s;candidate_sha=%s;ledger_status=%s", mode, evidence.Candidate.Commit, ledgerStatus)
+		if ledgerWarning != "" {
+			note += ";ledger_warning=" + ledgerWarning
+		}
 	}
 	started := s.now().UTC()
 	event := coord.HandoffLifecycleEvent{
@@ -123,6 +196,10 @@ func (s *Service) Start(ctx context.Context, key domain.IdempotencyKey, request 
 		CanaryHeadBefore:             revision.Commit,
 		CanaryRefFingerprintBefore:   revision.RefFingerprint,
 		CanaryStartedAt:              &started,
+		Note:                         note,
+	}
+	if mode == ModeLocalIntegration {
+		return handoffapp.New(s.store, s.now).AdvanceLocalCanary(ctx, key, event)
 	}
 	return handoffapp.New(s.store, s.now).Advance(ctx, key, event)
 }
@@ -175,6 +252,7 @@ func (s *Service) Finish(ctx context.Context, key domain.IdempotencyKey, request
 		CanaryStartedAt:              start.CanaryStartedAt,
 		CanaryFinishedAt:             &finished,
 		CanaryEvidencePath:           request.EvidencePath,
+		Note:                         start.Note,
 	}
 	return handoffapp.New(s.store, s.now).Advance(ctx, key, event)
 }

@@ -5,7 +5,7 @@ package git
 import (
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 func TestWindowsWorktreeIdentityNormalizesSeparatorsAndCase(t *testing.T) {

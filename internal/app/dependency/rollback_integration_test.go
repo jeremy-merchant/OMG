@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/testsupport"
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/testsupport"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 func TestTransitionAndNotificationRollbackTogetherOnStoreFailure(t *testing.T) {

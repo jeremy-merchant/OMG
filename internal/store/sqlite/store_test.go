@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
@@ -24,7 +24,7 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer store.Close()
-	if len(status.Pending) != 11 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 || status.Pending[8].Version != 9 || status.Pending[9].Version != 10 || status.Pending[10].Version != 11 {
+	if len(status.Pending) != 12 || status.Pending[0].Version != 1 || status.Pending[1].Version != 2 || status.Pending[2].Version != 3 || status.Pending[3].Version != 4 || status.Pending[4].Version != 5 || status.Pending[5].Version != 6 || status.Pending[6].Version != 7 || status.Pending[7].Version != 8 || status.Pending[8].Version != 9 || status.Pending[9].Version != 10 || status.Pending[10].Version != 11 || status.Pending[11].Version != 12 {
 		t.Fatalf("pending = %#v", status.Pending)
 	}
 	exists, err := tableExists(ctx, store.db, "schema_migrations")
@@ -70,6 +70,13 @@ func TestOpenReportsPendingWithoutSchemaMutation(t *testing.T) {
 	}
 	if status.Pending[10].SQL != automaticMigrationAuthorizationSQL || status.Pending[10].SQL != string(automaticAuthorizationSource) || !status.Pending[10].AutomaticSafe {
 		t.Fatal("embedded automatic migration authorization differs from source or is not declared safe")
+	}
+	taskHierarchySource, err := os.ReadFile(filepath.Join("..", "..", "..", "migrations", "0012_task_hierarchy_policy.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status.Pending[11].SQL != taskHierarchyPolicySQL || status.Pending[11].SQL != string(taskHierarchySource) || !status.Pending[11].AutomaticSafe {
+		t.Fatal("embedded task hierarchy migration differs from source or is not declared safe")
 	}
 	if exists {
 		t.Fatal("open applied schema migration")
@@ -241,15 +248,15 @@ func TestAutomaticSafeMigrationRequiresIncrementalAllSafePlanAndRecordsEvidence(
 		t.Fatal(err)
 	}
 	defer store.Close()
-	if len(status.Pending) != 1 || status.Pending[0].Version != 11 || !status.Pending[0].AutomaticSafe {
-		t.Fatalf("pending = %#v; want only auto-safe v11", status.Pending)
+	if len(status.Pending) != 2 || status.Pending[0].Version != 11 || status.Pending[1].Version != 12 || !status.Pending[0].AutomaticSafe || !status.Pending[1].AutomaticSafe {
+		t.Fatalf("pending = %#v; want auto-safe v11 and v12", status.Pending)
 	}
 	plan, err := store.PlanMigrations(ctx, "auto-safe-project")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !plan.AutomaticEligible || plan.FromVersion != 10 || plan.ToVersion != 11 {
-		t.Fatalf("plan = %#v; want eligible v10 to v11", plan)
+	if !plan.AutomaticEligible || plan.FromVersion != 10 || plan.ToVersion != 12 {
+		t.Fatalf("plan = %#v; want eligible v10 to v12", plan)
 	}
 	backup, err := store.CreateMigrationBackup(ctx, plan)
 	if err != nil {
@@ -283,6 +290,48 @@ func TestAutomaticSafeMigrationRequiresIncrementalAllSafePlanAndRecordsEvidence(
 	}
 }
 
+func TestTaskHierarchyMigrationPreservesLegacyTaskDefaults(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "state.db")
+	seedSchemaThrough(t, path, 11)
+	store, status, err := Open(ctx, path, OpenOptions{ExistingOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	if len(status.Pending) != 1 || status.Pending[0].Version != 12 || !status.Pending[0].AutomaticSafe {
+		t.Fatalf("pending = %#v; want only automatic-safe v12", status.Pending)
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	if _, err := store.db.ExecContext(ctx, `INSERT INTO projects(id,created_at) VALUES(?,?)`, "legacy-hierarchy-project", now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.db.ExecContext(ctx, `INSERT INTO tasks(id,project_id,display_number,title,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?)`, "legacy-task", "legacy-hierarchy-project", 1, "legacy task", "WORK_COMPLETE", now, now); err != nil {
+		t.Fatal(err)
+	}
+	plan, _, approval := migrationApproval(t, store, "legacy-hierarchy-project")
+	if plan.FromVersion != 11 || plan.ToVersion != 12 || !plan.AutomaticEligible {
+		t.Fatalf("plan = %#v", plan)
+	}
+	if err := store.ApplyMigrations(ctx, plan, approval); err != nil {
+		t.Fatal(err)
+	}
+	var completionPolicy, parentRequirement string
+	if err := store.db.QueryRowContext(ctx, `SELECT completion_policy,parent_requirement FROM tasks WHERE id=?`, "legacy-task").Scan(&completionPolicy, &parentRequirement); err != nil {
+		t.Fatal(err)
+	}
+	if completionPolicy != "INDEPENDENT" || parentRequirement != "OPTIONAL" {
+		t.Fatalf("legacy defaults = %q/%q", completionPolicy, parentRequirement)
+	}
+	var indexCount int
+	if err := store.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_tasks_project_parent_display'`).Scan(&indexCount); err != nil {
+		t.Fatal(err)
+	}
+	if indexCount != 1 {
+		t.Fatalf("hierarchy index count = %d", indexCount)
+	}
+}
+
 func TestAutomaticSafeMigrationRejectsFreshAndMixedRiskPlans(t *testing.T) {
 	ctx := context.Background()
 	fresh, _, err := Open(ctx, filepath.Join(t.TempDir(), "fresh.db"), OpenOptions{})
@@ -309,8 +358,8 @@ func TestAutomaticSafeMigrationRejectsFreshAndMixedRiskPlans(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !mixedPlan.AutomaticEligible || mixedPlan.FromVersion != 9 || mixedPlan.ToVersion != 11 {
-		t.Fatalf("mixed plan = %#v; want eligible v9 to v11", mixedPlan)
+	if !mixedPlan.AutomaticEligible || mixedPlan.FromVersion != 9 || mixedPlan.ToVersion != 12 {
+		t.Fatalf("mixed plan = %#v; want eligible v9 to v12", mixedPlan)
 	}
 }
 

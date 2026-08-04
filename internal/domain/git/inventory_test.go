@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	coord "github.com/jeremy-merchant/OMG/internal/domain/coordination"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
+	coord "github.com/jeremy-merchant/oh-my-group/internal/domain/coordination"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
 )
 
 func TestExactDiffDistinguishesFactsAndClassifications(t *testing.T) {

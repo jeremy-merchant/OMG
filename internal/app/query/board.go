@@ -3,7 +3,7 @@ package query
 import (
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 // BoardSchemaVersion is the stable application-owned snapshot schema consumed by
@@ -148,6 +148,8 @@ type TaskView struct {
 	CreatedBySessionID string    `json:"created_by_session_id,omitempty"`
 	ClaimedBySessionID string    `json:"claimed_by_session_id,omitempty"`
 	ParentTaskID       string    `json:"parent_task_id,omitempty"`
+	CompletionPolicy   string    `json:"completion_policy"`
+	ParentRequirement  string    `json:"parent_requirement"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 }
@@ -260,13 +262,30 @@ type HandoffLifecycleView struct {
 // and board summary. Counts are intentionally sufficient to choose the next
 // operator action without returning the underlying ledger rows.
 type OperatorSummary struct {
-	ActiveSessions   int              `json:"active_sessions"`
-	StaleSessions    int              `json:"stale_sessions"`
-	Conflicts        int              `json:"conflicts"`
-	IntegrationQueue int              `json:"integration_queue"`
-	TasksByState     map[string]int   `json:"tasks_by_state"`
-	HandoffsByState  map[string]int   `json:"handoffs_by_state"`
-	Bottlenecks      []BottleneckView `json:"bottlenecks"`
+	ActiveSessions              int              `json:"active_sessions"`
+	OpenSessions                int              `json:"open_sessions"`
+	AliveSessions               int              `json:"alive_sessions"`
+	IdleSessions                int              `json:"idle_sessions"`
+	StaleSessions               int              `json:"stale_sessions"`
+	RuntimeUnobservableSessions int              `json:"runtime_unobservable_sessions"`
+	FinishedUnclosedSessions    int              `json:"finished_unclosed_sessions"`
+	Conflicts                   int              `json:"conflicts"`
+	OwnershipConflicts          int              `json:"ownership_conflicts"`
+	GitRisks                    int              `json:"git_risks"`
+	IntegrationQueue            int              `json:"integration_queue"`
+	Housekeeping                HousekeepingView `json:"housekeeping"`
+	TasksByState                map[string]int   `json:"tasks_by_state"`
+	HandoffsByState             map[string]int   `json:"handoffs_by_state"`
+	Bottlenecks                 []BottleneckView `json:"bottlenecks"`
+}
+
+// HousekeepingView keeps historical reconciliation debt visible without
+// treating it as a live ownership signal for new work.
+type HousekeepingView struct {
+	StaleSessions               int `json:"stale_sessions"`
+	RuntimeUnobservableSessions int `json:"runtime_unobservable_sessions"`
+	FinishedUnclosedSessions    int `json:"finished_unclosed_sessions"`
+	IntegrationQueue            int `json:"integration_queue"`
 }
 
 type BottleneckView struct {

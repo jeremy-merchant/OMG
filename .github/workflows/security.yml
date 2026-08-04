@@ -51,6 +51,6 @@ jobs:
           go build -trimpath -ldflags "-s -w -X main.version=security-ci" -o ./omg ./cmd/omg
           payload="$(./omg release status --json)"
           test "$(jq -r .data.status <<<"$payload")" = "SOURCE PUBLISHED"
-          test "$(jq -r .data.repository <<<"$payload")" = "github.com/jeremy-merchant/OMG"
+          test "$(jq -r .data.repository <<<"$payload")" = "github.com/jeremy-merchant/oh-my-group"
           test "$(jq -r .data.license <<<"$payload")" = "Apache-2.0"
           test "$(jq -r .data.stable_release <<<"$payload")" = "false"

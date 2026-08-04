@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
 )
 
 func TestProductionFoundationInitializesFreshOwnerOnlySelection(t *testing.T) {

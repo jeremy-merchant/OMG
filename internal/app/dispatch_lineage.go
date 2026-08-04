@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"time"
 
-	dependencyapp "github.com/jeremy-merchant/OMG/internal/app/dependency"
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	lineageapp "github.com/jeremy-merchant/OMG/internal/app/lineage"
-	queryapp "github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	lineage "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	dependencyapp "github.com/jeremy-merchant/oh-my-group/internal/app/dependency"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	lineageapp "github.com/jeremy-merchant/oh-my-group/internal/app/lineage"
+	queryapp "github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	lineage "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 type lineageHumanPayload struct {
@@ -138,6 +138,8 @@ type lineageTaskResult struct {
 	CreatedBySessionID string `json:"created_by_session_id"`
 	ClaimedBySessionID string `json:"claimed_by_session_id,omitempty"`
 	ParentTaskID       string `json:"parent_task_id,omitempty"`
+	CompletionPolicy   string `json:"completion_policy"`
+	ParentRequirement  string `json:"parent_requirement"`
 }
 type lineageRunResult struct {
 	ID        string `json:"id"`
@@ -523,7 +525,7 @@ func lineageSessionResponse(x lineage.AgentSession) lineageSessionResult {
 	return lineageSessionResult{ID: string(x.ID), ProjectID: string(x.ProjectID), HumanID: string(x.HumanID), Kind: string(x.Kind), Runtime: safety.SafeText(x.Runtime), Role: safety.SafeText(x.Role), Source: string(x.Source), ParentID: string(x.ParentID), RootID: string(x.RootID), ContinuationOfID: string(x.ContinuationOfID), TaskID: string(x.TaskID), StartedAt: x.StartedAt, NativeAccessState: string(x.NativeAccessState)}
 }
 func lineageTaskResponse(x lineage.Task) lineageTaskResult {
-	return lineageTaskResult{ID: string(x.ID), DisplayNumber: x.DisplayNumber, Title: safety.SafeText(x.Title), State: string(x.State), CreatedBySessionID: string(x.CreatedBySessionID), ClaimedBySessionID: string(x.ClaimedBySessionID), ParentTaskID: string(x.ParentTaskID)}
+	return lineageTaskResult{ID: string(x.ID), DisplayNumber: x.DisplayNumber, Title: safety.SafeText(x.Title), State: string(x.State), CreatedBySessionID: string(x.CreatedBySessionID), ClaimedBySessionID: string(x.ClaimedBySessionID), ParentTaskID: string(x.ParentTaskID), CompletionPolicy: string(lineage.EffectiveTaskCompletionPolicy(x.CompletionPolicy)), ParentRequirement: string(lineage.EffectiveTaskParentRequirement(x.ParentRequirement))}
 }
 func lineageRunResponse(x lineage.TaskRun) lineageRunResult {
 	return lineageRunResult{ID: string(x.ID), TaskID: string(x.TaskID), SessionID: string(x.SessionID), State: string(x.State)}

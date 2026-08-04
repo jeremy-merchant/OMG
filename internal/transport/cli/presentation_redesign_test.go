@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 func TestOperatorHelpPaletteKeepsMeaningWithoutColor(t *testing.T) {

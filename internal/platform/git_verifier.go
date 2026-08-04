@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"strings"
 
-	gitobs "github.com/jeremy-merchant/OMG/internal/domain/git"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	gitobs "github.com/jeremy-merchant/oh-my-group/internal/domain/git"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 // GitVerifier reuses the scanner's constrained runner. Every accepted argv is
@@ -50,6 +50,37 @@ func (v *GitVerifier) ResolveRevision(ctx context.Context, directory, ref string
 		}
 	}
 	return revision, nil
+}
+
+// VerifyLocalIntegration proves the local-only rolling gate without granting
+// any Git mutation authority. A missing merge base is reported as an
+// unreachable candidate; failure to observe worktree status is an error
+// because cleanliness must be positively established.
+func (v *GitVerifier) VerifyLocalIntegration(ctx context.Context, directory, candidateSHA, rollingRef string) (gitobs.LocalIntegrationEvidence, error) {
+	candidate, err := v.ResolveRevision(ctx, directory, candidateSHA)
+	if err != nil {
+		return gitobs.LocalIntegrationEvidence{}, err
+	}
+	rolling, err := v.ResolveRevision(ctx, directory, rollingRef)
+	if err != nil {
+		return gitobs.LocalIntegrationEvidence{}, err
+	}
+	evidence := gitobs.LocalIntegrationEvidence{Candidate: candidate, Rolling: rolling}
+	if basePlan, planErr := gitobs.MergeBasePlan(candidate.Commit, rolling.Commit); planErr == nil {
+		if output, runErr := v.runner(ctx, directory, basePlan); runErr == nil {
+			evidence.CandidateReachable = strings.TrimSpace(string(output)) == candidate.Commit
+		}
+	}
+	statusBytes, err := v.runner(ctx, directory, gitobs.StatusPlan())
+	if err != nil {
+		return gitobs.LocalIntegrationEvidence{}, err
+	}
+	status, err := gitobs.ParseStatusPorcelainV2(statusBytes)
+	if err != nil {
+		return gitobs.LocalIntegrationEvidence{}, err
+	}
+	evidence.WorktreeClean = status.TrackedDirty == 0 && status.Untracked == 0
+	return evidence, nil
 }
 
 func (v *GitVerifier) Reconcile(ctx context.Context, directory, sourceCommit, declaredSourceTree, integrationCommit, currentIntegrationRef string) (gitobs.ReconcileEvidence, error) {

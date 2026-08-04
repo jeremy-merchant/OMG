@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/jeremy-merchant/OMG/internal/bootstrap"
-	"github.com/jeremy-merchant/OMG/internal/transport/cli"
+	"github.com/jeremy-merchant/oh-my-group/internal/bootstrap"
+	"github.com/jeremy-merchant/oh-my-group/internal/transport/cli"
 )
 
 // version is set with -ldflags for build artifacts. The default deliberately

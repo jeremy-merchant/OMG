@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 //go:embed migrations/0002_coordination.sql
@@ -27,6 +27,10 @@ var exactSHACanarySQL = mustExactSHACanarySQL()
 //go:embed migrations/0011_automatic_migration_authorization.sql
 var automaticMigrationAuthorizationFS embed.FS
 var automaticMigrationAuthorizationSQL = mustAutomaticMigrationAuthorizationSQL()
+
+//go:embed migrations/0012_task_hierarchy_policy.sql
+var taskHierarchyPolicyFS embed.FS
+var taskHierarchyPolicySQL = mustTaskHierarchyPolicySQL()
 
 func mustCoordinationSQL() string {
 	b, err := coordinationFS.ReadFile("migrations/0002_coordination.sql")
@@ -54,6 +58,14 @@ func mustExactSHACanarySQL() string {
 
 func mustAutomaticMigrationAuthorizationSQL() string {
 	b, err := automaticMigrationAuthorizationFS.ReadFile("migrations/0011_automatic_migration_authorization.sql")
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}
+
+func mustTaskHierarchyPolicySQL() string {
+	b, err := taskHierarchyPolicyFS.ReadFile("migrations/0012_task_hierarchy_policy.sql")
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +121,7 @@ func scanTask(row *sql.Row) (lineage.Task, bool, error) {
 	var t lineage.Task
 	var createdBy, claim, parent, sup sql.NullString
 	var created, updated string
-	err := row.Scan(&t.ID, &t.ProjectID, &t.DisplayNumber, &t.Title, &t.State, &createdBy, &claim, &parent, &created, &updated, &sup)
+	err := row.Scan(&t.ID, &t.ProjectID, &t.DisplayNumber, &t.Title, &t.State, &createdBy, &claim, &parent, &t.CompletionPolicy, &t.ParentRequirement, &created, &updated, &sup)
 	if err == sql.ErrNoRows {
 		return t, false, nil
 	}
@@ -420,14 +432,14 @@ func (r coordination) CreateTask(ctx context.Context, t lineage.Task) (lineage.T
 		return t, e
 	}
 	t.DisplayNumber = n
-	_, e = r.tx.ExecContext(ctx, "INSERT INTO tasks(id,project_id,display_number,title,state,created_by_session_id,parent_task_id,created_at,updated_at,supersedes_id) VALUES(?,?,?,?,?,?,?,?,?,?)", t.ID, t.ProjectID, t.DisplayNumber, t.Title, t.State, nullID(t.CreatedBySessionID), nullID(t.ParentTaskID), stamp(t.CreatedAt), stamp(t.UpdatedAt), nullID(t.Supersedes))
+	_, e = r.tx.ExecContext(ctx, "INSERT INTO tasks(id,project_id,display_number,title,state,created_by_session_id,parent_task_id,completion_policy,parent_requirement,created_at,updated_at,supersedes_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", t.ID, t.ProjectID, t.DisplayNumber, t.Title, t.State, nullID(t.CreatedBySessionID), nullID(t.ParentTaskID), lineage.EffectiveTaskCompletionPolicy(t.CompletionPolicy), lineage.EffectiveTaskParentRequirement(t.ParentRequirement), stamp(t.CreatedAt), stamp(t.UpdatedAt), nullID(t.Supersedes))
 	return t, e
 }
 func (r coordination) ListTasks(ctx context.Context, project domain.ProjectID) ([]lineage.Task, error) {
 	if !r.acceptsProject(string(project)) {
 		return nil, nil
 	}
-	rows, e := r.tx.QueryContext(ctx, "SELECT id,project_id,display_number,title,state,created_by_session_id,claimed_by_session_id,parent_task_id,created_at,updated_at,supersedes_id FROM tasks WHERE project_id=? ORDER BY display_number,id", project)
+	rows, e := r.tx.QueryContext(ctx, "SELECT id,project_id,display_number,title,state,created_by_session_id,claimed_by_session_id,parent_task_id,completion_policy,parent_requirement,created_at,updated_at,supersedes_id FROM tasks WHERE project_id=? ORDER BY display_number,id", project)
 	if e != nil {
 		return nil, e
 	}
@@ -437,7 +449,7 @@ func (r coordination) ListTasks(ctx context.Context, project domain.ProjectID) (
 		var t lineage.Task
 		var createdBy, claim, parent, sup sql.NullString
 		var created, updated string
-		if e = rows.Scan(&t.ID, &t.ProjectID, &t.DisplayNumber, &t.Title, &t.State, &createdBy, &claim, &parent, &created, &updated, &sup); e != nil {
+		if e = rows.Scan(&t.ID, &t.ProjectID, &t.DisplayNumber, &t.Title, &t.State, &createdBy, &claim, &parent, &t.CompletionPolicy, &t.ParentRequirement, &created, &updated, &sup); e != nil {
 			return nil, e
 		}
 		t.CreatedBySessionID = lineage.ID(createdBy.String)
@@ -458,7 +470,7 @@ func (r coordination) ListTasks(ctx context.Context, project domain.ProjectID) (
 	return out, rows.Err()
 }
 func (r coordination) GetTask(ctx context.Context, id lineage.ID) (lineage.Task, bool, error) {
-	return scanTask(r.tx.QueryRowContext(ctx, "SELECT id,project_id,display_number,title,state,created_by_session_id,claimed_by_session_id,parent_task_id,created_at,updated_at,supersedes_id FROM tasks WHERE id=? AND (?='legacy' OR project_id=?)", id, r.project, r.project))
+	return scanTask(r.tx.QueryRowContext(ctx, "SELECT id,project_id,display_number,title,state,created_by_session_id,claimed_by_session_id,parent_task_id,completion_policy,parent_requirement,created_at,updated_at,supersedes_id FROM tasks WHERE id=? AND (?='legacy' OR project_id=?)", id, r.project, r.project))
 }
 func (r coordination) ClaimTask(ctx context.Context, id, s lineage.ID, at time.Time) (lineage.Task, bool, error) {
 	res, e := r.tx.ExecContext(ctx, "UPDATE tasks SET claimed_by_session_id=?,claimed_at=?,state='CLAIMED',updated_at=? WHERE id=? AND (?='legacy' OR project_id=?) AND claimed_by_session_id IS NULL AND state='READY' AND NOT EXISTS (SELECT 1 FROM task_dependencies WHERE blocked_task_id=? AND kind='hard' AND satisfied_at IS NULL) AND (?='legacy' OR EXISTS (SELECT 1 FROM agent_sessions WHERE id=? AND project_id=?))", s, stamp(at), stamp(at), id, r.project, r.project, id, r.project, s, r.project)

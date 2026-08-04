@@ -17,7 +17,7 @@ omg agent doctor
 omg agent uninstall
 ```
 
-Global installation preserves all non-OMG content, rejects symlink/reparse-point paths and drifted managed skills, uses atomic replacement with rollback, and renders home-relative paths only. The installed skill selects `OBSERVE`, `WORK_LITE`, or `FULL`: read-only work stays ledger-free, single-owner changes omit a handoff by default, and only shared or release work uses the complete lifecycle. It does not make the user operate OMG for the agent and does not grant additional authority.
+Global installation preserves all non-OMG content, rejects symlink/reparse-point paths and drifted managed skills, uses atomic replacement with rollback, and renders home-relative paths only. The installed skill selects `OBSERVE`, `WORK_LITE`, or `FULL`: read-only work stays ledger-free, a single-owner change uses one controller-provided start and one finish command, and only shared integration, Canary, deploy, database, auth/payment, or release work uses the complete lifecycle. It does not make the user operate OMG for the agent and does not grant additional authority.
 
 Project `omg integration` remains an optional repository-local visibility layer. It is not required for global discovery and must not become a second state authority. See `docs/GLOBAL_AGENT_INSTALL.md`.
 

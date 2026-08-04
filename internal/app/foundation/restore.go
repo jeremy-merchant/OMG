@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"path/filepath"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 type RestorePlanRequest struct {

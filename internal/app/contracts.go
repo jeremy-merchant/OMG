@@ -4,8 +4,8 @@ package app
 import (
 	"context"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 // Command is a typed application request. Implementations define stable names

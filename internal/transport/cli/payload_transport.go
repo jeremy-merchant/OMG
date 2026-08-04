@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 )
 
 const maxApplicationPayload = 1 << 20

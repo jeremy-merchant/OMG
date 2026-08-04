@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 type ID string
@@ -19,53 +19,59 @@ type TaskState string
 type RunState string
 type Liveness string
 type NativeAccessState string
+type TaskCompletionPolicy string
+type TaskParentRequirement string
 
 const (
-	HumanDirect             LineageKind          = "human_direct"
-	AgentDelegated          LineageKind          = "agent_delegated"
-	Resumed                 LineageKind          = "resumed"
-	Adopted                 LineageKind          = "adopted"
-	Imported                LineageKind          = "imported"
-	SourceHuman             InstructionSource    = "human"
-	SourceDelegationToken   InstructionSource    = "delegation_token"
-	SourceResume            InstructionSource    = "resume"
-	SourceAdoption          InstructionSource    = "adoption"
-	SourceImport            InstructionSource    = "import"
-	ConfidenceExplicit      ProvenanceConfidence = "explicit"
-	ConfidenceVerified      ProvenanceConfidence = "verified"
-	ConfidenceAsserted      ProvenanceConfidence = "asserted"
-	ConfidenceUnknown       ProvenanceConfidence = "unknown"
-	TaskReady               TaskState            = "READY"
-	TaskClaimed             TaskState            = "CLAIMED"
-	TaskInProgress          TaskState            = "IN_PROGRESS"
-	TaskWaiting             TaskState            = "WAITING"
-	TaskBlocked             TaskState            = "BLOCKED"
-	TaskRework              TaskState            = "REWORK"
-	TaskWorkComplete        TaskState            = "WORK_COMPLETE"
-	TaskVerifiedDone        TaskState            = "VERIFIED_DONE"
-	TaskFailed              TaskState            = "FAILED"
-	TaskAbandoned           TaskState            = "ABANDONED"
-	TaskInterrupted         TaskState            = "INTERRUPTED"
-	TaskStale               TaskState            = "STALE"
-	TaskCancelled           TaskState            = "CANCELLED"
-	RunRunning              RunState             = "RUNNING"
-	RunWaiting              RunState             = "WAITING"
-	RunBlocked              RunState             = "BLOCKED"
-	RunRework               RunState             = "REWORK"
-	RunWorkComplete         RunState             = "WORK_COMPLETE"
-	RunVerifiedDone         RunState             = "VERIFIED_DONE"
-	RunFailed               RunState             = "FAILED"
-	RunAbandoned            RunState             = "ABANDONED"
-	RunInterrupted          RunState             = "INTERRUPTED"
-	RunStale                RunState             = "STALE"
-	RunCancelled            RunState             = "CANCELLED"
-	Alive                   Liveness             = "alive"
-	Stale                   Liveness             = "stale"
-	Interrupted             Liveness             = "interrupted"
-	NativeAccessAvailable   NativeAccessState    = "available"
-	NativeAccessMissing     NativeAccessState    = "missing"
-	NativeAccessUnreadable  NativeAccessState    = "unreadable"
-	NativeAccessUnsupported NativeAccessState    = "unsupported"
+	HumanDirect                               LineageKind           = "human_direct"
+	AgentDelegated                            LineageKind           = "agent_delegated"
+	Resumed                                   LineageKind           = "resumed"
+	Adopted                                   LineageKind           = "adopted"
+	Imported                                  LineageKind           = "imported"
+	SourceHuman                               InstructionSource     = "human"
+	SourceDelegationToken                     InstructionSource     = "delegation_token"
+	SourceResume                              InstructionSource     = "resume"
+	SourceAdoption                            InstructionSource     = "adoption"
+	SourceImport                              InstructionSource     = "import"
+	ConfidenceExplicit                        ProvenanceConfidence  = "explicit"
+	ConfidenceVerified                        ProvenanceConfidence  = "verified"
+	ConfidenceAsserted                        ProvenanceConfidence  = "asserted"
+	ConfidenceUnknown                         ProvenanceConfidence  = "unknown"
+	TaskReady                                 TaskState             = "READY"
+	TaskClaimed                               TaskState             = "CLAIMED"
+	TaskInProgress                            TaskState             = "IN_PROGRESS"
+	TaskWaiting                               TaskState             = "WAITING"
+	TaskBlocked                               TaskState             = "BLOCKED"
+	TaskRework                                TaskState             = "REWORK"
+	TaskWorkComplete                          TaskState             = "WORK_COMPLETE"
+	TaskVerifiedDone                          TaskState             = "VERIFIED_DONE"
+	TaskFailed                                TaskState             = "FAILED"
+	TaskAbandoned                             TaskState             = "ABANDONED"
+	TaskInterrupted                           TaskState             = "INTERRUPTED"
+	TaskStale                                 TaskState             = "STALE"
+	TaskCancelled                             TaskState             = "CANCELLED"
+	TaskCompletionIndependent                 TaskCompletionPolicy  = "INDEPENDENT"
+	TaskCompletionAllRequiredChildrenVerified TaskCompletionPolicy  = "ALL_REQUIRED_CHILDREN_VERIFIED"
+	TaskParentRequired                        TaskParentRequirement = "REQUIRED"
+	TaskParentOptional                        TaskParentRequirement = "OPTIONAL"
+	RunRunning                                RunState              = "RUNNING"
+	RunWaiting                                RunState              = "WAITING"
+	RunBlocked                                RunState              = "BLOCKED"
+	RunRework                                 RunState              = "REWORK"
+	RunWorkComplete                           RunState              = "WORK_COMPLETE"
+	RunVerifiedDone                           RunState              = "VERIFIED_DONE"
+	RunFailed                                 RunState              = "FAILED"
+	RunAbandoned                              RunState              = "ABANDONED"
+	RunInterrupted                            RunState              = "INTERRUPTED"
+	RunStale                                  RunState              = "STALE"
+	RunCancelled                              RunState              = "CANCELLED"
+	Alive                                     Liveness              = "alive"
+	Stale                                     Liveness              = "stale"
+	Interrupted                               Liveness              = "interrupted"
+	NativeAccessAvailable                     NativeAccessState     = "available"
+	NativeAccessMissing                       NativeAccessState     = "missing"
+	NativeAccessUnreadable                    NativeAccessState     = "unreadable"
+	NativeAccessUnsupported                   NativeAccessState     = "unsupported"
 )
 
 var ErrInvalid = errors.New("lineage: invalid record")
@@ -125,6 +131,8 @@ type Task struct {
 	Title                                                string
 	State                                                TaskState
 	CreatedBySessionID, ClaimedBySessionID, ParentTaskID ID
+	CompletionPolicy                                     TaskCompletionPolicy
+	ParentRequirement                                    TaskParentRequirement
 	CreatedAt, UpdatedAt                                 time.Time
 	Supersedes                                           ID
 }
@@ -232,10 +240,24 @@ func validToken(t DelegationToken) error {
 	return nil
 }
 func (t Task) Validate() error {
-	if !nonempty(string(t.ID)) || !stableIDs(t.ID, t.ProjectID, t.CreatedBySessionID, t.ClaimedBySessionID, t.ParentTaskID, t.Supersedes) || !nonempty(string(t.ProjectID)) || t.DisplayNumber < 1 || !nonempty(t.Title) || !validTaskState(t.State) || !utc(t.CreatedAt) || !utc(t.UpdatedAt) {
+	if !nonempty(string(t.ID)) || !stableIDs(t.ID, t.ProjectID, t.CreatedBySessionID, t.ClaimedBySessionID, t.ParentTaskID, t.Supersedes) || !nonempty(string(t.ProjectID)) || t.DisplayNumber < 1 || !nonempty(t.Title) || !validTaskState(t.State) || !validTaskCompletionPolicy(t.CompletionPolicy) || !validTaskParentRequirement(t.ParentRequirement) || !utc(t.CreatedAt) || !utc(t.UpdatedAt) {
 		return ErrInvalid
 	}
 	return nil
+}
+
+func EffectiveTaskCompletionPolicy(v TaskCompletionPolicy) TaskCompletionPolicy {
+	if v == "" {
+		return TaskCompletionIndependent
+	}
+	return v
+}
+
+func EffectiveTaskParentRequirement(v TaskParentRequirement) TaskParentRequirement {
+	if v == "" {
+		return TaskParentOptional
+	}
+	return v
 }
 func (r TaskRun) Validate() error {
 	if !nonempty(string(r.ID)) || !stableIDs(r.ID, r.TaskID, r.SessionID, r.Supersedes) || !nonempty(string(r.TaskID)) || !nonempty(string(r.SessionID)) || !validRunState(r.State) || !utc(r.StartedAt) || (r.State == RunVerifiedDone && len(r.Evidence) == 0) {
@@ -310,6 +332,14 @@ func validConfidence(v ProvenanceConfidence) bool {
 }
 func validTaskState(v TaskState) bool {
 	return v == TaskReady || v == TaskClaimed || v == TaskInProgress || v == TaskWaiting || v == TaskBlocked || v == TaskRework || v == TaskWorkComplete || v == TaskVerifiedDone || v == TaskFailed || v == TaskAbandoned || v == TaskInterrupted || v == TaskStale || v == TaskCancelled
+}
+func validTaskCompletionPolicy(v TaskCompletionPolicy) bool {
+	v = EffectiveTaskCompletionPolicy(v)
+	return v == TaskCompletionIndependent || v == TaskCompletionAllRequiredChildrenVerified
+}
+func validTaskParentRequirement(v TaskParentRequirement) bool {
+	v = EffectiveTaskParentRequirement(v)
+	return v == TaskParentRequired || v == TaskParentOptional
 }
 func validRunState(v RunState) bool {
 	return v == RunRunning || v == RunWaiting || v == RunBlocked || v == RunRework || v == RunWorkComplete || v == RunVerifiedDone || v == RunFailed || v == RunAbandoned || v == RunInterrupted || v == RunStale || v == RunCancelled

@@ -126,7 +126,7 @@ A lane must not edit another lane’s directories or migrations. P4-A may edit o
 
 ### Phase 2 — foundation (D2)
 
-**P2-A Composition and contracts:** establish the canonical public module `github.com/jeremy-merchant/OMG`. Product-facing CLI remains `omg`; generated evidence and release artifacts remain source-bound and must be regenerated after any identity change. Define packages/interfaces in §2.2, JSON envelope/exit codes, command manifest, safe error/redaction DTOs, dependency manifest, and fixture/evidence harness.
+**P2-A Composition and contracts:** establish the canonical public module `github.com/jeremy-merchant/oh-my-group`. Product-facing CLI remains `omg`; generated evidence and release artifacts remain source-bound and must be regenerated after any identity change. Define packages/interfaces in §2.2, JSON envelope/exit codes, command manifest, safe error/redaction DTOs, dependency manifest, and fixture/evidence harness.
 
 **P2-B Store and platform:** implement resolver and `0001_foundation.sql`; pure-Go pinned SQLite behind `Store`; CGO-free build; Git common-dir identity mapped into an owner-only user-state location; non-Git user-state placement; explicit workspace; owner-only local state; FK/busy/retry/WAL eligibility/fallback; pending-migration discovery; read-only `migration plan`; verified plan-bound backup before every apply; automatic policy for every exact compiled pending plan; legacy manual apply validation; fail-closed unknown/divergent migrations and restore plans; pre-commit and post-commit integrity checks, events/receipts, and local fixtures that retain secret-free authorization evidence.
 

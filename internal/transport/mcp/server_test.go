@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
 )
 
 type rpcResponse struct {
@@ -56,7 +56,7 @@ func toolRequest(command string) string {
 
 func TestServeInitializeAndToolsAdvertiseTypedRequestSchema(t *testing.T) {
 	responses, err := serve(t, context.Background(), rpcRequest(`"init"`, "initialize", `{}`)+rpcRequest("1", "tools/list", `{}`), nil)
-	if err != nil || len(responses) != 2 || responses[0].Error != nil || responses[1].Error != nil || !bytes.Contains(responses[1].Result, []byte(`"request"`)) || !bytes.Contains(responses[1].Result, []byte(`"required":["version","command","project","payload"]`)) || !bytes.Contains(responses[1].Result, []byte(`"preflight.query"`)) || !bytes.Contains(responses[1].Result, []byte(`"session_id"`)) || bytes.Contains(responses[1].Result, []byte(`"args"`)) {
+	if err != nil || len(responses) != 2 || responses[0].Error != nil || responses[1].Error != nil || !bytes.Contains(responses[1].Result, []byte(`"request"`)) || !bytes.Contains(responses[1].Result, []byte(`"required":["version","command","project","payload"]`)) || !bytes.Contains(responses[1].Result, []byte(`"preflight.query"`)) || !bytes.Contains(responses[1].Result, []byte(`"reserve.batch-add"`)) || !bytes.Contains(responses[1].Result, []byte(`"worker.setup"`)) || !bytes.Contains(responses[1].Result, []byte(`"session_id"`)) || bytes.Contains(responses[1].Result, []byte(`"args"`)) {
 		t.Fatalf("responses=%+v err=%v", responses, err)
 	}
 }

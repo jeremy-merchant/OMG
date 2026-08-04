@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 func TestDispatchPreflightQueryReturnsCanonicalProjection(t *testing.T) {
@@ -28,7 +28,7 @@ func TestDispatchPreflightQueryReturnsCanonicalProjection(t *testing.T) {
 	if !ok {
 		t.Fatalf("preflight.query result=%T; want PreflightView", result.Data)
 	}
-	if !preflight.Initialized || preflight.PendingMigrations != 0 || preflight.Identity != nil {
+	if !preflight.Initialized || preflight.PendingMigrations != 0 || preflight.Identity != nil || !preflight.MutationAllowed || len(preflight.BlockingReasons) != 0 {
 		t.Fatalf("preflight state=%+v", preflight)
 	}
 	if preflight.Sessions == nil || preflight.Tasks == nil || preflight.Inbox == nil || preflight.Dependencies == nil || preflight.Reservations == nil || preflight.Warnings == nil || preflight.SuggestedActions == nil {
@@ -53,10 +53,46 @@ func TestDispatchPreflightQueryReturnsCanonicalProjection(t *testing.T) {
 	}
 }
 
+func TestApplyPreflightDecisionSeparatesBlockingSignalsFromHousekeeping(t *testing.T) {
+	view := PreflightView{
+		Healthy:                  true,
+		GitRisks:                 59,
+		FinishedUnclosedSessions: 249,
+		IntegrationQueue:         567,
+		Housekeeping: query.HousekeepingView{
+			FinishedUnclosedSessions: 249,
+			IntegrationQueue:         567,
+		},
+	}
+	applyPreflightDecision(&view)
+	if !view.MutationAllowed || len(view.BlockingReasons) != 0 {
+		t.Fatalf("non-blocking debt blocked mutation: %+v", view)
+	}
+
+	view.OwnershipConflicts = 1
+	applyPreflightDecision(&view)
+	if view.MutationAllowed || len(view.BlockingReasons) != 1 || view.BlockingReasons[0] != "ownership_conflict" {
+		t.Fatalf("ownership conflict did not block mutation: %+v", view)
+	}
+
+	view.Healthy = false
+	applyPreflightDecision(&view)
+	if view.MutationAllowed || len(view.BlockingReasons) != 2 || view.BlockingReasons[0] != "preflight_unhealthy" || view.BlockingReasons[1] != "ownership_conflict" {
+		t.Fatalf("unhealthy preflight did not fail closed: %+v", view)
+	}
+}
+
 func TestDispatchPreflightQueryUsesOnlyExplicitSessionSelection(t *testing.T) {
 	ctx, dispatcher, selection := lineageDispatcher(t)
 	if err := seedCheckpointRefresh(ctx, dispatcher, selection); err != nil {
 		t.Fatal(err)
+	}
+	question := dispatcher.Dispatch(ctx, Request{
+		Version: RequestVersion, Command: "message.send", Project: selection.Project, IdempotencyKey: "preflight-question",
+		Payload: json.RawMessage(`{"id":"preflight-question","type":"QUESTION","thread_id":"checkpoint-thread","sender_session_id":"checkpoint-session","recipients":[{"session_id":"checkpoint-session"}],"subject":"Need a decision","body":"inert question","related_task_id":"checkpoint-task"}`),
+	})
+	if question.Error.Code != "" {
+		t.Fatalf("question setup error=%+v", question.Error)
 	}
 
 	payload, err := json.Marshal(PreflightRequest{SessionID: "checkpoint-session"})
@@ -71,13 +107,24 @@ func TestDispatchPreflightQueryUsesOnlyExplicitSessionSelection(t *testing.T) {
 	if view.Identity == nil || view.Identity.ID != "checkpoint-session" {
 		t.Fatalf("selected preflight identity=%+v", view.Identity)
 	}
+	if view.InboxSummary == nil || view.InboxSummary.Pending != 1 || view.InboxSummary.Unread != 1 || view.InboxSummary.Actionable != 1 || len(view.InboxSummary.Items) != 1 {
+		t.Fatalf("selected preflight inbox summary=%+v", view.InboxSummary)
+	}
+	if first := view.InboxSummary.Items[0]; first.MessageID != "preflight-question" || first.Type != "QUESTION" || !first.NeedsRead || !first.NeedsAck {
+		t.Fatalf("actionable message was not prioritized: %+v", first)
+	}
+	for _, item := range view.Inbox {
+		if item.ReadAt != nil || item.AcknowledgedAt != nil {
+			t.Fatalf("preflight advanced message state: %+v", item)
+		}
+	}
 
 	unselected := dispatcher.Dispatch(ctx, Request{Version: RequestVersion, Command: "preflight.query", Project: selection.Project, Payload: json.RawMessage(`{}`)})
 	if unselected.Error.Code != "" {
 		t.Fatalf("unselected preflight.query error=%+v", unselected.Error)
 	}
 	withoutSelection := unselected.Data.(PreflightView)
-	if withoutSelection.Identity != nil || len(withoutSelection.Sessions) != 2 {
+	if withoutSelection.Identity != nil || withoutSelection.InboxSummary != nil || len(withoutSelection.Sessions) != 2 {
 		t.Fatalf("unselected preflight must not guess identity: %+v", withoutSelection)
 	}
 }

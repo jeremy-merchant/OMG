@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/safety"
+	"github.com/jeremy-merchant/oh-my-group/internal/safety"
 	"github.com/pelletier/go-toml/v2"
 )
 

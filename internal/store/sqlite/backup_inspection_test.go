@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func TestInspectBackupValidatesChecksumIntegrityAndSchema(t *testing.T) {
@@ -21,7 +21,7 @@ func TestInspectBackupValidatesChecksumIntegrityAndSchema(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !inspection.Integrity || !inspection.Compatible || inspection.SchemaVersion != 11 || inspection.Checksum != backup.Checksum {
+	if !inspection.Integrity || !inspection.Compatible || inspection.SchemaVersion != 12 || inspection.Checksum != backup.Checksum {
 		t.Fatalf("inspection = %#v", inspection)
 	}
 	if _, err := InspectBackup(ctx, backupPath, "sha256:wrong"); err == nil {

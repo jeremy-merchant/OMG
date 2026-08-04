@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	resapp "github.com/jeremy-merchant/OMG/internal/app/reservation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	core "github.com/jeremy-merchant/OMG/internal/domain/lineage"
-	domainreservation "github.com/jeremy-merchant/OMG/internal/domain/reservation"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	resapp "github.com/jeremy-merchant/oh-my-group/internal/app/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	core "github.com/jeremy-merchant/oh-my-group/internal/domain/lineage"
+	domainreservation "github.com/jeremy-merchant/oh-my-group/internal/domain/reservation"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/config"
+	"github.com/jeremy-merchant/oh-my-group/internal/config"
 )
 
 func TestLoadDefaultsMatchMaster(t *testing.T) {

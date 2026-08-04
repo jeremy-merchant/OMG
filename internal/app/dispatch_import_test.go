@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/platform"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/platform"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 )
 
 func importRecordDispatcher(t *testing.T) (*ServiceDispatcher, foundation.Selection) {

@@ -1,4 +1,4 @@
-module github.com/jeremy-merchant/OMG
+module github.com/jeremy-merchant/oh-my-group
 
 go 1.26
 

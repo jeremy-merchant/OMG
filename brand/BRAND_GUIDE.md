@@ -1,30 +1,57 @@
-# OMG Brand Guide (v0.1 Candidate)
+# Oh My Group Brand Guide (v0.1 Candidate)
 
 **STATUS: OPEN SOURCE**
 
-## Concept: O-M-G Geometric Mark
+## Naming system
 
-This brand identity encapsulates the core operational flow of the OMG platform through a strict 24x24 geometric grid:
-1. **Enclosing O:** Represents the system boundary, isolation, and holistic context.
-2. **M-like Delegated Branch Pair:** Visualizes the delegation of tasks from the human root to the autonomous agent nodes.
-3. **Returning G-like Handoff Path:** A sweeping arc that captures the completion and return of agency/results back to the user or system core.
+- **Oh My Group** is the public project and GitHub repository name.
+- **OMG** is the compact product mark and coordination-system shorthand.
+- **`omg`** is the executable, command namespace, environment prefix, and protocol-facing CLI identity.
+- Public copy should introduce the relationship once as **“Oh My Group — the OMG CLI”**, then use either *Oh My Group* for the project or `omg` for commands.
 
-### Shape Distinction & Color
-- **Human Root:** A sharp diamond (polygon) at the base representing the grounded human operator.
-- **Agent Nodes:** Perfect circles representing the executing agents, visually distinct from the human root regardless of color.
-- **Primary vs Mono:** In the primary mark, a single accessible flat accent color is applied exclusively to the "returning G-like handoff path." The mono mark relies solely on the shape distinction. Both guarantee 16px recognizability and 4.5:1 UI contrast.
+## Concept: O-M-G geometric mark
 
-## Grid & Clear Space
-- **Grid:** 24x24 units.
-- **Clear Space:** Minimum of 4 units (1/6th of the canvas) around the mark.
-- **Minimum Size:** 16x16 pixels. The geometry remains distinct and recognizable at this scale.
+The core mark encapsulates the coordination flow through a strict 24×24 geometric grid:
 
-## Color Palette
-- **Light Theme:** Background `#ffffff`, Foreground `#0f172a`, Accent `#2563eb`
-- **Dark Theme:** Background `#0f172a`, Foreground `#f8fafc`, Accent `#3b82f6`
+1. **Enclosing O:** system boundary, isolation, and holistic context.
+2. **M-like delegated branch pair:** tasks delegated from the human root to agent nodes.
+3. **Returning G-like handoff path:** completed work and evidence returning to the operator or system core.
+
+### Shape distinction and color
+
+- **Human root:** a sharp diamond representing grounded human authority.
+- **Agent nodes:** circles representing executing agents, visually distinct regardless of color.
+- **Primary vs mono:** the primary mark applies one accessible accent color to the returning handoff path. The mono mark relies entirely on geometry. Both must remain recognizable at 16 px and maintain 4.5:1 UI contrast.
+
+## Grid and clear space
+
+- **Grid:** 24×24 units.
+- **Clear space:** at least four units around the core mark.
+- **Minimum size:** 16×16 px.
+
+## Color palette
+
+### Core product mark
+
+- **Light:** background `#ffffff`, foreground `#0f172a`, accent `#2563eb`.
+- **Dark:** background `#0f172a`, foreground `#f8fafc`, accent `#3b82f6`.
+
+### Editorial and README graphics
+
+README banners, architecture illustrations, and lifecycle diagrams may use restrained gradients and supporting accents while preserving the core mark geometry:
+
+- Deep background: `#050b16` → `#091423`
+- Blue: `#60a5fa`
+- Mint: `#5eead4`
+- Purple: `#a78bfa`
+- Primary text: `#e2e8f0`
+- Secondary text: `#94a3b8`
 
 ## Misuse
-- Do not add gradients, drop shadows, or filters.
-- Do not alter the geometric alignment or node shapes.
-- Do not embed raster images within the vector paths.
-- Do not add visible status text to the core SVG marks; publication state is tracked through metadata.
+
+- Do not rename the executable away from `omg` merely to match the repository slug.
+- Do not represent messages, model output, or automated verification as human approval.
+- Do not alter the geometric alignment or node shapes of the core mark.
+- Do not add gradients, shadows, or filters to the **core logo SVGs**. These effects are permitted only in editorial graphics.
+- Do not embed third-party logos or unlicensed raster artwork.
+- Do not add visible release-status text to the core mark; publication state belongs in metadata and documentation.

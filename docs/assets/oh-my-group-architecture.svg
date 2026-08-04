@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860" role="img" aria-labelledby="title desc">
+  <title id="title">How Oh My Group fits in</title>
+  <desc id="desc">Git remains the source of truth, Oh My Group coordinates agents, and protected execution remains approval gated.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050b16"/><stop offset="1" stop-color="#091423"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#314158" opacity=".32"/></pattern>
+  </defs>
+  <rect width="1600" height="860" rx="28" fill="url(#bg)"/><rect width="1600" height="860" rx="28" fill="url(#grid)"/><rect x="1" y="1" width="1598" height="858" rx="27" fill="none" stroke="#1e293b" stroke-width="2"/>
+  <text x="800" y="100" text-anchor="middle" fill="#e2e8f0" font-family="Inter,system-ui,sans-serif" font-size="68" font-weight="820">How <tspan fill="url(#blue)">Oh My Group</tspan> fits in</text>
+  <text x="800" y="145" text-anchor="middle" fill="#94a3b8" font-family="Inter,system-ui,sans-serif" font-size="24">Git stores the code. The <tspan fill="#5eead4" font-weight="700">OMG CLI</tspan> coordinates the work.</text>
+
+  <g transform="translate(54 220)">
+    <g>
+      <rect width="330" height="430" rx="28" fill="#081522" stroke="#315274" stroke-width="2"/>
+      <path d="M54 54v60m0-42l46-20M54 96l46 22" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round"/><circle cx="54" cy="54" r="9" fill="#60a5fa"/><circle cx="100" cy="52" r="9" fill="#60a5fa"/><circle cx="100" cy="118" r="9" fill="#60a5fa"/>
+      <text x="126" y="92" fill="#60a5fa" font-family="Inter,system-ui,sans-serif" font-size="42" font-weight="800">Git</text>
+      <text x="40" y="152" fill="#cbd5e1" font-family="Inter,system-ui,sans-serif" font-size="23">Single source of truth</text>
+      <line x1="40" y1="178" x2="290" y2="178" stroke="#315274"/>
+      <g fill="#e2e8f0" font-family="Inter,system-ui,sans-serif" font-size="24">
+        <circle cx="54" cy="229" r="6" fill="#60a5fa"/><text x="78" y="238">branches</text>
+        <circle cx="54" cy="283" r="6" fill="#60a5fa"/><text x="78" y="292">history</text>
+        <circle cx="54" cy="337" r="6" fill="#60a5fa"/><text x="78" y="346">diffs</text>
+        <circle cx="54" cy="391" r="6" fill="#60a5fa"/><text x="78" y="400">worktrees</text>
+      </g>
+    </g>
+
+    <g transform="translate(390)">
+      <rect width="330" height="430" rx="28" fill="#071a20" stroke="#2dd4bf" stroke-width="3"/>
+      <rect x="42" y="45" width="70" height="70" rx="18" fill="#081522" stroke="#5eead4" stroke-width="5"/><path d="M61 66l17 14-17 14M84 96h14" fill="none" stroke="#93c5fd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="134" y="92" fill="#5eead4" font-family="Inter,system-ui,sans-serif" font-size="39" font-weight="800">OMG CLI</text>
+      <text x="40" y="152" fill="#cbd5e1" font-family="Inter,system-ui,sans-serif" font-size="23">Coordination layer</text>
+      <line x1="40" y1="178" x2="290" y2="178" stroke="#2b645f"/>
+      <g fill="#e2e8f0" font-family="Inter,system-ui,sans-serif" font-size="24">
+        <circle cx="54" cy="219" r="6" fill="#5eead4"/><text x="78" y="228">sessions</text>
+        <circle cx="54" cy="267" r="6" fill="#5eead4"/><text x="78" y="276">tasks &amp; runs</text>
+        <circle cx="54" cy="315" r="6" fill="#5eead4"/><text x="78" y="324">messages</text>
+        <circle cx="54" cy="363" r="6" fill="#5eead4"/><text x="78" y="372">reservations</text>
+        <circle cx="54" cy="411" r="6" fill="#5eead4"/><text x="78" y="420">handoffs</text>
+      </g>
+    </g>
+
+    <g transform="translate(780)">
+      <rect width="330" height="430" rx="28" fill="#111426" stroke="#6d5a9b" stroke-width="2"/>
+      <circle cx="76" cy="78" r="32" fill="#211634" stroke="#a78bfa" stroke-width="3"/><circle cx="67" cy="73" r="8" fill="#a78bfa"/><circle cx="88" cy="73" r="8" fill="#a78bfa"/><path d="M52 100c4-14 13-20 25-20s21 6 25 20" fill="none" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
+      <text x="126" y="92" fill="#a78bfa" font-family="Inter,system-ui,sans-serif" font-size="40" font-weight="800">Agents</text>
+      <text x="40" y="152" fill="#cbd5e1" font-family="Inter,system-ui,sans-serif" font-size="23">Coders, reviewers, workers</text>
+      <line x1="40" y1="178" x2="290" y2="178" stroke="#5b4680"/>
+      <g font-family="Inter,system-ui,sans-serif">
+        <g transform="translate(36 206)"><rect width="258" height="58" rx="15" fill="#0b1725" stroke="#334155"/><circle cx="32" cy="29" r="15" fill="#5eead4"/><text x="60" y="27" fill="#e2e8f0" font-size="19" font-weight="700">Agent Coder</text><circle cx="61" cy="42" r="4" fill="#5eead4"/><text x="73" y="47" fill="#94a3b8" font-size="13">available</text></g>
+        <g transform="translate(36 280)"><rect width="258" height="58" rx="15" fill="#0b1725" stroke="#334155"/><circle cx="32" cy="29" r="15" fill="#60a5fa"/><text x="60" y="27" fill="#e2e8f0" font-size="19" font-weight="700">Agent Reviewer</text><circle cx="61" cy="42" r="4" fill="#60a5fa"/><text x="73" y="47" fill="#94a3b8" font-size="13">available</text></g>
+        <g transform="translate(36 354)"><rect width="258" height="58" rx="15" fill="#0b1725" stroke="#334155"/><circle cx="32" cy="29" r="15" fill="#a78bfa"/><text x="60" y="27" fill="#e2e8f0" font-size="19" font-weight="700">Agent Planner</text><circle cx="61" cy="42" r="4" fill="#a78bfa"/><text x="73" y="47" fill="#94a3b8" font-size="13">available</text></g>
+      </g>
+    </g>
+
+    <g transform="translate(1170)">
+      <rect width="330" height="430" rx="28" fill="#081a1d" stroke="#457a78" stroke-width="2"/>
+      <path d="M74 45l35 15v29c0 28-18 45-35 55-17-10-35-27-35-55V60z" fill="none" stroke="#5eead4" stroke-width="5"/><path d="M56 86l13 13 24-29" fill="none" stroke="#5eead4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="128" y="92" fill="#5eead4" font-family="Inter,system-ui,sans-serif" font-size="37" font-weight="800">Execution</text>
+      <text x="40" y="152" fill="#cbd5e1" font-family="Inter,system-ui,sans-serif" font-size="23">Safe operations</text>
+      <line x1="40" y1="178" x2="290" y2="178" stroke="#2b645f"/>
+      <g fill="#e2e8f0" font-family="Inter,system-ui,sans-serif" font-size="24">
+        <circle cx="54" cy="229" r="6" fill="#5eead4"/><text x="78" y="238">preflight</text>
+        <circle cx="54" cy="283" r="6" fill="#5eead4"/><text x="78" y="292">review</text>
+        <circle cx="54" cy="337" r="6" fill="#5eead4"/><text x="78" y="346">migrate</text>
+        <circle cx="54" cy="391" r="6" fill="#5eead4"/><text x="78" y="400">verify</text>
+      </g>
+    </g>
+
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M342 214h36l-14-14m14 14l-14 14" stroke="#60a5fa" stroke-width="6"/>
+      <path d="M732 214h36l-14-14m14 14l-14 14" stroke="#5eead4" stroke-width="6"/>
+      <path d="M1122 214h36l-14-14m14 14l-14 14" stroke="#a78bfa" stroke-width="6"/>
+    </g>
+    <g font-family="Inter,system-ui,sans-serif" font-size="15" text-anchor="middle">
+      <text x="360" y="178" fill="#93c5fd">read / observe</text><text x="750" y="178" fill="#5eead4">assign / coordinate</text><text x="1140" y="178" fill="#c4b5fd">execute / report</text>
+    </g>
+  </g>
+
+  <path d="M1386 688v62H214v-62" fill="none" stroke="#54708e" stroke-width="3" stroke-dasharray="8 10"/>
+  <path d="M201 699l13-14 13 14" fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="800" y="745" text-anchor="middle" fill="#94a3b8" font-family="Inter,system-ui,sans-serif" font-size="19">observe outcomes · preserve evidence · feed the next decision</text>
+  <rect x="382" y="780" width="836" height="54" rx="20" fill="#0a1724" stroke="#26364b"/>
+  <text x="800" y="815" text-anchor="middle" fill="#dbe4f0" font-family="Inter,system-ui,sans-serif" font-size="23">Git stores the code. <tspan fill="#5eead4" font-weight="800">Oh My Group coordinates the work.</tspan></text>
+</svg>

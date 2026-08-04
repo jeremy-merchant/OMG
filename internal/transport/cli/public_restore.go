@@ -2,10 +2,10 @@ package cli
 
 import (
 	"context"
-	"github.com/jeremy-merchant/OMG/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
 	"io"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
 )
 
 func runRestorePlan(ctx context.Context, output io.Writer, input io.Reader, request Request, service app.Foundation, selection foundation.Selection) int {

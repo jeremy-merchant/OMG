@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jeremy-merchant/OMG/internal/windowsacl"
+	"github.com/jeremy-merchant/oh-my-group/internal/windowsacl"
 
 	"golang.org/x/sys/windows"
 )

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 	"golang.org/x/sys/unix"
 )
 

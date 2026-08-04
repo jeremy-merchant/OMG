@@ -1,41 +1,56 @@
 <div align="center">
 
-# OMG
+<img src="docs/assets/oh-my-group-hero.svg" alt="Oh My Group — Git-native coordination for coding agents" width="100%" />
 
-### The local coordination layer for AI coding agents.
+# Oh My Group
+
+### The `omg` CLI: a local coordination layer for AI coding agents.
 
 **Coordinate parallel work. Recover context. Verify completion.**
 
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](go.mod)
 [![License](https://img.shields.io/badge/license-Apache--2.0-4C1.svg)](LICENSE)
-![Local first](https://img.shields.io/badge/local--first-SQLite-7B61FF)
-![Daemonless](https://img.shields.io/badge/runtime-daemonless-00A67E)
+![Local first](https://img.shields.io/badge/architecture-local--first-0F766E)
+![Daemonless](https://img.shields.io/badge/runtime-daemonless-2563EB)
 ![Status](https://img.shields.io/badge/status-pre--1.0-F0AD45)
 
-<sub>Codex · Claude Code · OMP · OpenCode · Gemini · Cursor · Windsurf · Cline · shell agents</sub>
+<sub>Repository: <code>oh-my-group</code> · CLI: <code>omg</code> · Codex · Claude Code · OMP · OpenCode · Gemini · Cursor · Windsurf · Cline · shell agents</sub>
 
-[Quickstart](#quickstart) · [Why OMG](#why-omg) · [How it works](#how-it-works) · [Safety](#safety-boundary) · [Documentation](#documentation)
+[Quickstart](#quickstart) · [Why](#why-oh-my-group) · [Lifecycle](#coordination-lifecycle) · [How it works](#how-it-works) · [Safety](#safety-boundary) · [Documentation](#documentation)
 
 </div>
 
 > [!IMPORTANT]
-> OMG is open-source under Apache-2.0 and currently pre-1.0. No stable binary release has been published yet; install from source and treat `main` as an evolving contract.
+> Oh My Group is open-source under Apache-2.0 and currently pre-1.0. The executable remains `omg`. No stable binary release has been published yet; install from source and treat `main` as an evolving contract.
 
-OMG is **not another coding agent**. It is the durable coordination and recovery layer beneath the agents you already use.
+Oh My Group is **not another coding agent**. Its `omg` CLI is the durable coordination and recovery layer beneath the agents you already use.
 
-It keeps lineage, tasks, runs, progress, dependencies, messages, handoffs, advisory path reservations, and observed Git state in one local SQLite ledger—without replacing your runtime, copying native transcripts, or taking control of Git.
+It keeps lineage, tasks, runs, progress, dependencies, typed messages, handoffs, advisory path reservations, and observed Git state in one local SQLite ledger—without replacing your runtime, copying native transcripts, or taking control of Git.
 
-## Why OMG
+## Why Oh My Group
 
 Coding agents are fast. Multi-agent work is not automatically coordinated.
 
-| Without OMG | With OMG |
+| Without coordination | With the OMG CLI |
 | --- | --- |
 | Session context disappears when a chat ends. | Resumed and delegated sessions retain explicit lineage and handoff history. |
 | Parallel workers silently overlap. | Advisory path reservations and dependency state make conflicts visible. |
 | “Done” can mean “the agent stopped typing.” | `WORK_COMPLETE` stays separate from independently accepted `VERIFIED_DONE`. |
-| Coordination decisions and Git evidence are hard to connect. | OMG links them while Git remains the repository source of truth. |
+| Questions and blockers live only in chat memory. | Typed `QUESTION`, `DEPENDENCY`, `CONFLICT`, `BLOCKED`, and `HANDOFF` messages survive until the target session returns. |
+| Coordination decisions and Git evidence are hard to connect. | The OMG CLI links them while Git remains the repository source of truth. |
 | Coordination logic is coupled to one harness. | Runtime-neutral commands work across Codex, Claude Code, OMP, OpenCode, MCP clients, and shell agents. |
+
+## Coordination lifecycle
+
+Oh My Group is an integration and release boundary ledger. It scales coordination to risk instead of inserting itself into every development step.
+
+<p align="center">
+  <img src="docs/assets/oh-my-group-lifecycle.svg" alt="Observe, Work Lite, and Full coordination modes" width="100%" />
+</p>
+
+- **OBSERVE:** read-only diagnosis and log inspection with no preflight or coordination records.
+- **WORK_LITE:** one branch and one worker, with one controller-provided start command and one finish command around normal development and Git verification.
+- **FULL:** multiple candidates, shared rolling ownership, exact-SHA integration/Canary, deploy, database, authentication, payment, release, or explicit ownership transfer.
 
 ## Quickstart
 
@@ -44,16 +59,16 @@ Coding agents are fast. Multi-agent work is not automatically coordinated.
 Requires Go 1.26 or the version declared in [`go.mod`](go.mod).
 
 ```bash
-go install github.com/jeremy-merchant/OMG/cmd/omg@main
+go install github.com/jeremy-merchant/oh-my-group/cmd/omg@main
 omg agent install
 omg agent doctor
 ```
 
-`omg agent install` adds bounded OMG instructions and always-on skills to supported agent discovery locations. The agent—not the human—then performs routine preflight, coordination, progress, and handoff steps.
+`omg agent install` adds bounded instructions and always-on skills to supported agent discovery locations. Controllers provide complete OMG boundary commands; workers do not explore OMG help/schema surfaces or record ordinary RED/GREEN and diagnostic steps.
 
 ### 2. Initialize a project safely
 
-`omg init` creates the project configuration and state location. The next `preflight` automatically applies every exact pending migration compiled into the installed OMG binary. Before changing schema, OMG creates and verifies the plan-bound backup, applies atomically, and checks integrity. Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain blocked rather than asking for approval.
+`omg init` creates the project configuration and state location. The next `preflight` automatically applies every exact pending migration compiled into the installed binary. Before changing schema, the CLI creates and verifies a plan-bound backup, applies atomically, and checks integrity.
 
 ```bash
 PROJECT=/absolute/path/to/your/project
@@ -62,7 +77,7 @@ omg init --project "$PROJECT" --json
 omg preflight --project "$PROJECT" --json
 ```
 
-Normal initialization needs no approval file. `migration plan`, `backup create`, and the legacy manual `migration apply` command remain available for diagnostics and controlled recovery. The automatic backup policy and failure procedure are documented in the [operator guide](docs/OPERATIONS.md#initialization-and-schema-lifecycle).
+Unknown, stale, checksum-divergent, backup-failed, or integrity-failed plans remain blocked. Normal initialization needs no approval file. Diagnostic and controlled-recovery commands remain documented in the [operator guide](docs/OPERATIONS.md#initialization-and-schema-lifecycle).
 
 ### 3. See the project
 
@@ -74,7 +89,20 @@ omg export html --project "$PROJECT" --output "$PROJECT/omg-board.html"
 
 The HTML board is static, self-contained, network-free, and written only to a new destination.
 
-## What OMG tracks
+### 4. Let sessions leave durable messages
+
+A session-scoped preflight returns a compact inbox summary without marking messages read or acknowledged.
+
+```bash
+omg preflight --project "$PROJECT" --session SESSION_ID --json
+omg message inbox --project "$PROJECT" \
+  --payload '{"recipient":{"session_id":"SESSION_ID"}}' \
+  --json
+```
+
+Use `QUESTION`, `DEPENDENCY`, `CONFLICT`, `BLOCKED`, or `HANDOFF` when another session needs information or action. Acknowledge only after handling the request.
+
+## What the OMG CLI tracks
 
 | Surface | What it preserves |
 | --- | --- |
@@ -87,25 +115,20 @@ The HTML board is static, self-contained, network-free, and written only to a ne
 
 ## How it works
 
-```mermaid
-flowchart LR
-    H[Human owner] --> A[Codex · Claude Code · OMP · OpenCode · other agents]
-    A <--> O[(OMG coordination + policy state)]
-    O --> V[TTY · JSON · Markdown · HTML]
-    O --> M[MCP stdio]
-    G[Git: code · commits · refs · worktrees] --> A
-    O -. live read-only verification .-> G
-```
+<p align="center">
+  <img src="docs/assets/oh-my-group-architecture.svg" alt="How Git, Oh My Group, coding agents, and safe execution fit together" width="100%" />
+</p>
 
-- **Git-native:** Git is authoritative for code, commits, refs, branches, worktrees, diffs, and history. OMG stores only coordination/policy facts and explicitly requested evidence.
-- **Local-first:** canonical OMG coordination state lives in an owner-scoped SQLite store outside Git.
+- **Git-native:** Git is authoritative for code, commits, refs, branches, worktrees, diffs, and history. The OMG CLI stores coordination and policy facts plus explicitly requested evidence.
+- **Local-first:** canonical coordination state lives in an owner-scoped SQLite store outside Git.
 - **Daemonless by default:** no background service, cloud account, Node runtime, Python runtime, or shared SQLite library is required.
 - **Runtime-neutral:** agents can use the global discovery harness, explicit wrappers, shell helpers, or the MCP stdio adapter.
+- **Pull-based messaging:** sessions discover pending actionable messages on their next scoped preflight, bootstrap, board, or checkpoint interaction.
 - **One projection:** every renderer starts from the same canonical, redacted snapshot.
 
-## Use it from any harness
+## Use the OMG CLI from any harness
 
-Install once, then let supported agents discover OMG automatically:
+Install once, then let supported agents discover the coordination contract automatically:
 
 ```bash
 omg agent install
@@ -125,7 +148,7 @@ Expose the same command policy over newline-delimited MCP JSON-RPC 2.0:
 omg mcp serve --stdio
 ```
 
-Controllers launching parallel OMP lanes can pre-register each worker and inject exact project, session, task, controller, and human identity:
+Controllers launching parallel lanes can pre-register each worker and inject exact project, session, task, controller, and human identity:
 
 ```bash
 omg worker bootstrap \
@@ -140,10 +163,11 @@ See the [worker bootstrap guide](docs/WORKER_BOOTSTRAP.md) for the controller co
 
 | Goal | Command |
 | --- | --- |
-| Check health before work | `omg preflight` |
+| Check health and pending messages before work | `omg preflight --session SESSION_ID` |
 | See active work and blockers | `omg board all` |
 | Inspect one worker's scope | `omg board me` |
 | Inspect one task | `omg board task --task TASK_ID` |
+| Read one session inbox | `omg message inbox` |
 | Diagnose the global harness | `omg agent doctor` |
 | Generate shell helpers | `omg shell-init bash` |
 | Generate completions | `omg completion zsh` |
@@ -153,9 +177,9 @@ Running `omg` with no arguments prints a concise discovery view. A bare namespac
 
 ## Safety boundary
 
-OMG coordinates and observes. It does **not** silently acquire authority.
+The OMG CLI coordinates and observes. It does **not** silently acquire authority.
 
-| OMG does | OMG does not |
+| The OMG CLI does | The OMG CLI does not |
 | --- | --- |
 | Record lineage, work, messages, handoffs, reservations, and evidence. | Grant commit, push, deploy, credential, production, deletion, or publication authority. |
 | Observe repositories and worktrees. | Commit, merge, rebase, push, reset, clean, delete, or remove branches/worktrees. |
@@ -165,13 +189,13 @@ OMG coordinates and observes. It does **not** silently acquire authority.
 Additional guarantees:
 
 - Every exact migration compiled into the installed binary is eligible for backup-verified automatic application; unknown, stale, checksum-divergent, backup-failed, and integrity-failed plans fail closed.
-
 - Native conversation transcripts remain in their source runtime.
 - `.omg/` contains only tracked-safe configuration and operator-created plan/approval files; canonical mutable state stays outside Git.
 - File output is owner-only and refuses to overwrite an existing path.
+- Seeing an inbox message does not mark it read or acknowledged.
 - `SAFE_TO_REMOVE` is a classification, never authorization.
 
-Read the [security policy](SECURITY.md), [privacy contract](docs/PRIVACY.md), and [threat model](docs/THREAT_MODEL.md) before integrating OMG into automated workflows.
+Read the [security policy](SECURITY.md), [privacy contract](docs/PRIVACY.md), and [threat model](docs/THREAT_MODEL.md) before integrating the CLI into automated workflows.
 
 ## Build from this checkout
 
@@ -213,4 +237,4 @@ Contributions are welcome. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), foll
 
 ## License
 
-OMG is licensed under the [Apache License 2.0](LICENSE).
+Oh My Group is licensed under the [Apache License 2.0](LICENSE).

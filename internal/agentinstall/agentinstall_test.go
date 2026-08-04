@@ -125,7 +125,7 @@ func TestInstallUpdatesPreviousManagedSkill(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	previous := strings.Replace(string(SkillContent()), "schemaVersion: 8", "schemaVersion: 7", 1)
+	previous := strings.Replace(string(SkillContent()), "schemaVersion: 10", "schemaVersion: 9", 1)
 	if err := os.WriteFile(path, []byte(previous), 0o640); err != nil {
 		t.Fatal(err)
 	}
@@ -189,12 +189,12 @@ func TestStatusRejectsSymlinkParent(t *testing.T) {
 
 func TestSkillContentIsAlwaysApplyAndSecretFree(t *testing.T) {
 	content := string(SkillContent())
-	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 8", managedSkillMarker, managedSkillEnd, "The agent performs this lifecycle itself", "OBSERVE", "WORK_LITE", "FULL", "OMG records coordination risk, not every action", "Host-level tool installation", "not OMG project work", "Never use agent-harness health as a universal shell gate", "omg agent status|doctor|install|uninstall", "must not block diagnosis", "every exact pending migration", "plan-bound backup", "do not wait for human approval", "omg worker bootstrap", "OMG_CONTROLLER_SESSION_ID", "omg board me", "omg board actionable", "omg example show session-create", "omg message inbox", "instruction_source", "Git is the single source of truth", "live, non-persisted risk and ownership overlay", "native read-only Git commands", "explicit durable audit observation", "project-scoped", "VERIFIED_DONE"} {
+	for _, required := range []string{"name: omg", "alwaysApply: true", "schemaVersion: 10", managedSkillMarker, managedSkillEnd, "integration and release boundaries", "complete controller-provided commands", "OBSERVE", "WORK_LITE", "FULL", "one branch, one worker", "exactly one supplied start command", "exactly one supplied finish command", "database changes", "Git is the single source of truth", "mutation_allowed", "ownership_conflict", "housekeeping values", "finished_unclosed_sessions", "integration_queue", "Nonzero historical counts do not by themselves block safe new work", "non-safety OMG read", "separate controller operations", "Never use agent-harness health as a universal shell gate", "do not block read-only diagnosis", "separate approval rules"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf("skill missing %q", required)
 		}
 	}
-	for _, forbidden := range []string{"omgdt_", "Authorization:", "PRIVATE KEY", "/Users/", "C:\\Users\\"} {
+	for _, forbidden := range []string{"omgdt_", "Authorization:", "PRIVATE KEY", "/Users/", "C:\\Users\\", "omg example show", "omg reserve batch-add", "one command per file", "mandatory pull notification"} {
 		if strings.Contains(content, forbidden) {
 			t.Fatalf("skill contains forbidden value %q", forbidden)
 		}

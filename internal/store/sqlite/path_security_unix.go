@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/jeremy-merchant/OMG/internal/unixacl"
+	"github.com/jeremy-merchant/oh-my-group/internal/unixacl"
 	"golang.org/x/sys/unix"
 )
 

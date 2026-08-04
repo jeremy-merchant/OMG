@@ -9,10 +9,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jeremy-merchant/OMG/internal/agentinstall"
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/terminalstyle"
+	"github.com/jeremy-merchant/oh-my-group/internal/agentinstall"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/terminalstyle"
 )
 
 type terminalTheme struct {
@@ -112,6 +112,69 @@ func renderErrorWithContext(output io.Writer, err domain.DomainError, exit int, 
 	)
 	writePresentationFacts(&rendered, theme, width, facts)
 	_, _ = io.WriteString(output, rendered.String())
+}
+
+func renderStructuredErrorDetail(output io.Writer, detail *app.ErrorDetail) {
+	if detail == nil {
+		return
+	}
+	theme := newTerminalTheme(cliTerminalColorEnabled(output))
+	width := cliTerminalWidth(output)
+	var rendered strings.Builder
+	facts := []presentationFact{
+		{Label: "reason", Value: neutralizeTerminalControls(detail.ReasonCode)},
+		{Label: "operation", Value: neutralizeTerminalControls(detail.Operation)},
+	}
+	if detail.CurrentState != "" {
+		facts = append(facts, presentationFact{Label: "state", Value: neutralizeTerminalControls(detail.CurrentState)})
+	}
+	if entities := formatErrorEntities(detail.Entities); entities != "" {
+		facts = append(facts, presentationFact{Label: "entities", Value: entities})
+	}
+	if len(detail.MissingEvidence) != 0 {
+		facts = append(facts, presentationFact{Label: "missing", Value: neutralizeTerminalControls(strings.Join(detail.MissingEvidence, ", "))})
+	}
+	if len(detail.Prerequisites) != 0 {
+		facts = append(facts, presentationFact{Label: "requires", Value: neutralizeTerminalControls(strings.Join(detail.Prerequisites, "; "))})
+	}
+	if len(detail.AllowedTransitions) != 0 {
+		facts = append(facts, presentationFact{Label: "allowed", Value: neutralizeTerminalControls(strings.Join(detail.AllowedTransitions, ", "))})
+	}
+	facts = append(facts, presentationFact{Label: "effects", Value: fmt.Sprintf("git_mutation=%t executes_canary=%t dangerous=%t", detail.GitMutation, detail.ExecutesCanary, detail.Dangerous)})
+	for _, conflict := range detail.Conflicts {
+		if value := formatErrorEntities(conflict); value != "" {
+			facts = append(facts, presentationFact{Label: "conflict", Value: value})
+		}
+	}
+	if detail.Idempotency.Conflict || detail.Idempotency.Replay || detail.Idempotency.Guidance != "" {
+		facts = append(facts, presentationFact{Label: "idempotency", Value: neutralizeTerminalControls(detail.Idempotency.Guidance)})
+	}
+	for _, action := range detail.RecoveryActions {
+		value := action.Command
+		if value == "" {
+			value = strings.Join(action.Argv, " ")
+		}
+		value = fmt.Sprintf("%s [git_mutation=%t executes_canary=%t dangerous=%t]", value, action.GitMutation, action.ExecutesCanary, action.Dangerous)
+		facts = append(facts, presentationFact{Label: "action " + neutralizeTerminalControls(action.Code), Value: neutralizeTerminalControls(value)})
+	}
+	writePresentationFacts(&rendered, theme, width, facts)
+	_, _ = io.WriteString(output, rendered.String())
+}
+
+func formatErrorEntities(entities app.ErrorEntities) string {
+	values := make([]string, 0, 7)
+	for _, entity := range []struct {
+		name  string
+		value string
+	}{
+		{"project", entities.ProjectID}, {"task", entities.TaskID}, {"run", entities.RunID}, {"session", entities.SessionID},
+		{"handoff", entities.HandoffID}, {"canary", entities.CanaryRunID}, {"reservation", entities.ReservationID},
+	} {
+		if entity.value != "" {
+			values = append(values, entity.name+"="+neutralizeTerminalControls(entity.value))
+		}
+	}
+	return strings.Join(values, " ")
 }
 
 func renderRuntimeResult(output io.Writer, result app.CLIRuntimeResult) {

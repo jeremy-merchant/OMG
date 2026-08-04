@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	"github.com/jeremy-merchant/OMG/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
 	_ "modernc.org/sqlite"
 )
 
@@ -782,7 +782,7 @@ func samePlan(left, right MigrationPlan) bool {
 }
 func normalizeMigrations(input []Migration) ([]Migration, error) {
 	if len(input) == 0 {
-		input = []Migration{{Version: 1, SQL: foundationSQL}, {Version: 2, SQL: coordinationSQL}, {Version: 3, SQL: reservationSQL}, {Version: 4, SQL: gitInventorySQL}, {Version: 5, SQL: scopedAuditSQL}, {Version: 6, SQL: scopedHumansSQL}, {Version: 7, SQL: receiptOperationSQL}, {Version: 8, SQL: legacyHumanAssociationsSQL}, {Version: 9, SQL: handoffLifecycleSQL}, {Version: 10, SQL: exactSHACanarySQL}, {Version: 11, SQL: automaticMigrationAuthorizationSQL, AutomaticSafe: true}}
+		input = []Migration{{Version: 1, SQL: foundationSQL}, {Version: 2, SQL: coordinationSQL}, {Version: 3, SQL: reservationSQL}, {Version: 4, SQL: gitInventorySQL}, {Version: 5, SQL: scopedAuditSQL}, {Version: 6, SQL: scopedHumansSQL}, {Version: 7, SQL: receiptOperationSQL}, {Version: 8, SQL: legacyHumanAssociationsSQL}, {Version: 9, SQL: handoffLifecycleSQL}, {Version: 10, SQL: exactSHACanarySQL}, {Version: 11, SQL: automaticMigrationAuthorizationSQL, AutomaticSafe: true}, {Version: 12, SQL: taskHierarchyPolicySQL, AutomaticSafe: true}}
 	}
 	output := append([]Migration(nil), input...)
 	previous := 0

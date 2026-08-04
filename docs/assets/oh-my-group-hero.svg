@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Oh My Group — Git-native coordination for coding agents</title>
+  <desc id="desc">A dark technical illustration showing Git branches, coding agents, messages, and a human approval gate.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050b16"/>
+      <stop offset="0.52" stop-color="#071322"/>
+      <stop offset="1" stop-color="#09101d"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="0.55" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#314158" opacity="0.35"/>
+    </pattern>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" rx="28" fill="url(#bg)"/>
+  <rect width="1600" height="900" rx="28" fill="url(#grid)" opacity="0.55"/>
+  <rect x="1" y="1" width="1598" height="898" rx="27" fill="none" stroke="#1e293b" stroke-width="2"/>
+
+  <g transform="translate(76 104)">
+    <rect x="0" y="0" width="164" height="164" rx="38" fill="#0b1725" stroke="#334155" stroke-width="2"/>
+    <path d="M36 38h-18v88h18M128 38h18v88h-18" fill="none" stroke="#60a5fa" stroke-width="8" stroke-linecap="round"/>
+    <rect x="48" y="31" width="68" height="98" rx="18" fill="#06121f" stroke="#5eead4" stroke-width="7" filter="url(#soft)"/>
+    <path d="M66 68l17 15-17 15M89 99h16" fill="none" stroke="#93c5fd" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="280" y="170" fill="#94a3b8" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="5">OPEN-SOURCE COORDINATION LAYER</text>
+  <text x="280" y="276" fill="url(#brand)" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="112" font-weight="850" letter-spacing="-4">Oh My Group</text>
+  <text x="286" y="333" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="650">The <tspan fill="#5eead4">OMG CLI</tspan> for Git-native agent coordination.</text>
+  <line x1="286" y1="376" x2="448" y2="376" stroke="url(#mint)" stroke-width="5" stroke-linecap="round"/>
+  <text x="286" y="430" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="27">Source-of-truth workflows, durable messages, safe approvals,</text>
+  <text x="286" y="470" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="27">and lightweight multi-agent coordination — entirely local.</text>
+
+  <g transform="translate(920 84)">
+    <rect x="0" y="0" width="604" height="278" rx="26" fill="#091421" stroke="#334155" stroke-width="2"/>
+    <text x="34" y="48" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="25" font-weight="700">Repository</text>
+    <path d="M38 29v24m0-18l17 8m-17 2l17 9" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="38" cy="29" r="4" fill="#cbd5e1"/><circle cx="55" cy="43" r="4" fill="#cbd5e1"/><circle cx="55" cy="54" r="4" fill="#cbd5e1"/>
+
+    <rect x="38" y="82" width="76" height="38" rx="14" fill="#172033"/>
+    <text x="76" y="108" text-anchor="middle" fill="#dbeafe" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="18">main</text>
+    <path d="M114 101H470" stroke="#5eead4" stroke-width="4"/>
+    <g fill="#091421" stroke="#5eead4" stroke-width="4">
+      <circle cx="160" cy="101" r="10"/><circle cx="232" cy="101" r="10"/><circle cx="304" cy="101" r="10"/><circle cx="376" cy="101" r="10"/><circle cx="448" cy="101" r="10"/>
+    </g>
+    <rect x="490" y="82" width="82" height="38" rx="14" fill="#123238"/>
+    <text x="531" y="108" text-anchor="middle" fill="#5eead4" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="18">main</text>
+
+    <path d="M160 111c0 54 34 66 78 66h246" fill="none" stroke="#60a5fa" stroke-width="4"/>
+    <g fill="#091421" stroke="#60a5fa" stroke-width="4"><circle cx="266" cy="177" r="10"/><circle cx="338" cy="177" r="10"/><circle cx="410" cy="177" r="10"/></g>
+    <rect x="486" y="158" width="86" height="38" rx="14" fill="#132b4b"/>
+    <text x="529" y="184" text-anchor="middle" fill="#93c5fd" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">feature</text>
+
+    <path d="M232 111c0 98 45 128 112 128h140" fill="none" stroke="#a78bfa" stroke-width="4"/>
+    <g fill="#091421" stroke="#a78bfa" stroke-width="4"><circle cx="378" cy="239" r="10"/><circle cx="450" cy="239" r="10"/></g>
+    <rect x="486" y="220" width="86" height="38" rx="14" fill="#2b214b"/>
+    <text x="529" y="246" text-anchor="middle" fill="#c4b5fd" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">review</text>
+  </g>
+
+  <g transform="translate(784 430)">
+    <path d="M444-60v70M172-38v48M702-38v48" stroke="#49647e" stroke-width="3" stroke-dasharray="6 8"/>
+    <circle cx="444" cy="-4" r="7" fill="#5eead4"/><circle cx="172" cy="2" r="7" fill="#60a5fa"/><circle cx="702" cy="2" r="7" fill="#a78bfa"/>
+
+    <g transform="translate(48 24)">
+      <rect width="248" height="174" rx="24" fill="#0a1724" stroke="#315274" stroke-width="2"/>
+      <circle cx="64" cy="67" r="34" fill="#0d2238" stroke="#60a5fa" stroke-width="3"/>
+      <rect x="47" y="52" width="34" height="29" rx="8" fill="#60a5fa"/><circle cx="56" cy="65" r="3" fill="#06121f"/><circle cx="72" cy="65" r="3" fill="#06121f"/><path d="M56 74h16" stroke="#06121f" stroke-width="3" stroke-linecap="round"/>
+      <text x="113" y="61" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Agent</text>
+      <text x="113" y="90" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Planner</text>
+      <circle cx="113" cy="121" r="5" fill="#5eead4"/><text x="126" y="127" fill="#94a3b8" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="16">Online</text>
+    </g>
+
+    <g transform="translate(320 24)">
+      <rect width="248" height="174" rx="24" fill="#0a1724" stroke="#2b645f" stroke-width="2"/>
+      <circle cx="64" cy="67" r="34" fill="#0d2827" stroke="#5eead4" stroke-width="3"/>
+      <rect x="47" y="52" width="34" height="29" rx="8" fill="#5eead4"/><circle cx="56" cy="65" r="3" fill="#06121f"/><circle cx="72" cy="65" r="3" fill="#06121f"/><path d="M56 74h16" stroke="#06121f" stroke-width="3" stroke-linecap="round"/>
+      <text x="113" y="61" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Agent</text>
+      <text x="113" y="90" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Coder</text>
+      <circle cx="113" cy="121" r="5" fill="#5eead4"/><text x="126" y="127" fill="#94a3b8" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="16">Online</text>
+    </g>
+
+    <g transform="translate(592 24)">
+      <rect width="248" height="174" rx="24" fill="#0a1724" stroke="#5b4680" stroke-width="2"/>
+      <circle cx="64" cy="67" r="34" fill="#211634" stroke="#a78bfa" stroke-width="3"/>
+      <rect x="47" y="52" width="34" height="29" rx="8" fill="#a78bfa"/><circle cx="56" cy="65" r="3" fill="#06121f"/><circle cx="72" cy="65" r="3" fill="#06121f"/><path d="M56 74h16" stroke="#06121f" stroke-width="3" stroke-linecap="round"/>
+      <text x="113" y="61" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Agent</text>
+      <text x="113" y="90" fill="#e2e8f0" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Reviewer</text>
+      <circle cx="113" cy="121" r="5" fill="#5eead4"/><text x="126" y="127" fill="#94a3b8" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="16">Online</text>
+    </g>
+
+    <g fill="#122031" stroke="#334155" stroke-width="2">
+      <rect x="276" y="82" width="64" height="46" rx="16"/><rect x="548" y="82" width="64" height="46" rx="16"/>
+    </g>
+    <g fill="#94a3b8"><circle cx="294" cy="105" r="4"/><circle cx="308" cy="105" r="4"/><circle cx="322" cy="105" r="4"/><circle cx="566" cy="105" r="4"/><circle cx="580" cy="105" r="4"/><circle cx="594" cy="105" r="4"/></g>
+  </g>
+
+  <g transform="translate(82 640)">
+    <rect width="640" height="172" rx="26" fill="#071421" stroke="#26364b" stroke-width="2"/>
+    <g transform="translate(28 30)">
+      <circle cx="38" cy="38" r="36" fill="#0c1b2b" stroke="#334155" stroke-width="2"/>
+      <path d="M27 32v28m0-18l19-10m-19 20l19 10" stroke="#60a5fa" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="27" cy="32" r="5" fill="#60a5fa"/><circle cx="46" cy="32" r="5" fill="#60a5fa"/><circle cx="46" cy="62" r="5" fill="#60a5fa"/>
+      <text x="94" y="34" fill="#60a5fa" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="20" font-weight="750">Git-native</text>
+      <text x="94" y="66" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">Branches, diffs, refs and history</text>
+      <text x="94" y="90" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">remain the source of truth.</text>
+    </g>
+    <line x1="322" y1="30" x2="322" y2="142" stroke="#243447"/>
+    <g transform="translate(350 30)">
+      <circle cx="38" cy="38" r="36" fill="#0c1b2b" stroke="#334155" stroke-width="2"/>
+      <path d="M38 16l22 9v18c0 17-11 28-22 34-11-6-22-17-22-34V25z" fill="none" stroke="#5eead4" stroke-width="4"/><path d="M28 42l8 8 14-17" fill="none" stroke="#5eead4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="94" y="34" fill="#5eead4" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="20" font-weight="750">Safe approvals</text>
+      <text x="94" y="66" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">Messages and model output never</text>
+      <text x="94" y="90" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">become human authority.</text>
+    </g>
+  </g>
+
+  <g transform="translate(872 674)">
+    <rect width="650" height="140" rx="24" fill="#0a1724" stroke="#334155" stroke-width="2"/>
+    <path d="M44 36l28 12v23c0 22-14 36-28 44-14-8-28-22-28-44V48z" fill="#5eead4" opacity="0.95"/>
+    <path d="M31 69l10 10 18-22" fill="none" stroke="#04101b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="96" y="54" fill="#5eead4" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="800">Approval required</text>
+    <text x="96" y="84" fill="#aab7ca" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="17">Review evidence before protected operations.</text>
+    <rect x="432" y="36" width="180" height="66" rx="18" fill="url(#mint)"/>
+    <text x="522" y="77" text-anchor="middle" fill="#03111b" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="19" font-weight="800">Approve &amp; continue</text>
+  </g>
+</svg>

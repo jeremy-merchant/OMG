@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/bootstrap"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/bootstrap"
 )
 
 func Run(args []string, version string, output io.Writer) int {

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	"github.com/jeremy-merchant/OMG/internal/app/query"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	"github.com/jeremy-merchant/oh-my-group/internal/app/query"
 )
 
 func TestTTYBoardRespectsNarrowVisibleWidths(t *testing.T) {
@@ -56,6 +56,7 @@ func TestPreflightSharesWidthAndColorSemantics(t *testing.T) {
 	now := time.Date(2026, time.July, 24, 12, 0, 0, 0, time.UTC)
 	preflight := app.PreflightView{
 		Healthy:           true,
+		MutationAllowed:   true,
 		PendingMigrations: 0,
 		Details: &app.PreflightDetails{Identity: &query.IdentityView{
 			ID:                "session-with-a-very-long-canonical-identifier-0123456789",

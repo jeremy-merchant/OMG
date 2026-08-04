@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeremy-merchant/OMG/internal/app"
-	appfoundation "github.com/jeremy-merchant/OMG/internal/app/foundation"
-	"github.com/jeremy-merchant/OMG/internal/domain"
-	instructions "github.com/jeremy-merchant/OMG/internal/integration/instructions"
-	"github.com/jeremy-merchant/OMG/internal/ports"
-	"github.com/jeremy-merchant/OMG/internal/store/sqlite"
-	watchmode "github.com/jeremy-merchant/OMG/internal/watch"
+	"github.com/jeremy-merchant/oh-my-group/internal/app"
+	appfoundation "github.com/jeremy-merchant/oh-my-group/internal/app/foundation"
+	"github.com/jeremy-merchant/oh-my-group/internal/domain"
+	instructions "github.com/jeremy-merchant/oh-my-group/internal/integration/instructions"
+	"github.com/jeremy-merchant/oh-my-group/internal/ports"
+	"github.com/jeremy-merchant/oh-my-group/internal/store/sqlite"
+	watchmode "github.com/jeremy-merchant/oh-my-group/internal/watch"
 )
 
 type bootstrapResolverStub struct{ resolved ports.ResolvedStore }
